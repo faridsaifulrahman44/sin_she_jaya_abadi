@@ -17,7 +17,7 @@ void main() {
         'public.obat_masuk',
         'public.obat_keluar',
         'public.obat_keluar_item',
-        'public.stock_opname',
+        'public.sinkronisasi_stok',
         'public.pasien',
         'public.kehadiran_pasien',
       ];

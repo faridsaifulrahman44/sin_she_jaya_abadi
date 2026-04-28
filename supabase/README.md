@@ -83,7 +83,7 @@
 | `obat_masuk` | `auth.uid() IS NOT NULL` | Semua authenticated |
 | `obat_keluar` | `auth.uid() IS NOT NULL` | Semua authenticated |
 | `obat_keluar_item` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `stock_opname` | `auth.uid() IS NOT NULL` | Semua authenticated |
+| `sinkronisasi_stok` | `auth.uid() IS NOT NULL` | Semua authenticated |
 | `pasien` | `auth.uid() IS NOT NULL` | Semua authenticated |
 | `kehadiran_pasien` | `auth.uid() IS NOT NULL` | Semua authenticated |
 
@@ -105,7 +105,7 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 | `obat_masuk` | `ObatMasukRepository` | Langsung |
 | `obat_keluar` | `ObatKeluarRepository` | Langsung |
 | `obat_keluar_item` | `ObatKeluarRepository` | Langsung |
-| `stock_opname` | `StockOpnameRepository` | Langsung |
+| `sinkronisasi_stok` | `SinkronisasiStokRepository` | Langsung |
 | `pasien` | `PasienRepository` | Langsung |
 | `kehadiran_pasien` | `KehadiranRepository` | Langsung |
 | `transaksi` | `TransaksiRepository` | Langsung |
@@ -135,10 +135,10 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 | `fn_obat_masuk_update_atomic(...)` | `ObatMasukRepository` | Update atomik |
 | `fn_obat_masuk_delete_atomic(bigint)` | `ObatMasukRepository` | Delete atomik |
 | `fn_obat_masuk_delete_by_tanggal_atomic(date)` | `ObatMasukRepository` | Bulk delete |
-| `fn_stock_opname_insert_atomic(...)` | `StockOpnameRepository` | Stock opname atomik |
-| `fn_stock_opname_update_atomic(...)` | `StockOpnameRepository` | Update atomik |
-| `fn_stock_opname_delete_atomic(bigint)` | `StockOpnameRepository` | Delete atomik |
-| `fn_stock_opname_delete_by_tanggal_atomic(date)` | `StockOpnameRepository` | Bulk delete |
+| `fn_stock_opname_insert_atomic(...)` | `SinkronisasiStokRepository` | Sinkronisasi stok atomik |
+| `fn_stock_opname_update_atomic(...)` | `SinkronisasiStokRepository` | Update atomik |
+| `fn_stock_opname_delete_atomic(bigint)` | `SinkronisasiStokRepository` | Delete atomik |
+| `fn_stock_opname_delete_by_tanggal_atomic(date)` | `SinkronisasiStokRepository` | Bulk delete |
 | `fn_obat_delete_if_unused(bigint)` | `ObatRepository` | Guarded delete |
 | `fn_pasien_delete_and_renumber(bigint)` | `PasienRepository` | Delete + renumber |
 | `fn_recalculate_obat_stok_bulk(bigint[])` | `StockRecalculationEngine` | Bulk recalc |

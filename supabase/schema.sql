@@ -3,7 +3,7 @@
 -- Project: Flutter Klinik
 -- Scope:
 --   admin, obat, obat_masuk, obat_keluar, obat_keluar_item,
---   stock_opname, pasien, kehadiran_pasien,
+--   sinkronisasi_stok, pasien, kehadiran_pasien,
 --   transaksi, transaksi_item, kunjungan_pasien
 --
 -- Notes:
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS public.obat_keluar_item (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS public.stock_opname (
+CREATE TABLE IF NOT EXISTS public.sinkronisasi_stok (
   id_opname bigserial PRIMARY KEY,
   id_obat bigint NOT NULL REFERENCES public.obat(id_obat) ON DELETE RESTRICT,
   tanggal_opname date NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS public.kehadiran_pasien (
 
 COMMENT ON COLUMN public.obat.stok_saat_ini IS
   'stok_saat_ini dihitung dari stok_awal + mutasi masuk/keluar '
-  'dan reset stock_opname. Di-maintain oleh SQL function fn_recalculate_obat_stok_*.';
+  'dan reset sinkronisasi_stok. Di-maintain oleh SQL function fn_recalculate_obat_stok_*.';
 
 -- =========================
 -- TABEL: transaksi
@@ -208,10 +208,10 @@ CREATE INDEX IF NOT EXISTS idx_obat_keluar_item_id_terjual
 CREATE INDEX IF NOT EXISTS idx_obat_keluar_item_id_obat
   ON public.obat_keluar_item(id_obat);
 
-CREATE INDEX IF NOT EXISTS idx_stock_opname_tanggal
-  ON public.stock_opname(tanggal_opname DESC);
-CREATE INDEX IF NOT EXISTS idx_stock_opname_id_obat
-  ON public.stock_opname(id_obat);
+CREATE INDEX IF NOT EXISTS idx_sinkronisasi_stok_tanggal
+  ON public.sinkronisasi_stok(tanggal_opname DESC);
+CREATE INDEX IF NOT EXISTS idx_sinkronisasi_stok_id_obat
+  ON public.sinkronisasi_stok(id_obat);
 
 CREATE INDEX IF NOT EXISTS idx_pasien_tanggal_janjian
   ON public.pasien(tanggal_janjian DESC);
@@ -349,7 +349,7 @@ BEGIN
         so.id_opname AS sequence_id,
         so.stok_fisik AS delta,
         true AS is_reset
-      FROM public.stock_opname so
+      FROM public.sinkronisasi_stok so
       WHERE so.id_obat = p_id_obat
     )
     SELECT
@@ -893,7 +893,7 @@ BEGIN
     RAISE EXCEPTION 'id_admin tidak valid';
   END IF;
 
-  INSERT INTO public.stock_opname (
+  INSERT INTO public.sinkronisasi_stok (
     id_obat,
     tanggal_opname,
     stok_sistem,
@@ -960,15 +960,15 @@ BEGIN
 
   SELECT so.id_obat
   INTO v_old_id_obat
-  FROM public.stock_opname so
+  FROM public.sinkronisasi_stok so
   WHERE so.id_opname = p_id_opname
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'stock opname tidak ditemukan: %', p_id_opname;
+    RAISE EXCEPTION 'sinkronisasi stok tidak ditemukan: %', p_id_opname;
   END IF;
 
-  UPDATE public.stock_opname
+  UPDATE public.sinkronisasi_stok
   SET
     id_obat = p_id_obat,
     tanggal_opname = p_tanggal_opname,
@@ -1006,15 +1006,15 @@ BEGIN
 
   SELECT so.id_obat
   INTO v_id_obat
-  FROM public.stock_opname so
+  FROM public.sinkronisasi_stok so
   WHERE so.id_opname = p_id_opname
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'stock opname tidak ditemukan: %', p_id_opname;
+    RAISE EXCEPTION 'sinkronisasi stok tidak ditemukan: %', p_id_opname;
   END IF;
 
-  DELETE FROM public.stock_opname
+  DELETE FROM public.sinkronisasi_stok
   WHERE id_opname = p_id_opname;
 
   PERFORM public.fn_recalculate_obat_stok_single(v_id_obat);
@@ -1035,11 +1035,11 @@ BEGIN
 
   SELECT array_agg(DISTINCT so.id_obat)
   INTO v_affected_ids
-  FROM public.stock_opname so
+  FROM public.sinkronisasi_stok so
   WHERE so.tanggal_opname = p_tanggal_opname
     AND so.id_obat IS NOT NULL;
 
-  DELETE FROM public.stock_opname
+  DELETE FROM public.sinkronisasi_stok
   WHERE tanggal_opname = p_tanggal_opname;
 
   PERFORM public.fn_recalculate_obat_stok_bulk(v_affected_ids);
@@ -1054,7 +1054,7 @@ AS $$
 DECLARE
   v_used_in_obat_masuk boolean;
   v_used_in_obat_keluar_item boolean;
-  v_used_in_stock_opname boolean;
+  v_used_in_sinkronisasi_stok boolean;
 BEGIN
   IF COALESCE(p_id_obat, 0) <= 0 THEN
     RAISE EXCEPTION 'id_obat tidak valid';
@@ -1081,22 +1081,22 @@ BEGIN
     ),
     EXISTS(
       SELECT 1
-      FROM public.stock_opname so
+      FROM public.sinkronisasi_stok so
       WHERE so.id_obat = p_id_obat
     )
   INTO
     v_used_in_obat_masuk,
     v_used_in_obat_keluar_item,
-    v_used_in_stock_opname;
+    v_used_in_sinkronisasi_stok;
 
   IF v_used_in_obat_masuk
      OR v_used_in_obat_keluar_item
-     OR v_used_in_stock_opname THEN
+     OR v_used_in_sinkronisasi_stok THEN
     RETURN jsonb_build_object(
       'deleted', false,
       'used_in_obat_masuk', v_used_in_obat_masuk,
       'used_in_obat_keluar_item', v_used_in_obat_keluar_item,
-      'used_in_stock_opname', v_used_in_stock_opname
+      'used_in_sinkronisasi_stok', v_used_in_sinkronisasi_stok
     );
   END IF;
 
@@ -1107,7 +1107,7 @@ BEGIN
     'deleted', true,
     'used_in_obat_masuk', false,
     'used_in_obat_keluar_item', false,
-    'used_in_stock_opname', false
+    'used_in_sinkronisasi_stok', false
   );
 END;
 $$;
@@ -1185,7 +1185,7 @@ $$;
 --   • obat_masuk     → semua authenticated user
 --   • obat_keluar    → semua authenticated user
 --   • obat_keluar_item → semua authenticated user
---   • stock_opname   → semua authenticated user
+--   • sinkronisasi_stok   → semua authenticated user
 --   • pasien         → semua authenticated user
 --   • kehadiran_pasien → semua authenticated user
 --   • transaksi      → semua authenticated user (steady-state: RPC/application-level enforcement)
@@ -1246,7 +1246,7 @@ ALTER TABLE public.obat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.obat_masuk ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.obat_keluar ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.obat_keluar_item ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.stock_opname ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sinkronisasi_stok ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pasien ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kehadiran_pasien ENABLE ROW LEVEL SECURITY;
 
@@ -1350,24 +1350,24 @@ CREATE POLICY "authenticated can update obat_keluar_item"
   USING (auth.uid() IS NOT NULL)
   WITH CHECK (auth.uid() IS NOT NULL);
 
--- stock_opname: semua authenticated user
-DROP POLICY IF EXISTS "authenticated can read stock_opname" ON public.stock_opname;
-CREATE POLICY "authenticated can read stock_opname"
-  ON public.stock_opname
+-- sinkronisasi_stok: semua authenticated user
+DROP POLICY IF EXISTS "authenticated can read sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can read sinkronisasi_stok"
+  ON public.sinkronisasi_stok
   FOR SELECT
   TO authenticated
   USING (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "authenticated can insert stock_opname" ON public.stock_opname;
-CREATE POLICY "authenticated can insert stock_opname"
-  ON public.stock_opname
+DROP POLICY IF EXISTS "authenticated can insert sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can insert sinkronisasi_stok"
+  ON public.sinkronisasi_stok
   FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "authenticated can update stock_opname" ON public.stock_opname;
-CREATE POLICY "authenticated can update stock_opname"
-  ON public.stock_opname
+DROP POLICY IF EXISTS "authenticated can update sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can update sinkronisasi_stok"
+  ON public.sinkronisasi_stok
   FOR UPDATE
   TO authenticated
   USING (auth.uid() IS NOT NULL)
