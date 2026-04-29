@@ -5,9 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('schema contract', () {
     late String schemaSql;
+    late String rlsP1Sql;
 
     setUpAll(() {
       schemaSql = File('supabase/schema.sql').readAsStringSync();
+      rlsP1Sql = File('supabase/migration_fase20_rls_owner_admin_harden.sql')
+          .readAsStringSync();
     });
 
     test('memiliki tabel inti domain klinik', () {
@@ -74,6 +77,13 @@ void main() {
         'public.fn_stock_opname_delete_by_tanggal_atomic',
         'public.fn_obat_delete_if_unused',
         'public.fn_pasien_delete_and_renumber',
+        'public.current_admin_id',
+        'public.current_admin_role',
+        'public.is_owner',
+        'public.is_petugas',
+        'public.is_clinic_staff',
+        'public.can_view_laporan',
+        'public.require_clinic_staff',
       ];
 
       for (final fn in functions) {
@@ -176,6 +186,73 @@ void main() {
           'GRANT EXECUTE ON FUNCTION public.fn_obat_kurangi_stok(int, int) TO authenticated;',
         ),
       );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.current_admin_id() TO authenticated;',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.current_admin_role() TO authenticated;',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.require_clinic_staff(bigint) TO authenticated;',
+        ),
+      );
+    });
+
+    test('RLS P1 memakai role admin, bukan sekadar authenticated', () {
+      expect(
+        schemaSql,
+        isNot(contains('auth.uid() IS NOT NULL')),
+        reason: 'Final schema policy tidak boleh cuma cek authenticated.',
+      );
+      expect(
+        rlsP1Sql,
+        isNot(contains('auth.uid() IS NOT NULL')),
+        reason: 'Migration P1 policy tidak boleh cuma cek authenticated.',
+      );
+      expect(schemaSql, contains('USING (public.is_clinic_staff())'));
+      expect(schemaSql,
+          contains('WITH CHECK (public.current_admin_id() = id_admin)'));
+      expect(schemaSql, contains('WITH CHECK (public.is_owner())'));
+      expect(rlsP1Sql, contains('CREATE POLICY "clinic staff can read admin"'));
+      expect(rlsP1Sql, contains('CREATE POLICY "owner can update admin"'));
+      expect(
+          rlsP1Sql,
+          contains(
+              'CREATE POLICY "authenticated can delete kehadiran_pasien"'));
+    });
+
+    test('RPC SECURITY DEFINER memvalidasi admin login', () {
+      const guardedFunctions = [
+        'public.fn_transaksi_insert',
+        'public.fn_obat_kurangi_stok',
+        'public.fn_obat_keluar_update_atomic',
+        'public.fn_obat_keluar_delete_atomic',
+        'public.fn_obat_masuk_delete_atomic',
+        'public.fn_stock_opname_delete_atomic',
+        'public.fn_obat_delete_if_unused',
+        'public.fn_pasien_delete_and_renumber',
+      ];
+
+      for (final fn in guardedFunctions) {
+        final start = schemaSql.indexOf('CREATE OR REPLACE FUNCTION $fn');
+        expect(start, isNonNegative, reason: 'Missing guarded RPC: $fn');
+
+        final next =
+            schemaSql.indexOf('CREATE OR REPLACE FUNCTION public.', start + 1);
+        final block =
+            schemaSql.substring(start, next == -1 ? schemaSql.length : next);
+
+        expect(block, contains('SECURITY DEFINER'), reason: fn);
+        expect(block, contains('public.require_clinic_staff'), reason: fn);
+      }
     });
 
     test('SQL aktif tidak mereferensikan public.stock_opname', () {

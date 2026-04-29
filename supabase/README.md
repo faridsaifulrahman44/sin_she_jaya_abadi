@@ -32,12 +32,13 @@
 - `migration_redesign_obat_keluar.sql` -> `OBSOLETE` (draft awal; overlap dengan `migration_obat_keluar_item_final.sql` dan punya mismatch nullable `id_obat`).
 - `migration_fase_etalase_constraint_repair.sql` -> `RETAINED` (repair data etalase + pastikan `obat_etalase_check` terpasang; AMAN untuk semua environment).
 - `migration_fase11_oversell_guard.sql` -> `RETAINED` (guard oversell di RPC insert/update transaksi keluar; WAJIB untuk semua environment).
-- `migration_fase12_rls_harden.sql` -> `RETAINED` (RLS policy ketat: admin dilindungi per-user, business tables menggunakan `auth.uid() IS NOT NULL`; WAJIB untuk semua environment).
+- `migration_fase12_rls_harden.sql` -> `RETAINED` (RLS hardening awal; digantikan/ditingkatkan oleh FASE 20 untuk role owner/admin).
 - `migration_fase13_pasien_renumber_after_delete.sql` -> `REQUIRED` (auto-renumber `nomor_pasien` 1..N setelah delete pasien; MEWAJIBKAN apply ke semua environment). **Migration ini wajib di-apply agar fitur delete pasien tidak error.**
 - `migration_fase15_pasien_contract_cleanup.sql` -> `REQUIRED` (hapus RPC legacy `fn_pasien_delete_if_unused` agar kontrak pasien tidak ambigu; tetapkan `fn_pasien_delete_and_renumber` sebagai kontrak final).
 - `migration_fase16_obat_image_storage.sql` -> `REQUIRED` (buat bucket `obat-images` + policy storage untuk fitur foto obat di Master Obat).
 - `migration_fase18_ecer_satuan_terjual.sql` -> `REQUIRED` (tambah `transaksi_item.satuan_terjual` untuk transaksi ecer/satuan jual).
 - `migration_fase19_supabase_p0_sync.sql` -> `REQUIRED` (patch P0 idempotent: sinkronisasi stok final, kolom foto, dan RPC transaksi/stock_opname kompatibel Flutter).
+- `migration_fase20_rls_owner_admin_harden.sql` -> `REQUIRED` (P1: helper role admin, RLS owner/petugas, validasi RPC SECURITY DEFINER).
 
 ### Kontrak Final Pasien
 - Function delete pasien yang dipakai aplikasi: `public.fn_pasien_delete_and_renumber(bigint)`.
@@ -64,6 +65,7 @@
 18. `migration_fase16_obat_image_storage.sql` **<- WAJIB**
 19. `migration_fase18_ecer_satuan_terjual.sql` **<- WAJIB**
 20. `migration_fase19_supabase_p0_sync.sql` **<- WAJIB**
+21. `migration_fase20_rls_owner_admin_harden.sql` **<- WAJIB**
 
 ## Urutan Apply Aman (Fresh Environment)
 1. `schema.sql`
@@ -81,23 +83,25 @@
 ### Tabel & Policy
 | Tabel | Policy | Akses |
 |---|---|---|
-| `admin` | `auth.uid() = auth_user_id` | Hanya baris miliknya sendiri |
-| `obat` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `obat_masuk` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `obat_keluar` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `obat_keluar_item` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `sinkronisasi_stok` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `pasien` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `kehadiran_pasien` | `auth.uid() IS NOT NULL` | Semua authenticated |
+| `admin` | `public.is_clinic_staff()` read; owner-only write | Staff terdaftar |
+| `obat` | `public.is_clinic_staff()` | Owner + petugas |
+| `obat_masuk` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
+| `obat_keluar` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
+| `obat_keluar_item` | `public.is_clinic_staff()` | Owner + petugas |
+| `sinkronisasi_stok` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
+| `pasien` | `public.is_clinic_staff()` | Owner + petugas |
+| `kehadiran_pasien` | read/delete staff; write `current_admin_id() = id_admin` | Owner + petugas |
 
-**Tidak ada DELETE policy** â€” semua penghapusan HARUS lewat RPC functions (ini disengaja).
+DELETE policy langsung hanya dibuka untuk data yang memang dihapus langsung oleh Flutter
+(`kehadiran_pasien`, `kunjungan_pasien`) dan admin management owner-only.
+Penghapusan stok/transaksi tetap lewat RPC tervalidasi.
 
 ### Tabel & Policy (lanjutan)
 | Tabel | Policy | Akses |
 |---|---|---|
-| `transaksi` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `transaksi_item` | `auth.uid() IS NOT NULL` | Semua authenticated |
-| `kunjungan_pasien` | `auth.uid() IS NOT NULL` | Semua authenticated |
+| `transaksi` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
+| `transaksi_item` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
+| `kunjungan_pasien` | read/delete staff; write `current_admin_id() = id_admin` | Owner + petugas |
 
 ### Tabel Aktif (Steady-State)
 Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
@@ -150,16 +154,27 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 | `fn_pasien_delete_and_renumber(bigint)` | `PasienRepository` | Delete + renumber |
 | `fn_recalculate_obat_stok_bulk(bigint[])` | `StockRecalculationEngine` | Bulk recalc |
 | `get_auth_admin_id()` | RLS policies | Auth helper |
+| `current_admin_id()` | RLS/RPC policies | Auth helper final |
+| `current_admin_role()` | RLS/RPC policies | Role helper final |
+| `is_owner()` / `is_petugas()` / `is_clinic_staff()` | RLS/RPC policies | Role gates |
+| `can_view_laporan()` | Future DB report surfaces | Owner-only report gate |
 
 **Catatan**: nama RPC `fn_stock_opname_*` dipertahankan untuk kompatibilitas aplikasi, tetapi seluruh operasi data memakai tabel final `sinkronisasi_stok`.
 
+### RLS P1 Owner/Admin
+- Semua akses operasional mensyaratkan user Supabase Auth memiliki mapping di `public.admin`.
+- Role valid: `petugas` dan `kepala_klinik`.
+- `kepala_klinik`/owner dapat mengakses fitur laporan di Flutter.
+- Tidak ada table/view laporan khusus di database saat ini; halaman laporan mengagregasi tabel operasional yang juga dipakai petugas, sehingga tabel operasional tetap sengaja readable untuk petugas.
+- RPC `SECURITY DEFINER` yang mutasi data memanggil `require_clinic_staff(...)` agar tidak hanya bergantung pada token authenticated.
+
 ### Asumsi
 - Single-clinic, single-tenant (semua staff bisa mengakses semua data klinik)
-- Role-based access (`petugas` vs `kepala_klinik`) belum diimplementasi di RLS
+- Role-based access (`petugas` vs `kepala_klinik`) sudah tersedia di helper RLS P1; report-specific DB surface belum ada.
 - Semua staff adalah `authenticated` user yang sudah ter-mapping ke `admin` row
 
 ### Gap / Next Enhancement
-- [ ] Role-based RLS: petugas hanya read, kepala_klinik bisa write
+- [ ] Tambahkan view/RPC laporan owner-only jika laporan perlu dibatasi di database, bukan hanya UI.
 - [ ] Audit log: setiap mutation catat `id_admin` dan timestamp
 - [ ] Multi-tenant isolation (jika berkembang ke multi-klinik)
 - [ ] API key / service role restrictions
