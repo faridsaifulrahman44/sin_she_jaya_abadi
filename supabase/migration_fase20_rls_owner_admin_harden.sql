@@ -581,6 +581,117 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.fn_obat_keluar_insert_atomic(
+  p_tanggal_terjual date,
+  p_no_etalase text,
+  p_keterangan text,
+  p_id_admin bigint,
+  p_items jsonb
+) RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_id_terjual bigint;
+  v_item_count integer;
+  v_affected_ids bigint[];
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  IF p_items IS NULL
+     OR jsonb_typeof(p_items) <> 'array'
+     OR jsonb_array_length(p_items) = 0 THEN
+    RAISE EXCEPTION 'items transaksi keluar wajib minimal 1 baris';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM jsonb_to_recordset(p_items) AS i(
+      id_obat bigint,
+      jumlah integer,
+      harga_satuan numeric
+    )
+    WHERE COALESCE(i.id_obat, 0) <= 0
+       OR COALESCE(i.jumlah, 0) <= 0
+       OR i.harga_satuan IS NULL
+       OR i.harga_satuan < 0
+  ) THEN
+    RAISE EXCEPTION 'data item transaksi keluar tidak valid';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM jsonb_to_recordset(p_items) AS i(id_obat bigint, jumlah integer)
+    JOIN public.obat o ON o.id_obat = i.id_obat
+    WHERE i.jumlah > o.stok_saat_ini
+  ) THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'oversell: qty melebihi stok tersedia',
+      HINT = 'CHECK_STOCK_FAILED';
+  END IF;
+
+  SELECT COUNT(*)
+  INTO v_item_count
+  FROM jsonb_to_recordset(p_items) AS i(
+    id_obat bigint,
+    jumlah integer,
+    harga_satuan numeric
+  );
+
+  IF COALESCE(v_item_count, 0) <= 0 THEN
+    RAISE EXCEPTION 'items transaksi keluar wajib minimal 1 baris';
+  END IF;
+
+  INSERT INTO public.obat_keluar (
+    tanggal_terjual,
+    no_etalase,
+    keterangan,
+    id_admin
+  )
+  VALUES (
+    p_tanggal_terjual,
+    NULLIF(BTRIM(COALESCE(p_no_etalase, '')), ''),
+    NULLIF(BTRIM(COALESCE(p_keterangan, '')), ''),
+    p_id_admin
+  )
+  RETURNING id_terjual INTO v_id_terjual;
+
+  INSERT INTO public.obat_keluar_item (
+    id_terjual,
+    id_obat,
+    jumlah,
+    harga_satuan,
+    is_legacy
+  )
+  SELECT
+    v_id_terjual,
+    i.id_obat,
+    i.jumlah,
+    i.harga_satuan,
+    false
+  FROM jsonb_to_recordset(p_items) AS i(
+    id_obat bigint,
+    jumlah integer,
+    harga_satuan numeric
+  );
+
+  PERFORM public.fn_obat_keluar_refresh_totals(v_id_terjual);
+
+  SELECT array_agg(DISTINCT i.id_obat)
+  INTO v_affected_ids
+  FROM jsonb_to_recordset(p_items) AS i(
+    id_obat bigint,
+    jumlah integer,
+    harga_satuan numeric
+  );
+
+  PERFORM public.fn_recalculate_obat_stok_bulk(v_affected_ids);
+
+  RETURN v_id_terjual;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.fn_obat_keluar_update_atomic(
   p_id_terjual bigint,
   p_tanggal_terjual date,
@@ -773,6 +884,130 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.fn_obat_masuk_insert_atomic(
+  p_id_obat bigint,
+  p_tanggal_masuk date,
+  p_jumlah_masuk integer,
+  p_keterangan text,
+  p_id_admin bigint
+) RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_id_masuk bigint;
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  IF COALESCE(p_id_obat, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_obat tidak valid';
+  END IF;
+
+  IF p_tanggal_masuk IS NULL THEN
+    RAISE EXCEPTION 'tanggal_masuk wajib diisi';
+  END IF;
+
+  IF COALESCE(p_jumlah_masuk, 0) <= 0 THEN
+    RAISE EXCEPTION 'jumlah_masuk harus lebih dari 0';
+  END IF;
+
+  IF COALESCE(p_id_admin, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_admin tidak valid';
+  END IF;
+
+  INSERT INTO public.obat_masuk (
+    id_obat,
+    tanggal_masuk,
+    jumlah_masuk,
+    keterangan,
+    id_admin
+  )
+  VALUES (
+    p_id_obat,
+    p_tanggal_masuk,
+    p_jumlah_masuk,
+    NULLIF(BTRIM(COALESCE(p_keterangan, '')), ''),
+    p_id_admin
+  )
+  RETURNING id_masuk INTO v_id_masuk;
+
+  PERFORM public.fn_recalculate_obat_stok_single(p_id_obat);
+
+  RETURN v_id_masuk;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.fn_obat_masuk_update_atomic(
+  p_id_masuk bigint,
+  p_id_obat bigint,
+  p_tanggal_masuk date,
+  p_jumlah_masuk integer,
+  p_keterangan text,
+  p_id_admin bigint
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_old_id_obat bigint;
+  v_affected_ids bigint[];
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  IF COALESCE(p_id_masuk, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_masuk tidak valid';
+  END IF;
+
+  IF COALESCE(p_id_obat, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_obat tidak valid';
+  END IF;
+
+  IF p_tanggal_masuk IS NULL THEN
+    RAISE EXCEPTION 'tanggal_masuk wajib diisi';
+  END IF;
+
+  IF COALESCE(p_jumlah_masuk, 0) <= 0 THEN
+    RAISE EXCEPTION 'jumlah_masuk harus lebih dari 0';
+  END IF;
+
+  IF COALESCE(p_id_admin, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_admin tidak valid';
+  END IF;
+
+  SELECT om.id_obat
+  INTO v_old_id_obat
+  FROM public.obat_masuk om
+  WHERE om.id_masuk = p_id_masuk
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'transaksi obat masuk tidak ditemukan: %', p_id_masuk;
+  END IF;
+
+  UPDATE public.obat_masuk
+  SET
+    id_obat = p_id_obat,
+    tanggal_masuk = p_tanggal_masuk,
+    jumlah_masuk = p_jumlah_masuk,
+    keterangan = NULLIF(BTRIM(COALESCE(p_keterangan, '')), ''),
+    id_admin = p_id_admin
+  WHERE id_masuk = p_id_masuk;
+
+  SELECT array_agg(DISTINCT x.id_obat)
+  INTO v_affected_ids
+  FROM (
+    SELECT v_old_id_obat AS id_obat
+    UNION ALL
+    SELECT p_id_obat AS id_obat
+  ) x
+  WHERE x.id_obat IS NOT NULL;
+
+  PERFORM public.fn_recalculate_obat_stok_bulk(v_affected_ids);
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.fn_obat_masuk_delete_atomic(
   p_id_masuk bigint
 ) RETURNS void
@@ -830,6 +1065,146 @@ BEGIN
 
   DELETE FROM public.obat_masuk
   WHERE tanggal_masuk = p_tanggal_masuk;
+
+  PERFORM public.fn_recalculate_obat_stok_bulk(v_affected_ids);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.fn_stock_opname_insert_atomic(
+  p_id_obat bigint,
+  p_tanggal_opname date,
+  p_stok_sistem integer,
+  p_stok_fisik integer,
+  p_alasan_penyesuaian text,
+  p_id_admin bigint
+) RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_id_opname bigint;
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  IF COALESCE(p_id_obat, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_obat tidak valid';
+  END IF;
+
+  IF p_tanggal_opname IS NULL THEN
+    RAISE EXCEPTION 'tanggal_opname wajib diisi';
+  END IF;
+
+  IF COALESCE(p_stok_sistem, -1) < 0 THEN
+    RAISE EXCEPTION 'stok_sistem tidak valid';
+  END IF;
+
+  IF COALESCE(p_stok_fisik, -1) < 0 THEN
+    RAISE EXCEPTION 'stok_fisik tidak valid';
+  END IF;
+
+  IF COALESCE(p_id_admin, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_admin tidak valid';
+  END IF;
+
+  INSERT INTO public.sinkronisasi_stok (
+    id_obat,
+    tanggal_opname,
+    stok_sistem,
+    stok_fisik,
+    selisih,
+    alasan_penyesuaian,
+    id_admin
+  )
+  VALUES (
+    p_id_obat,
+    p_tanggal_opname,
+    p_stok_sistem,
+    p_stok_fisik,
+    p_stok_fisik - p_stok_sistem,
+    NULLIF(BTRIM(COALESCE(p_alasan_penyesuaian, '')), ''),
+    p_id_admin
+  )
+  RETURNING id_opname INTO v_id_opname;
+
+  PERFORM public.fn_recalculate_obat_stok_single(p_id_obat);
+
+  RETURN v_id_opname;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.fn_stock_opname_update_atomic(
+  p_id_opname bigint,
+  p_id_obat bigint,
+  p_tanggal_opname date,
+  p_stok_sistem integer,
+  p_stok_fisik integer,
+  p_alasan_penyesuaian text,
+  p_id_admin bigint
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_old_id_obat bigint;
+  v_affected_ids bigint[];
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  IF COALESCE(p_id_opname, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_opname tidak valid';
+  END IF;
+
+  IF COALESCE(p_id_obat, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_obat tidak valid';
+  END IF;
+
+  IF p_tanggal_opname IS NULL THEN
+    RAISE EXCEPTION 'tanggal_opname wajib diisi';
+  END IF;
+
+  IF COALESCE(p_stok_sistem, -1) < 0 THEN
+    RAISE EXCEPTION 'stok_sistem tidak valid';
+  END IF;
+
+  IF COALESCE(p_stok_fisik, -1) < 0 THEN
+    RAISE EXCEPTION 'stok_fisik tidak valid';
+  END IF;
+
+  IF COALESCE(p_id_admin, 0) <= 0 THEN
+    RAISE EXCEPTION 'id_admin tidak valid';
+  END IF;
+
+  SELECT so.id_obat
+  INTO v_old_id_obat
+  FROM public.sinkronisasi_stok so
+  WHERE so.id_opname = p_id_opname
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'sinkronisasi stok tidak ditemukan: %', p_id_opname;
+  END IF;
+
+  UPDATE public.sinkronisasi_stok
+  SET
+    id_obat = p_id_obat,
+    tanggal_opname = p_tanggal_opname,
+    stok_sistem = p_stok_sistem,
+    stok_fisik = p_stok_fisik,
+    selisih = p_stok_fisik - p_stok_sistem,
+    alasan_penyesuaian = NULLIF(BTRIM(COALESCE(p_alasan_penyesuaian, '')), ''),
+    id_admin = p_id_admin
+  WHERE id_opname = p_id_opname;
+
+  SELECT array_agg(DISTINCT x.id_obat)
+  INTO v_affected_ids
+  FROM (
+    SELECT v_old_id_obat AS id_obat
+    UNION ALL
+    SELECT p_id_obat AS id_obat
+  ) x
+  WHERE x.id_obat IS NOT NULL;
 
   PERFORM public.fn_recalculate_obat_stok_bulk(v_affected_ids);
 END;
@@ -1016,11 +1391,16 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.fn_transaksi_insert(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_kurangi_stok(int, int) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_insert_atomic(date, text, text, bigint, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_update_atomic(bigint, date, text, text, bigint, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_delete_atomic(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_delete_by_tanggal_atomic(date) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_obat_masuk_insert_atomic(bigint, date, integer, text, bigint) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_obat_masuk_update_atomic(bigint, bigint, date, integer, text, bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_masuk_delete_atomic(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_masuk_delete_by_tanggal_atomic(date) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_stock_opname_insert_atomic(bigint, date, integer, integer, text, bigint) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_stock_opname_update_atomic(bigint, bigint, date, integer, integer, text, bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_stock_opname_delete_atomic(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_stock_opname_delete_by_tanggal_atomic(date) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_delete_if_unused(bigint) TO authenticated;

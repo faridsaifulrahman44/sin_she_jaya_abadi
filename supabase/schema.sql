@@ -533,6 +533,8 @@ CREATE OR REPLACE FUNCTION public.fn_obat_keluar_insert_atomic(
   p_items jsonb
 ) RETURNS bigint
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_terjual bigint;
@@ -838,6 +840,8 @@ CREATE OR REPLACE FUNCTION public.fn_obat_masuk_insert_atomic(
   p_id_admin bigint
 ) RETURNS bigint
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_masuk bigint;
@@ -891,6 +895,8 @@ CREATE OR REPLACE FUNCTION public.fn_obat_masuk_update_atomic(
   p_id_admin bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_old_id_obat bigint;
@@ -1024,6 +1030,8 @@ CREATE OR REPLACE FUNCTION public.fn_stock_opname_insert_atomic(
   p_id_admin bigint
 ) RETURNS bigint
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_opname bigint;
@@ -1086,6 +1094,8 @@ CREATE OR REPLACE FUNCTION public.fn_stock_opname_update_atomic(
   p_id_admin bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_old_id_obat bigint;
