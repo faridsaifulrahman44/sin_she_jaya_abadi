@@ -5,8 +5,18 @@
 -- 2) Menyediakan policy read/upload/update/delete yang aman dan eksplisit.
 --
 -- Catatan:
--- - Kolom `public.obat.foto_url` sudah tersedia di schema baseline.
--- - Aplikasi menyimpan public URL ke kolom tersebut.
+-- - `foto_url` dipertahankan untuk data legacy.
+-- - `foto_key` + `foto_updated_at` adalah metadata storage final.
+
+ALTER TABLE public.obat
+  ADD COLUMN IF NOT EXISTS foto_key text,
+  ADD COLUMN IF NOT EXISTS foto_updated_at timestamptz;
+
+COMMENT ON COLUMN public.obat.foto_key IS
+  'Storage object key untuk bucket obat-images. Null untuk data legacy.';
+
+COMMENT ON COLUMN public.obat.foto_updated_at IS
+  'Waktu terakhir metadata foto obat diperbarui.';
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (

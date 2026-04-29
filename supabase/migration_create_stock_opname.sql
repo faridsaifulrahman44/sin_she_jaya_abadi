@@ -1,7 +1,8 @@
--- Migration: Create stock_opname table for physical inventory reconciliation
--- Run this migration in Supabase to enable stock opname feature.
+-- Migration: create physical inventory reconciliation table.
+-- Historical file name uses "stock_opname", but the final table used by
+-- Flutter and live Supabase is public.sinkronisasi_stok.
 
-CREATE TABLE IF NOT EXISTS public.stock_opname (
+CREATE TABLE IF NOT EXISTS public.sinkronisasi_stok (
   id_opname bigserial primary key,
   id_obat bigint not null references public.obat(id_obat) on delete restrict,
   tanggal_opname date not null,
@@ -14,11 +15,13 @@ CREATE TABLE IF NOT EXISTS public.stock_opname (
 );
 
 -- Index for fast lookup by date and by obat
-CREATE INDEX IF NOT EXISTS idx_stock_opname_tanggal ON public.stock_opname(tanggal_opname DESC);
-CREATE INDEX IF NOT EXISTS idx_stock_opname_id_obat ON public.stock_opname(id_obat);
+CREATE INDEX IF NOT EXISTS idx_sinkronisasi_stok_tanggal
+  ON public.sinkronisasi_stok(tanggal_opname DESC);
+CREATE INDEX IF NOT EXISTS idx_sinkronisasi_stok_id_obat
+  ON public.sinkronisasi_stok(id_obat);
 
 -- RLS
-ALTER TABLE public.stock_opname ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "authenticated can manage stock_opname" ON public.stock_opname;
-CREATE POLICY "authenticated can manage stock_opname" ON public.stock_opname
+ALTER TABLE public.sinkronisasi_stok ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "authenticated can manage sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can manage sinkronisasi_stok" ON public.sinkronisasi_stok
   FOR ALL TO authenticated USING (true) WITH CHECK (true);

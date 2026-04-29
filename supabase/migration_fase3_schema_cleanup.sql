@@ -226,16 +226,16 @@ $$;
 
 COMMENT ON COLUMN public.obat.stok_saat_ini IS
   'stok_saat_ini dihitung dari stok_awal + mutasi masuk/keluar '
-  'dan reset stock_opname. Di-maintain oleh recalculateStok().';
+  'dan reset sinkronisasi_stok. Di-maintain oleh recalculateStok().';
 
 -- ============================================
 -- C. Pastikan indeks inti
 -- ============================================
 
-CREATE INDEX IF NOT EXISTS idx_stock_opname_tanggal
-  ON public.stock_opname(tanggal_opname DESC);
-CREATE INDEX IF NOT EXISTS idx_stock_opname_id_obat
-  ON public.stock_opname(id_obat);
+CREATE INDEX IF NOT EXISTS idx_sinkronisasi_stok_tanggal
+  ON public.sinkronisasi_stok(tanggal_opname DESC);
+CREATE INDEX IF NOT EXISTS idx_sinkronisasi_stok_id_obat
+  ON public.sinkronisasi_stok(id_obat);
 CREATE INDEX IF NOT EXISTS idx_pasien_tanggal_janjian
   ON public.pasien(tanggal_janjian DESC);
 CREATE INDEX IF NOT EXISTS idx_obat_masuk_tanggal

@@ -127,6 +127,7 @@ class TransaksiRepository extends BaseRepository {
                   'jumlah': item.jumlah,
                   'harga_satuan': item.hargaSatuan,
                   'subtotal': item.subtotal,
+                  'satuan_terjual': item.satuanTerjual,
                 })
             .toList();
 
@@ -218,6 +219,7 @@ class TransaksiRepository extends BaseRepository {
           'jumlah': item.jumlah,
           'harga_satuan': item.hargaSatuan,
           'subtotal': item.subtotal,
+          'satuan_terjual': item.satuanTerjual,
           'id_admin': item.idAdmin,
         });
 

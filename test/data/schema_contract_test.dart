@@ -20,6 +20,9 @@ void main() {
         'public.sinkronisasi_stok',
         'public.pasien',
         'public.kehadiran_pasien',
+        'public.transaksi',
+        'public.transaksi_item',
+        'public.kunjungan_pasien',
       ];
 
       for (final table in tables) {
@@ -40,14 +43,22 @@ void main() {
       );
     });
 
-    test('tabel obat memiliki kolom foto_url', () {
+    test('tabel obat memiliki kolom foto aktif', () {
       expect(schemaSql, contains('foto_url text,'));
+      expect(schemaSql, contains('foto_key text,'));
+      expect(schemaSql, contains('foto_updated_at timestamptz,'));
+    });
+
+    test('tabel transaksi_item memiliki kolom satuan_terjual', () {
+      expect(schemaSql, contains('satuan_terjual varchar(30),'));
     });
 
     test('memiliki fungsi RPC atomic transaksi obat keluar/masuk/opname', () {
       const functions = [
         'public.fn_recalculate_obat_stok_single',
         'public.fn_recalculate_obat_stok_bulk',
+        'public.fn_transaksi_insert',
+        'public.fn_obat_kurangi_stok',
         'public.fn_obat_keluar_refresh_totals',
         'public.fn_obat_keluar_insert_atomic',
         'public.fn_obat_keluar_update_atomic',
@@ -75,6 +86,12 @@ void main() {
     });
 
     test('grant execute tersedia untuk fungsi atomic utama', () {
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_transaksi_insert(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;',
+        ),
+      );
       expect(
         schemaSql,
         contains(
@@ -153,6 +170,33 @@ void main() {
           'GRANT EXECUTE ON FUNCTION public.fn_pasien_delete_and_renumber(bigint) TO authenticated;',
         ),
       );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_obat_kurangi_stok(int, int) TO authenticated;',
+        ),
+      );
+    });
+
+    test('SQL aktif tidak mereferensikan public.stock_opname', () {
+      final activeRefs = <String>[];
+      final sqlFiles = Directory('supabase')
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.sql'));
+
+      for (final file in sqlFiles) {
+        final lines = file.readAsLinesSync();
+        for (var i = 0; i < lines.length; i += 1) {
+          final line = lines[i];
+          if (line.trimLeft().startsWith('--')) continue;
+          if (line.contains('public.stock_opname')) {
+            activeRefs.add('${file.path}:${i + 1}: ${line.trim()}');
+          }
+        }
+      }
+
+      expect(activeRefs, isEmpty, reason: activeRefs.join('\n'));
     });
 
     test('kontrak delete pasien final tidak ambigu', () {

@@ -7,7 +7,7 @@
 --   sehingga stok bisa melonjak (contoh: 11 + masuk 11 -> 33).
 --
 -- Prinsip perbaikan:
--- - Hanya normalisasi baris obat yang BELUM punya stock_opname.
+-- - Hanya normalisasi baris obat yang BELUM punya sinkronisasi_stok.
 -- - Baseline baru:
 --     stok_awal = max(0, stok_saat_ini - total_masuk + total_keluar_non_legacy)
 -- - Tidak mengubah stok_saat_ini pada migration ini (nilai berjalan dipertahankan).
@@ -43,7 +43,7 @@ target AS (
     ON k.id_obat = o.id_obat
   WHERE NOT EXISTS (
     SELECT 1
-    FROM public.stock_opname so
+    FROM public.sinkronisasi_stok so
     WHERE so.id_obat = o.id_obat
   )
 )

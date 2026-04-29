@@ -7,24 +7,23 @@
 - Tabel `transaksi`, `transaksi_item`, dan `kunjungan_pasien` sekarang sudah
   masuk di `schema.sql` (ditambahkan STEP 2 sinkronisasi, 2026-04-17).
   Tidak ada migration terpisah untuk tabel-tabel ini.
-- RPC function `fn_transaksi_insert` (dari `migration_fase2_transaksi.sql`)
-  saat ini TIDAK dipakai oleh kode aplikasi. Aplikasi insert transaksi via
-  Supabase client langsung. Function tetap dipertahankan di schema untuk
-  backward compatibility jika nanti dibutuhkan.
+- RPC function `fn_transaksi_insert` dipakai oleh `TransaksiRepository`
+  sebagai jalur atomik utama. Aplikasi tetap punya fallback manual jika RPC
+  belum tersedia pada database lama.
 - Baseline schema final: `supabase/schema.sql`
 - Fase saat ini menganggap `schema.sql` adalah representasi final tunggal.
 
 ## Status Migration
 - `migration_add_tanggal_janjian.sql` -> `RETAINED` (legacy upgrade: tambah `tanggal_janjian`).
-- `migration_create_stock_opname.sql` -> `RETAINED` (legacy upgrade: bootstrap `stock_opname`).
+- `migration_create_stock_opname.sql` -> `RETAINED` (legacy filename; bootstrap tabel final `sinkronisasi_stok`).
 - `migration_obat_keluar_item_final.sql` -> `RETAINED` (final redesign `obat_keluar_item`, backfill legacy aman).
 - `migration_fase1_stock_engine.sql` -> `RETAINED` (tambah/backfill `stok_awal`).
 - `migration_fase2_obat_keluar_atomic.sql` -> `RETAINED` (RPC atomik transaksi keluar + stok).
-- `migration_fase2_transaksi.sql` -> `RETAINED` (backward compat; function `fn_transaksi_insert` tidak dipakai app, tetapi definisi function dan `fn_obat_kurangi_stok` masih ada di schema).
+- `migration_fase2_transaksi.sql` -> `RETAINED` (kontrak transaksi + RPC `fn_transaksi_insert`).
 - `migration_fase3_schema_cleanup.sql` -> `RETAINED` (sinkronisasi final untuk environment campuran).
 - `migration_fase5_fix_stock_double_count.sql` -> `RETAINED` (hotfix normalisasi `stok_awal` legacy untuk cegah double count).
-- `migration_fase6_obat_masuk_stock_opname_atomic.sql` -> `RETAINED` (RPC atomik obat masuk + stock opname + recalc stok dalam satu transaksi).
-- `migration_fase7_stock_opname_delete_by_tanggal_atomic.sql` -> `RETAINED` (bulk delete stock opname per tanggal secara atomik + recalc stok terdampak).
+- `migration_fase6_obat_masuk_stock_opname_atomic.sql` -> `RETAINED` (RPC atomik obat masuk + sinkronisasi stok; nama RPC stock_opname dipertahankan untuk kompatibilitas Flutter).
+- `migration_fase7_stock_opname_delete_by_tanggal_atomic.sql` -> `RETAINED` (bulk delete sinkronisasi stok per tanggal; nama RPC stock_opname dipertahankan).
 - `migration_fase7_kunjungan.sql` -> `RETAINED` (backward compat; tabel `kunjungan_pasien` sudah ada di schema.sql; migration ini tidak dipakai langsung oleh app tetapi definisinya tidak bertentangan).
 - `migration_fase8_obat_delete_guard.sql` -> `RETAINED` (delete obat atomik dengan guard histori agar referensi transaksi tetap aman).
 - `migration_fase9_pasien_delete_guard.sql` -> `RETAINED` (guard delete pasien versi awal).
@@ -37,6 +36,8 @@
 - `migration_fase13_pasien_renumber_after_delete.sql` -> `REQUIRED` (auto-renumber `nomor_pasien` 1..N setelah delete pasien; MEWAJIBKAN apply ke semua environment). **Migration ini wajib di-apply agar fitur delete pasien tidak error.**
 - `migration_fase15_pasien_contract_cleanup.sql` -> `REQUIRED` (hapus RPC legacy `fn_pasien_delete_if_unused` agar kontrak pasien tidak ambigu; tetapkan `fn_pasien_delete_and_renumber` sebagai kontrak final).
 - `migration_fase16_obat_image_storage.sql` -> `REQUIRED` (buat bucket `obat-images` + policy storage untuk fitur foto obat di Master Obat).
+- `migration_fase18_ecer_satuan_terjual.sql` -> `REQUIRED` (tambah `transaksi_item.satuan_terjual` untuk transaksi ecer/satuan jual).
+- `migration_fase19_supabase_p0_sync.sql` -> `REQUIRED` (patch P0 idempotent: sinkronisasi stok final, kolom foto, dan RPC transaksi/stock_opname kompatibel Flutter).
 
 ### Kontrak Final Pasien
 - Function delete pasien yang dipakai aplikasi: `public.fn_pasien_delete_and_renumber(bigint)`.
@@ -61,6 +62,8 @@
 16. `migration_fase13_pasien_renumber_after_delete.sql` **<- WAJIB**
 17. `migration_fase15_pasien_contract_cleanup.sql` **<- WAJIB**
 18. `migration_fase16_obat_image_storage.sql` **<- WAJIB**
+19. `migration_fase18_ecer_satuan_terjual.sql` **<- WAJIB**
+20. `migration_fase19_supabase_p0_sync.sql` **<- WAJIB**
 
 ## Urutan Apply Aman (Fresh Environment)
 1. `schema.sql`
@@ -116,6 +119,9 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 | Tabel | Kolom | Dipakai di |
 |---|---|---|
 | `obat` | `foto_url text` | `ObatModel.fotoUrl` (nullable, untuk foto produk obat) |
+| `obat` | `foto_key text` | `ObatModel.fotoKey` (storage key final) |
+| `obat` | `foto_updated_at timestamptz` | `ObatModel.fotoUpdatedAt` |
+| `transaksi_item` | `satuan_terjual varchar(30)` | `TransaksiItemModel.satuanTerjual` |
 
 ### Storage Aktif
 | Bucket | Public | Batas File | MIME |
@@ -125,6 +131,7 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 ### RPC / Function Aktif (Dipakai Kode)
 | Function | Dipakai di | Notes |
 |---|---|---|
+| `fn_transaksi_insert(...)` | `TransaksiRepository` | Insert transaksi atomik + item `satuan_terjual` |
 | `fn_recalculate_obat_stok_single(bigint)` | `TransaksiRepository.insertTransaksi` | Primary stok recalc |
 | `fn_obat_kurangi_stok(int, int)` | `TransaksiRepository.insertTransaksi` | Fallback jika RPC utama gagal |
 | `fn_obat_keluar_insert_atomic(...)` | `ObatKeluarRepository` | Obat keluar atomik |
@@ -144,7 +151,7 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 | `fn_recalculate_obat_stok_bulk(bigint[])` | `StockRecalculationEngine` | Bulk recalc |
 | `get_auth_admin_id()` | RLS policies | Auth helper |
 
-**Catatan**: `fn_transaksi_insert` (dari `migration_fase2_transaksi.sql`) **tidak dipakai** aplikasi saat ini. Aplikasi insert transaksi via Supabase client langsung.
+**Catatan**: nama RPC `fn_stock_opname_*` dipertahankan untuk kompatibilitas aplikasi, tetapi seluruh operasi data memakai tabel final `sinkronisasi_stok`.
 
 ### Asumsi
 - Single-clinic, single-tenant (semua staff bisa mengakses semua data klinik)
