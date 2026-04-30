@@ -61,8 +61,8 @@ flutter run
 
 Android package final:
 
-- Application ID: `id.klinik.mobile`
-- App label: `Klinik App`
+- Application ID: `id.sinshe.jayaabadi`
+- App label: `Sin She Jaya Abadi`
 
 ### Debug APK
 

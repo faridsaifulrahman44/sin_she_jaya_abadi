@@ -22,7 +22,7 @@ fun releaseSigningProperty(name: String): String =
         ?: error("Missing '$name' in android/key.properties")
 
 android {
-    namespace = "id.klinik.mobile"
+    namespace = "id.sinshe.jayaabadi"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -36,7 +36,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "id.klinik.mobile"
+        applicationId = "id.sinshe.jayaabadi"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
