@@ -75,7 +75,10 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
 
   Future<PasienDetailSummary> _loadData(int idPasien) async {
     final isOwner = await AdminSession.isOwner();
-    final bundle = await _repository.getDetail(idPasien);
+    final bundle = await _repository.getDetail(
+      idPasien,
+      includeRiwayatTransaksi: isOwner,
+    );
     if (!mounted) {
       return buildPasienDetailSummary(
         pasien: bundle.pasien,
@@ -169,8 +172,10 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                         _buildKunjunganSection(summary),
                         const SizedBox(height: 16),
                         _buildKehadiranSection(summary),
-                        const SizedBox(height: 16),
-                        _buildTransaksiSection(summary),
+                        if (_isOwner) ...[
+                          const SizedBox(height: 16),
+                          _buildTransaksiSection(summary),
+                        ],
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -324,20 +329,23 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
           icon: AppIcons.event,
           accentColor: cteal(context),
         ),
-        _buildRingkasanCard(
-          title: 'Total Transaksi',
-          value: '${summary.totalTransaksi}',
-          subtitle: rupiah(summary.totalNominalTransaksi),
-          icon: AppIcons.receipt,
-          accentColor: csuccess(context),
-        ),
-        _buildRingkasanCard(
-          title: 'Transaksi Terakhir',
-          value: _formatNullableMediumDate(summary.transaksiTerakhir?.tanggal),
-          subtitle: summary.transaksiTerakhir?.jenisTransaksi.label ?? '-',
-          icon: AppIcons.payment,
-          accentColor: cindigo(context),
-        ),
+        if (_isOwner) ...[
+          _buildRingkasanCard(
+            title: 'Total Transaksi',
+            value: '${summary.totalTransaksi}',
+            subtitle: rupiah(summary.totalNominalTransaksi),
+            icon: AppIcons.receipt,
+            accentColor: csuccess(context),
+          ),
+          _buildRingkasanCard(
+            title: 'Transaksi Terakhir',
+            value:
+                _formatNullableMediumDate(summary.transaksiTerakhir?.tanggal),
+            subtitle: summary.transaksiTerakhir?.jenisTransaksi.label ?? '-',
+            icon: AppIcons.payment,
+            accentColor: cindigo(context),
+          ),
+        ],
         _buildRingkasanCard(
           title: 'Terakhir Datang',
           value: _formatNullableMediumDate(summary.terakhirHadir),

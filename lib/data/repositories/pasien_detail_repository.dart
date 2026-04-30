@@ -38,7 +38,10 @@ class PasienDetailRepository {
   final TransaksiRepository _transaksiRepository;
   final KunjunganRepository _kunjunganRepository;
 
-  Future<PasienDetailDataBundle> getDetail(int idPasien) async {
+  Future<PasienDetailDataBundle> getDetail(
+    int idPasien, {
+    bool includeRiwayatTransaksi = true,
+  }) async {
     if (idPasien <= 0) {
       throw const ValidationException('Data pasien tidak valid.');
     }
@@ -46,7 +49,9 @@ class PasienDetailRepository {
     final results = await Future.wait<dynamic>([
       _pasienRepository.getPasienById(idPasien),
       _kehadiranRepository.getKehadiranByPasien(idPasien),
-      _transaksiRepository.getTransaksiByPasien(idPasien),
+      includeRiwayatTransaksi
+          ? _transaksiRepository.getTransaksiByPasien(idPasien)
+          : Future<List<TransaksiModel>>.value(const []),
       _kunjunganRepository.getKunjunganByPasien(idPasien),
     ]);
 

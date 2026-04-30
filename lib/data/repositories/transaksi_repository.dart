@@ -109,9 +109,8 @@ class TransaksiRepository extends BaseRepository {
   }
 
   /// Insert transaksi baru dengan item (jika ready stock).
-  /// Menggunakan RPC atomik `fn_transaksi_insert` jika tersedia —
+  /// Menggunakan RPC atomik `fn_transaksi_insert`.
   /// RPC ini menangani header, item, dan pengurangan stok dalam 1 transaksi DB.
-  /// Fallback ke pendekatan manual jika RPC belum ada di DB.
   Future<TransaksiModel> insertTransaksi({
     required TransaksiModel transaksi,
     required List<TransaksiItemModel> items,
@@ -139,7 +138,7 @@ class TransaksiRepository extends BaseRepository {
           'p_id_pasien': transaksi.idPasien,
           'p_keterangan': transaksi.keterangan,
           'p_durasi_harian': transaksi.durasiHarian,
-          'p_id_admin': transaksi.idAdmin,
+          'p_id_admin': idAdmin,
           'p_items': itemsJson,
         });
 
@@ -149,8 +148,6 @@ class TransaksiRepository extends BaseRepository {
 
         return TransaksiModel.fromMap(Map<String, dynamic>.from(row));
       } on PostgrestException catch (error) {
-        // RPC belum ter-apply di DB — fallback ke pendekatan manual
-        // dengan GUARD oversell untuk keamanan.
         final fnNotFound = error.code == '42883' ||
             error.code == 'PGRST202' ||
             error.message
@@ -159,81 +156,16 @@ class TransaksiRepository extends BaseRepository {
 
         if (!fnNotFound) rethrow;
 
-        return _insertTransaksiFallback(
-          transaksi: transaksi,
-          items: items,
+        throw DatabaseException(
+          'RPC fn_transaksi_insert belum tersedia. '
+          'Terapkan migration Supabase terbaru sebelum tambah transaksi.',
+          code: 'fn_transaksi_insert_missing',
+          cause: error,
+          debugMessage:
+              'PostgrestException code=${error.code} message=${error.message}',
         );
       }
     });
-  }
-
-  /// Fallback: insert manual header → item dengan FK benar → kurangi stok.
-  /// Dipanggil hanya jika `fn_transaksi_insert` belum ada di DB.
-  Future<TransaksiModel> _insertTransaksiFallback({
-    required TransaksiModel transaksi,
-    required List<TransaksiItemModel> items,
-  }) async {
-    // 1. Insert header transaksi
-    final insertResponse = await _client
-        .from('transaksi')
-        .insert(transaksi.toInsertMap())
-        .select()
-        .single();
-
-    final insertedTransaksi =
-        TransaksiModel.fromMap(Map<String, dynamic>.from(insertResponse));
-
-    // 2. Jika ready stock, insert item dengan FK yang benar dan kurangi stok
-    if (transaksi.jenisTransaksi == JenisTransaksi.obatReadyStock &&
-        items.isNotEmpty) {
-      for (final item in items) {
-        // Guard oversell: cek stok tersedia sebelum insert item dan kurangi.
-        final obatRow = await _client
-            .from('obat')
-            .select('stok_saat_ini')
-            .eq('id_obat', item.idObat)
-            .maybeSingle();
-
-        if (obatRow == null) {
-          throw ValidationException(
-            'Obat dengan ID ${item.idObat} tidak ditemukan.',
-            code: 'obat_not_found',
-          );
-        }
-
-        final stokTersedia =
-            int.tryParse(obatRow['stok_saat_ini'].toString()) ?? 0;
-        if (item.jumlah > stokTersedia) {
-          throw ValidationException(
-            'Stok tidak mencukupi untuk '
-            '${item.namaObat ?? "obat ID ${item.idObat}"}. '
-            'Tersedia: $stokTersedia, Diminta: ${item.jumlah}.',
-            code: 'oversell',
-          );
-        }
-
-        // Insert item dengan id_transaksi dari header yang baru diinsert
-        await _client.from('transaksi_item').insert({
-          'id_transaksi': insertedTransaksi.idTransaksi,
-          'id_obat': item.idObat,
-          'jumlah': item.jumlah,
-          'harga_satuan': item.hargaSatuan,
-          'subtotal': item.subtotal,
-          'satuan_terjual': item.satuanTerjual,
-          'id_admin': item.idAdmin,
-        });
-
-        // Kurangi stok obat via RPC.
-        // fn_recalculate_obat_stok_single TIDAK membaca transaksi_item —
-        // jadi langsung gunakan fn_obat_kurangi_stok untuk mengurangi stok.
-        await _client.rpc('fn_obat_kurangi_stok', params: {
-          'p_id_obat': item.idObat,
-          'p_jumlah': item.jumlah,
-        });
-      }
-    }
-
-    return insertedTransaksi;
   }
 
   /// Ambil obat yang ready stock (etalase 1 atau 2).

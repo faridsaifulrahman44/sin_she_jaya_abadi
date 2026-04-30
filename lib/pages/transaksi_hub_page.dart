@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:klinik_mobile_app/core/auth/admin_session.dart';
 import 'package:klinik_mobile_app/core/theme/app_theme.dart';
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
@@ -21,6 +22,7 @@ class _TransaksiHubPageState extends State<TransaksiHubPage> {
   final _repository = TransaksiRepository();
   List<TransaksiModel> _transaksiList = [];
   bool _loading = true;
+  bool _canViewHistory = false;
   String? _error;
 
   @override
@@ -36,10 +38,27 @@ class _TransaksiHubPageState extends State<TransaksiHubPage> {
         _error = null;
       });
 
+      final role = await AdminSession.getRole();
+      if (!role.isOwner) {
+        if (mounted) {
+          setState(() {
+            _canViewHistory = false;
+            _transaksiList = [];
+            _loading = false;
+          });
+        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() => _canViewHistory = true);
+      }
+
       final data = await _repository.getAllTransaksi();
 
       if (mounted) {
         setState(() {
+          _canViewHistory = true;
           _transaksiList = data;
           _loading = false;
         });
@@ -76,14 +95,61 @@ class _TransaksiHubPageState extends State<TransaksiHubPage> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? _buildError()
-              : _transaksiList.isEmpty
-                  ? _buildEmpty()
-                  : _buildList(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTransaksi,
-        backgroundColor: cteal(context),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+              : !_canViewHistory
+                  ? _buildStaffAddOnly()
+                  : _transaksiList.isEmpty
+                      ? _buildEmpty()
+                      : _buildList(),
+      floatingActionButton: _canViewHistory
+          ? FloatingActionButton(
+              onPressed: _addTransaksi,
+              backgroundColor: cteal(context),
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildStaffAddOnly() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.point_of_sale, size: 64, color: cteal(context)),
+            const SizedBox(height: 16),
+            Text(
+              'Tambah Transaksi',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: ctextPrimary(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Petugas dapat membuat transaksi baru dari halaman ini.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: ctextSecondary(context)),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _addTransaksi,
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Transaksi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cteal(context),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -278,7 +344,9 @@ class _TransaksiHubPageState extends State<TransaksiHubPage> {
     );
 
     if (result == true) {
-      _loadTransaksi();
+      if (_canViewHistory) {
+        _loadTransaksi();
+      }
     }
   }
 }

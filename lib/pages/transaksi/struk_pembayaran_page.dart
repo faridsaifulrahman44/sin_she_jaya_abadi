@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:klinik_mobile_app/core/auth/admin_session.dart';
 import 'package:klinik_mobile_app/core/services/receipt_printer_service.dart';
 import 'package:klinik_mobile_app/core/theme/app_theme.dart';
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
@@ -13,9 +14,17 @@ class StrukPembayaranPage extends StatefulWidget {
   const StrukPembayaranPage({
     super.key,
     required this.idTransaksi,
+    this.initialTransaksi,
+    this.initialItems = const [],
+    this.initialNamaPasien,
+    this.initialNamaAdmin,
   });
 
   final int idTransaksi;
+  final TransaksiModel? initialTransaksi;
+  final List<TransaksiItemModel> initialItems;
+  final String? initialNamaPasien;
+  final String? initialNamaAdmin;
 
   static const routeName = '/struk-pembayaran';
 
@@ -37,7 +46,19 @@ class _StrukPembayaranPageState extends State<StrukPembayaranPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialTransaksi != null) {
+      _useInitialReceiptData();
+      return;
+    }
     _loadData();
+  }
+
+  void _useInitialReceiptData() {
+    _transaksi = widget.initialTransaksi;
+    _items = List<TransaksiItemModel>.unmodifiable(widget.initialItems);
+    _namaPasien = widget.initialNamaPasien;
+    _namaAdmin = widget.initialNamaAdmin;
+    _loading = false;
   }
 
   Future<void> _loadData() async {
@@ -46,6 +67,18 @@ class _StrukPembayaranPageState extends State<StrukPembayaranPage> {
         _loading = true;
         _error = null;
       });
+
+      final isOwner = await AdminSession.isOwner();
+      if (!isOwner) {
+        if (mounted) {
+          setState(() {
+            _error =
+                'Akses ditolak. Riwayat transaksi hanya dapat dilihat owner.';
+            _loading = false;
+          });
+        }
+        return;
+      }
 
       final transaksi = await _repository.getTransaksiById(widget.idTransaksi);
       if (transaksi == null) {

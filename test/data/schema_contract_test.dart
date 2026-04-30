@@ -2,15 +2,30 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+String _policyBlock(String sql, String policyName, String tableName) {
+  final normalizedSql = sql.replaceAll('\r\n', '\n');
+  final marker = 'CREATE POLICY "$policyName"\n  ON $tableName';
+  final start = normalizedSql.indexOf(marker);
+  expect(start, isNonNegative, reason: 'Missing policy: $policyName');
+
+  final end = normalizedSql.indexOf(';', start);
+  expect(end, isNonNegative, reason: 'Policy is not terminated: $policyName');
+  return normalizedSql.substring(start, end + 1);
+}
+
 void main() {
   group('schema contract', () {
     late String schemaSql;
     late String rlsP1Sql;
+    late String rlsP2Sql;
 
     setUpAll(() {
       schemaSql = File('supabase/schema.sql').readAsStringSync();
       rlsP1Sql = File('supabase/migration_fase20_rls_owner_admin_harden.sql')
           .readAsStringSync();
+      rlsP2Sql =
+          File('supabase/migration_fase21_transaksi_history_owner_only.sql')
+              .readAsStringSync();
     });
 
     test('memiliki tabel inti domain klinik', () {
@@ -227,6 +242,60 @@ void main() {
           rlsP1Sql,
           contains(
               'CREATE POLICY "authenticated can delete kehadiran_pasien"'));
+    });
+
+    test('RLS P2 riwayat transaksi owner-only dan insert staff tetap ada', () {
+      final transaksiSelect = _policyBlock(
+        schemaSql,
+        'authenticated can read transaksi',
+        'public.transaksi',
+      );
+      final transaksiItemSelect = _policyBlock(
+        schemaSql,
+        'authenticated can read transaksi_item',
+        'public.transaksi_item',
+      );
+      final transaksiInsert = _policyBlock(
+        schemaSql,
+        'authenticated can insert transaksi',
+        'public.transaksi',
+      );
+      final transaksiItemInsert = _policyBlock(
+        schemaSql,
+        'authenticated can insert transaksi_item',
+        'public.transaksi_item',
+      );
+
+      expect(transaksiSelect, contains('FOR SELECT'));
+      expect(transaksiSelect, contains('USING (public.is_owner())'));
+      expect(transaksiSelect, isNot(contains('public.is_clinic_staff()')));
+      expect(transaksiItemSelect, contains('FOR SELECT'));
+      expect(transaksiItemSelect, contains('USING (public.is_owner())'));
+      expect(transaksiItemSelect, isNot(contains('public.is_clinic_staff()')));
+
+      expect(
+        transaksiInsert,
+        contains(
+          'WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin)',
+        ),
+      );
+      expect(
+        transaksiItemInsert,
+        contains(
+          'WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin)',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_transaksi_insert(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;',
+        ),
+      );
+      expect(rlsP2Sql, contains('USING (public.is_owner())'));
+      expect(
+        rlsP2Sql,
+        contains('PERFORM public.require_clinic_staff(p_id_admin);'),
+      );
     });
 
     test('RPC SECURITY DEFINER memvalidasi admin login', () {

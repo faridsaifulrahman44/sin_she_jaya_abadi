@@ -12,6 +12,7 @@ import 'laporan_page.dart';
 import 'login_page.dart';
 import 'obat_hub_page.dart';
 import 'pasien_hub_page.dart';
+import 'transaksi_form_page.dart';
 import 'transaksi_hub_page.dart';
 
 // ============================================================================
@@ -311,10 +312,15 @@ class _DashboardPageState extends State<DashboardPage> {
     // Add Transaksi menu (available for both petugas and owner)
     menuCards.add(
       DashboardMenuCard(
-        title: 'Transaksi',
+        title: role.isOwner ? 'Transaksi' : 'Tambah Transaksi',
         icon: AppIcons.receipt,
         color: transaksiAccent,
-        onTap: () => Navigator.pushNamed(context, TransaksiHubPage.routeName),
+        onTap: () => Navigator.pushNamed(
+          context,
+          role.isOwner
+              ? TransaksiHubPage.routeName
+              : TransaksiFormPage.routeName,
+        ),
       ),
     );
 

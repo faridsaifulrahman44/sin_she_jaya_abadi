@@ -8,8 +8,8 @@
   masuk di `schema.sql` (ditambahkan STEP 2 sinkronisasi, 2026-04-17).
   Tidak ada migration terpisah untuk tabel-tabel ini.
 - RPC function `fn_transaksi_insert` dipakai oleh `TransaksiRepository`
-  sebagai jalur atomik utama. Aplikasi tetap punya fallback manual jika RPC
-  belum tersedia pada database lama.
+  sebagai jalur atomik utama. Aplikasi tidak memakai fallback insert manual
+  untuk transaksi pembayaran agar policy SELECT riwayat tetap owner-only.
 - Baseline schema final: `supabase/schema.sql`
 - Fase saat ini menganggap `schema.sql` adalah representasi final tunggal.
 
@@ -39,6 +39,7 @@
 - `migration_fase18_ecer_satuan_terjual.sql` -> `REQUIRED` (tambah `transaksi_item.satuan_terjual` untuk transaksi ecer/satuan jual).
 - `migration_fase19_supabase_p0_sync.sql` -> `REQUIRED` (patch P0 idempotent: sinkronisasi stok final, kolom foto, dan RPC transaksi/stock_opname kompatibel Flutter).
 - `migration_fase20_rls_owner_admin_harden.sql` -> `REQUIRED` (P1: helper role admin, RLS owner/petugas, validasi RPC SECURITY DEFINER).
+- `migration_fase21_transaksi_history_owner_only.sql` -> `REQUIRED` (P2: riwayat/detail transaksi owner-only; petugas tetap tambah transaksi via RPC).
 
 ### Kontrak Final Pasien
 - Function delete pasien yang dipakai aplikasi: `public.fn_pasien_delete_and_renumber(bigint)`.
@@ -66,6 +67,7 @@
 19. `migration_fase18_ecer_satuan_terjual.sql` **<- WAJIB**
 20. `migration_fase19_supabase_p0_sync.sql` **<- WAJIB**
 21. `migration_fase20_rls_owner_admin_harden.sql` **<- WAJIB**
+22. `migration_fase21_transaksi_history_owner_only.sql` **<- WAJIB**
 
 ## Urutan Apply Aman (Fresh Environment)
 1. `schema.sql`
@@ -99,8 +101,8 @@ Penghapusan stok/transaksi tetap lewat RPC tervalidasi.
 ### Tabel & Policy (lanjutan)
 | Tabel | Policy | Akses |
 |---|---|---|
-| `transaksi` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
-| `transaksi_item` | read staff; write `current_admin_id() = id_admin` | Owner + petugas |
+| `transaksi` | SELECT owner-only; INSERT staff dengan `current_admin_id() = id_admin`; UPDATE owner-only | Owner lihat riwayat; petugas tambah |
+| `transaksi_item` | SELECT owner-only; INSERT staff dengan `current_admin_id() = id_admin`; UPDATE owner-only | Owner lihat detail; petugas tambah |
 | `kunjungan_pasien` | read/delete staff; write `current_admin_id() = id_admin` | Owner + petugas |
 
 ### Tabel Aktif (Steady-State)
@@ -135,9 +137,9 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 ### RPC / Function Aktif (Dipakai Kode)
 | Function | Dipakai di | Notes |
 |---|---|---|
-| `fn_transaksi_insert(...)` | `TransaksiRepository` | Insert transaksi atomik + item `satuan_terjual` |
-| `fn_recalculate_obat_stok_single(bigint)` | `TransaksiRepository.insertTransaksi` | Primary stok recalc |
-| `fn_obat_kurangi_stok(int, int)` | `TransaksiRepository.insertTransaksi` | Fallback jika RPC utama gagal |
+| `fn_transaksi_insert(...)` | `TransaksiRepository` | Insert transaksi atomik + item `satuan_terjual`; jalur resmi tambah transaksi |
+| `fn_recalculate_obat_stok_single(bigint)` | RPC stok dan repository obat | Recalculate stok single-obat |
+| `fn_obat_kurangi_stok(int, int)` | Legacy RPC support | Dipertahankan untuk kompatibilitas DB lama; bukan fallback transaksi pembayaran |
 | `fn_obat_keluar_insert_atomic(...)` | `ObatKeluarRepository` | Obat keluar atomik |
 | `fn_obat_keluar_update_atomic(...)` | `ObatKeluarRepository` | Update atomik |
 | `fn_obat_keluar_delete_atomic(bigint)` | `ObatKeluarRepository` | Delete atomik |
@@ -165,7 +167,7 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 - Semua akses operasional mensyaratkan user Supabase Auth memiliki mapping di `public.admin`.
 - Role valid: `petugas` dan `kepala_klinik`.
 - `kepala_klinik`/owner dapat mengakses fitur laporan di Flutter.
-- Tidak ada table/view laporan khusus di database saat ini; halaman laporan mengagregasi tabel operasional yang juga dipakai petugas, sehingga tabel operasional tetap sengaja readable untuk petugas.
+- Riwayat/detail transaksi (`transaksi`, `transaksi_item`) owner-only di database; petugas tetap menambah transaksi lewat `fn_transaksi_insert`.
 - RPC `SECURITY DEFINER` yang mutasi data memanggil `require_clinic_staff(...)` agar tidak hanya bergantung pada token authenticated.
 
 ### Asumsi

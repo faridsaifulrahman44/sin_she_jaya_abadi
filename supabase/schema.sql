@@ -1721,7 +1721,7 @@ CREATE POLICY "authenticated can delete kehadiran_pasien"
   TO authenticated
   USING (public.is_clinic_staff());
 
--- transaksi: clinic staff (INSERT/UPDATE via Supabase client)
+-- transaksi: owner-only history, staff insert via own id_admin, owner update.
 ALTER TABLE public.transaksi ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "authenticated can read transaksi" ON public.transaksi;
@@ -1729,24 +1729,24 @@ CREATE POLICY "authenticated can read transaksi"
   ON public.transaksi
   FOR SELECT
   TO authenticated
-  USING (public.is_clinic_staff());
+  USING (public.is_owner());
 
 DROP POLICY IF EXISTS "authenticated can insert transaksi" ON public.transaksi;
 CREATE POLICY "authenticated can insert transaksi"
   ON public.transaksi
   FOR INSERT
   TO authenticated
-  WITH CHECK (public.current_admin_id() = id_admin);
+  WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update transaksi" ON public.transaksi;
 CREATE POLICY "authenticated can update transaksi"
   ON public.transaksi
   FOR UPDATE
   TO authenticated
-  USING (public.is_clinic_staff())
-  WITH CHECK (public.current_admin_id() = id_admin);
+  USING (public.is_owner())
+  WITH CHECK (public.is_owner());
 
--- transaksi_item: clinic staff
+-- transaksi_item: owner-only history, staff insert via own id_admin, owner update.
 ALTER TABLE public.transaksi_item ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "authenticated can read transaksi_item" ON public.transaksi_item;
@@ -1754,22 +1754,22 @@ CREATE POLICY "authenticated can read transaksi_item"
   ON public.transaksi_item
   FOR SELECT
   TO authenticated
-  USING (public.is_clinic_staff());
+  USING (public.is_owner());
 
 DROP POLICY IF EXISTS "authenticated can insert transaksi_item" ON public.transaksi_item;
 CREATE POLICY "authenticated can insert transaksi_item"
   ON public.transaksi_item
   FOR INSERT
   TO authenticated
-  WITH CHECK (public.current_admin_id() = id_admin);
+  WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update transaksi_item" ON public.transaksi_item;
 CREATE POLICY "authenticated can update transaksi_item"
   ON public.transaksi_item
   FOR UPDATE
   TO authenticated
-  USING (public.is_clinic_staff())
-  WITH CHECK (public.current_admin_id() = id_admin);
+  USING (public.is_owner())
+  WITH CHECK (public.is_owner());
 
 -- kunjungan_pasien: clinic staff
 ALTER TABLE public.kunjungan_pasien ENABLE ROW LEVEL SECURITY;

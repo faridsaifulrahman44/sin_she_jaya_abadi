@@ -163,6 +163,37 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
       );
 
       if (mounted) {
+        String? selectedNamaPasien;
+        for (final pasien in _pasienList) {
+          if (pasien.idPasien == _selectedPasienId) {
+            selectedNamaPasien = pasien.namaPasien;
+            break;
+          }
+        }
+
+        String? namaAdmin;
+        try {
+          namaAdmin = await _repository.getNamaAdminById(idAdmin);
+        } catch (_) {
+          namaAdmin = null;
+        }
+
+        if (!mounted) return;
+
+        final receiptItems = items
+            .map((item) => TransaksiItemModel(
+                  idItem: item.idItem,
+                  idTransaksi: savedTransaksi.idTransaksi,
+                  idObat: item.idObat,
+                  namaObat: item.namaObat,
+                  jumlah: item.jumlah,
+                  hargaSatuan: item.hargaSatuan,
+                  subtotal: item.subtotal,
+                  idAdmin: item.idAdmin,
+                  satuanTerjual: item.satuanTerjual,
+                ))
+            .toList(growable: false);
+
         // Show success message first
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -177,6 +208,10 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           MaterialPageRoute(
             builder: (_) => StrukPembayaranPage(
               idTransaksi: savedTransaksi.idTransaksi,
+              initialTransaksi: savedTransaksi,
+              initialItems: receiptItems,
+              initialNamaPasien: selectedNamaPasien,
+              initialNamaAdmin: namaAdmin,
             ),
           ),
         );
