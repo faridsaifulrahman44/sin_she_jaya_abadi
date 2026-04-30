@@ -59,6 +59,11 @@ flutter run
 
 ## Build Android
 
+Android package final:
+
+- Application ID: `id.klinik.mobile`
+- App label: `Klinik App`
+
 ### Debug APK
 
 ```bash
@@ -67,9 +72,28 @@ flutter build apk --debug
 
 ### Release APK
 
+Release signing membaca file lokal `android/key.properties` jika tersedia. File ini di-ignore dan tidak boleh berisi password asli di repo. Salin contoh berikut lalu isi di mesin build:
+
+```powershell
+Copy-Item android/key.properties.example android/key.properties
+```
+
+Isi `android/key.properties`:
+
+```properties
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=C:/path/outside/repo/upload-keystore.jks
+```
+
+Setelah keystore dan `android/key.properties` siap:
+
 ```bash
 flutter build apk --release
 ```
+
+Jika `android/key.properties` belum ada, release build tidak memakai debug signing.
 
 File APK hasil build ada di `build/app/outputs/flutter-apk/`.
 
