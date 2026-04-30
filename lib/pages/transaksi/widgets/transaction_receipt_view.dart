@@ -68,7 +68,7 @@ class TransactionReceiptView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          'Klinik Sin She Jaya Abadi',
+          'Sin She Jaya Abadi',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
