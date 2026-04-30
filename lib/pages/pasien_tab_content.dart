@@ -15,28 +15,13 @@ import 'pasien_detail_page.dart';
 import 'pasien_form_page.dart';
 import 'pasien_hub_page.dart';
 
-enum _PasienListAction {
-  detail,
-  edit,
-  delete,
-  jadwalkanHadir,
-}
+enum _PasienListAction { detail, edit, delete, jadwalkanHadir }
 
-/// Body-widget (embeddable) untuk tab "Data Pasien".
-///
-/// Tidak memiliki Scaffold/AppBar sendiri — dirancang untuk di-embed
-/// di dalam TabBarView milik [PasienHubPage].
+/// Body widget untuk tab "Data Pasien".
 class PasienTabContent extends StatefulWidget {
-  const PasienTabContent({
-    super.key,
-    this.onRefresh,
-    this.domainSummary,
-  });
+  const PasienTabContent({super.key, this.onRefresh, this.domainSummary});
 
-  /// Callback opsional untuk refresh domain summary saat data berubah.
   final VoidCallback? onRefresh;
-
-  /// Summary data dari parent (PasienHubPage).
   final DomainSummaryPasien? domainSummary;
 
   @override
@@ -126,72 +111,44 @@ class _PasienTabContentState extends State<PasienTabContent> {
     }
   }
 
+  Future<void> _handleAction(_PasienListAction action, PasienModel item) async {
+    if (action == _PasienListAction.detail) {
+      await _openDetail(item);
+      return;
+    }
+    if (action == _PasienListAction.edit) {
+      await _openForm(item);
+      return;
+    }
+    if (action == _PasienListAction.jadwalkanHadir) {
+      await _jadwalkanHadir(item);
+      return;
+    }
+    await _delete(item);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final s = widget.domainSummary;
-    final isLoading = s == null;
-
     return Column(
       children: [
-        // ── Search bar ──────────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: ModernSearchBar(
-            controller: _searchController,
-            hintText: 'Cari nama pasien...',
-            onChanged: (_) => _reload(),
-            onClear: _reload,
-          ),
-        ),
-
-        // ── Aksi Cepat ───────────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                'Ringkasan',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: ctextSecondary(context),
-                  letterSpacing: 0.2,
+              Expanded(
+                child: ModernSearchBar(
+                  controller: _searchController,
+                  hintText: 'Cari nama pasien...',
+                  onChanged: (_) => _reload(),
+                  onClear: _reload,
                 ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _StatCard(
-                    label: 'Total Pasien',
-                    value: isLoading ? '-' : '${s.totalPasien}',
-                    icon: AppIcons.person,
-                    accentColor: cteal(context),
-                    onTap: () => widget.domainSummary?.navigateToTab(0),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatCard(
-                    label: 'Jadwal Hari Ini',
-                    value: isLoading ? '-' : '${s.jadwalHariIni}',
-                    icon: AppIcons.kalender,
-                    accentColor: const Color(0xFF6366F1),
-                    onTap: () => widget.domainSummary?.navigateToTab(1),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatCard(
-                    label: 'Hadir Hari Ini',
-                    value: isLoading ? '-' : '${s.hadirHariIni}',
-                    icon: AppIcons.pasienHadir,
-                    accentColor: const Color(0xFF10B981),
-                    onTap: () => widget.domainSummary?.navigateToTab(1),
-                  ),
-                ],
-              ),
+              const SizedBox(width: 10),
+              _AddPatientIconButton(onPressed: () => _openForm()),
             ],
           ),
         ),
-
-        // ── Patient list ────────────────────────────────────────────────────
+        _buildSummary(widget.domainSummary),
         Expanded(
           child: FutureBuilder<List<PasienModel>>(
             future: _future,
@@ -224,61 +181,15 @@ class _PasienTabContentState extends State<PasienTabContent> {
                 onRefresh: _reload,
                 color: cteal(context),
                 child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    final tanggal = item.tanggalJanjian == null
-                        ? '-'
-                        : asDate(item.tanggalJanjian!);
-                    return ModernListCard(
-                      title: item.namaPasien,
-                      subtitle:
-                          '${item.usia} Tahun  •  ${item.jenisKelaminLabel}\nJanjian: $tanggal',
-                      icon: AppIcons.person,
-                      accentColor: cteal(context),
+                    return _PasienCard(
+                      item: item,
                       onTap: () => _openDetail(item),
-                      trailingPopup: PopupMenuButton<_PasienListAction>(
-                        tooltip: 'Aksi',
-                        icon: HugeIcon(
-                          icon: AppIcons.more,
-                          color: ctextSecondary(context),
-                        ),
-                        onSelected: (action) async {
-                          if (action == _PasienListAction.detail) {
-                            await _openDetail(item);
-                            return;
-                          }
-                          if (action == _PasienListAction.edit) {
-                            await _openForm(item);
-                            return;
-                          }
-                          if (action == _PasienListAction.jadwalkanHadir) {
-                            await _jadwalkanHadir(item);
-                            return;
-                          }
-                          await _delete(item);
-                        },
-                        itemBuilder: (ctx) => const [
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.detail,
-                            child: Text('Detail'),
-                          ),
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.edit,
-                            child: Text('Edit'),
-                          ),
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.jadwalkanHadir,
-                            child: Text('Jadwalkan Hadir'),
-                          ),
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.delete,
-                            child: Text('Hapus'),
-                          ),
-                        ],
-                      ),
+                      onAction: (action) => _handleAction(action, item),
                     );
                   },
                 ),
@@ -286,20 +197,92 @@ class _PasienTabContentState extends State<PasienTabContent> {
             },
           ),
         ),
-
-        // ── FAB ────────────────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            width: double.infinity,
-            child: GradientFAB(
-              icon: AppIcons.tambah,
-              label: 'Tambah Pasien',
-              onPressed: () => _openForm(),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: GradientFAB(
+                icon: AppIcons.tambah,
+                label: 'Tambah Pasien',
+                onPressed: () => _openForm(),
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSummary(DomainSummaryPasien? summary) {
+    final cards = [
+      _StatCardData(
+        label: 'Total Pasien',
+        value: summary?.totalPasien.toString() ?? '-',
+        icon: AppIcons.person,
+        accentColor: cteal(context),
+        onTap: () => widget.domainSummary?.navigateToTab(0),
+      ),
+      _StatCardData(
+        label: 'Jadwal Hari Ini',
+        value: summary?.jadwalHariIni.toString() ?? '-',
+        icon: AppIcons.kalender,
+        accentColor: const Color(0xFF6366F1),
+        onTap: () => widget.domainSummary?.navigateToTab(1),
+      ),
+      _StatCardData(
+        label: 'Hadir Hari Ini',
+        value: summary?.hadirHariIni.toString() ?? '-',
+        icon: AppIcons.pasienHadir,
+        accentColor: const Color(0xFF10B981),
+        onTap: () => widget.domainSummary?.navigateToTab(1),
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ringkasan',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: ctextSecondary(context),
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 360) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < cards.length; i++) ...[
+                        SizedBox(width: 132, child: _StatCard(data: cards[i])),
+                        if (i != cards.length - 1) const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                );
+              }
+
+              return Row(
+                children: [
+                  for (var i = 0; i < cards.length; i++) ...[
+                    Expanded(child: _StatCard(data: cards[i])),
+                    if (i != cards.length - 1) const SizedBox(width: 8),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -313,10 +296,255 @@ class _PasienTabContentState extends State<PasienTabContent> {
   }
 }
 
-// ── Stat card widget ──────────────────────────────────────────────────────────
+class _AddPatientIconButton extends StatelessWidget {
+  const _AddPatientIconButton({required this.onPressed});
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Tambah Pasien',
+      child: Material(
+        color: cteal(context),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: Center(
+              child: HugeIcon(
+                icon: AppIcons.tambah,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PasienCard extends StatelessWidget {
+  const _PasienCard({
+    required this.item,
+    required this.onTap,
+    required this.onAction,
+  });
+
+  final PasienModel item;
+  final VoidCallback onTap;
+  final ValueChanged<_PasienListAction> onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final tanggalJanjian = item.tanggalJanjian == null
+        ? 'Belum dijadwalkan'
+        : asMediumDate(item.tanggalJanjian!);
+    final alamat = item.alamat?.trim();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cdivider(context)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: cteal(context).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: HugeIcon(
+                          icon: AppIcons.person,
+                          color: cteal(context),
+                          size: 21,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.namaPasien,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: ctextPrimary(context),
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'No. ${item.nomorPasien}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: cteal(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    PopupMenuButton<_PasienListAction>(
+                      tooltip: 'Aksi',
+                      icon: HugeIcon(
+                        icon: AppIcons.more,
+                        color: ctextSecondary(context),
+                      ),
+                      onSelected: onAction,
+                      itemBuilder: (ctx) => const [
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.detail,
+                          child: Text('Detail'),
+                        ),
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.edit,
+                          child: Text('Edit'),
+                        ),
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.jadwalkanHadir,
+                          child: Text('Jadwalkan Hadir'),
+                        ),
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.delete,
+                          child: Text('Hapus'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _InfoChip(
+                      icon: AppIcons.person,
+                      label: '${item.usia} tahun',
+                    ),
+                    _InfoChip(
+                      icon: AppIcons.peopleGroup,
+                      label: item.jenisKelaminLabel,
+                    ),
+                    _InfoChip(icon: AppIcons.kalender, label: tanggalJanjian),
+                  ],
+                ),
+                if (alamat != null && alamat.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _AddressLine(text: alamat),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.label});
+
+  final List<List<dynamic>> icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: csurface(context),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: cdivider(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(icon: icon, size: 14, color: ctextMuted(context)),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: ctextSecondary(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressLine extends StatelessWidget {
+  const _AddressLine({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: HugeIcon(
+            icon: AppIcons.description,
+            size: 15,
+            color: ctextMuted(context),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.35,
+              color: ctextSecondary(context),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatCardData {
+  const _StatCardData({
     required this.label,
     required this.value,
     required this.icon,
@@ -329,109 +557,103 @@ class _StatCard extends StatelessWidget {
   final List<List<dynamic>> icon;
   final Color accentColor;
   final VoidCallback onTap;
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.data});
+
+  final _StatCardData data;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Soft tint color — derived from accent for background
     final softBg = isDark
-        ? accentColor.withValues(alpha: 0.15)
-        : accentColor.withValues(alpha: 0.10);
+        ? data.accentColor.withValues(alpha: 0.15)
+        : data.accentColor.withValues(alpha: 0.10);
     final cardBg = isDark ? DarkColors.card : LightColors.card;
     final shadowColor = isDark
         ? DarkColors.shadowLight.withValues(alpha: 0.30)
         : Colors.black.withValues(alpha: 0.05);
     final dividerColor = isDark ? DarkColors.divider : LightColors.divider;
 
-    return Expanded(
-      child: Material(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: dividerColor, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: shadowColor,
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Icon circle
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: softBg,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: HugeIcon(icon: icon, color: accentColor, size: 18),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Value
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? DarkColors.textPrimary
-                        : LightColors.textPrimary,
-                    height: 1.1,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Label
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? DarkColors.textSecondary
-                        : LightColors.textSecondary,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Accent dot indicator
-                Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: accentColor,
-                        shape: BoxShape.circle,
+    return Material(
+      color: cardBg,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      child: InkWell(
+        onTap: data.onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 112),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: dividerColor, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: softBg,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: data.icon,
+                        color: data.accentColor,
+                        size: 17,
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    Container(
-                      width: 24,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    data.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: ctextPrimary(context),
+                      height: 1.1,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                data.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: ctextSecondary(context),
+                  height: 1.25,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: 30,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: data.accentColor.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
           ),
         ),
       ),
