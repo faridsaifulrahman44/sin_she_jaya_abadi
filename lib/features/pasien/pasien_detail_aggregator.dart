@@ -85,8 +85,8 @@ PasienDetailSummary buildPasienDetailSummary({
 
 String buildTransaksiRingkasan(TransaksiModel transaksi) {
   final base = transaksi.jenisTransaksi == JenisTransaksi.obatReadyStock
-      ? 'Pembelian obat ready stock'
-      : 'Praktek + obat custom';
+      ? 'Pembelian obat'
+      : 'Transaksi praktek';
 
   final extras = <String>[];
   if ((transaksi.durasiHarian ?? 0) > 0) {

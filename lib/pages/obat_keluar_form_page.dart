@@ -221,7 +221,9 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
     return Scaffold(
       backgroundColor: cscaffoldBg(context),
       appBar: AppBar(
-        title: Text(isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'),
+        title: Text(
+          isEdit ? 'Edit Pengeluaran Stok' : 'Tambah Pengeluaran Stok',
+        ),
         backgroundColor: cobatAmber(context),
         foregroundColor: conPrimary(context),
         elevation: 0,
@@ -247,10 +249,23 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PageHeader(isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'),
+                  PageHeader(
+                    isEdit
+                        ? 'Edit Pengeluaran Stok'
+                        : 'Tambah Pengeluaran Stok',
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tanggal: ${asDate(_selectedDate)}',
+                    'Gunakan fitur ini untuk obat rusak, kedaluwarsa, hilang, dipakai internal, atau koreksi stok keluar. Untuk penjualan obat, gunakan Transaksi Obat. Untuk layanan konsultasi/tindakan, gunakan Transaksi Praktek.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: ctextSecondary(context),
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Tanggal Pengeluaran: ${asDate(_selectedDate)}',
                     style: TextStyle(
                       color: ctextSecondary(context),
                       fontWeight: FontWeight.w600,
@@ -310,7 +325,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                   TextFormField(
                     controller: _keteranganCtrl,
                     maxLines: 2,
-                    decoration: _inputDecoration('Catatan transaksi...'),
+                    decoration: _inputDecoration('Catatan pengeluaran stok...'),
                   ),
                   const SizedBox(height: 24),
 
@@ -319,7 +334,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Item Obat Keluar',
+                        'Item Pengeluaran Stok',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,

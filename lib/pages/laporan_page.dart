@@ -563,11 +563,11 @@ class _LaporanPageState extends State<LaporanPage> {
           Divider(color: cdivider(context)),
           const SizedBox(height: 8),
           _buildMetricRow(
-            label: 'Ready Stock',
+            label: 'Obat',
             value: rupiah(summary.pendapatanReadyStock),
           ),
           _buildMetricRow(
-            label: 'Praktek + Custom (Bundled)',
+            label: 'Praktek',
             value: rupiah(summary.pendapatanPraktekCustomBundled),
           ),
           const SizedBox(height: 8),
@@ -590,7 +590,7 @@ class _LaporanPageState extends State<LaporanPage> {
             value: rupiah(summary.pendapatanEtalase2),
           ),
           _buildMetricRow(
-            label: 'Etalase 3 / Custom',
+            label: 'Etalase 3 / Praktek',
             value: rupiah(summary.pendapatanEtalase3Custom),
           ),
           if (summary.hasSelisihEtalase) ...[
@@ -608,7 +608,7 @@ class _LaporanPageState extends State<LaporanPage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                'Sebagian pendapatan belum terpetakan ke etalase (biasanya karena detail item ready stock tidak lengkap).',
+                'Sebagian pendapatan belum terpetakan ke etalase (biasanya karena detail item transaksi obat tidak lengkap).',
                 style: TextStyle(
                   fontSize: 12,
                   color: ctextSecondary(context),
@@ -633,11 +633,11 @@ class _LaporanPageState extends State<LaporanPage> {
             highlight: true,
           ),
           _buildMetricRow(
-            label: 'Transaksi ready stock',
+            label: 'Transaksi obat',
             value: '${summary.jumlahTransaksiReadyStock}',
           ),
           _buildMetricRow(
-            label: 'Transaksi praktek/custom',
+            label: 'Transaksi praktek',
             value: '${summary.jumlahTransaksiPraktekCustom}',
           ),
           const SizedBox(height: 8),

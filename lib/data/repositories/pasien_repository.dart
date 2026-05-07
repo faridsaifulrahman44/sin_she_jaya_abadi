@@ -12,6 +12,8 @@ class PasienRepository extends BaseRepository {
 
   final SupabaseClient _client;
 
+  int _safeLimit(int limit) => limit.clamp(1, 50).toInt();
+
   Future<List<PasienModel>> getPasien({String? keyword}) {
     return guard(() async {
       final search = parseString(keyword);
@@ -25,6 +27,81 @@ class PasienRepository extends BaseRepository {
               .select()
               .ilike('nama_pasien', '%$search%')
               .order('id_pasien', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response)
+          .map(PasienModel.fromMap)
+          .toList();
+    });
+  }
+
+  Future<List<PasienModel>> getRecentPasien({int limit = 20}) {
+    return guard(() async {
+      final response = await _client
+          .from('pasien')
+          .select()
+          .order('id_pasien', ascending: false)
+          .limit(_safeLimit(limit));
+
+      return List<Map<String, dynamic>>.from(response)
+          .map(PasienModel.fromMap)
+          .toList();
+    });
+  }
+
+  Future<List<PasienModel>> getPasienPickerInitial({
+    DateTime? tanggal,
+    int limit = 20,
+  }) {
+    return guard(() async {
+      final safeLimit = _safeLimit(limit);
+      final selectedDate = tanggal ?? DateTime.now();
+      final scheduledResponse = await _client
+          .from('pasien')
+          .select()
+          .eq('tanggal_janjian', formatDateDb(selectedDate))
+          .order('nama_pasien', ascending: true)
+          .limit(safeLimit);
+
+      final scheduledPatients = List<Map<String, dynamic>>.from(
+        scheduledResponse,
+      ).map(PasienModel.fromMap).toList();
+
+      if (scheduledPatients.isNotEmpty) {
+        return scheduledPatients;
+      }
+
+      final recentResponse = await _client
+          .from('pasien')
+          .select()
+          .order('id_pasien', ascending: false)
+          .limit(safeLimit);
+
+      return List<Map<String, dynamic>>.from(recentResponse)
+          .map(PasienModel.fromMap)
+          .toList();
+    });
+  }
+
+  Future<List<PasienModel>> searchPasien(String keyword, {int limit = 20}) {
+    return guard(() async {
+      final search = parseString(keyword)
+          .replaceAll(RegExp(r'[,()]'), ' ')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+      if (search.length < 2) {
+        return const <PasienModel>[];
+      }
+
+      final response = await _client
+          .from('pasien')
+          .select()
+          .or(
+            'nama_pasien.ilike.%$search%,'
+            'nomor_pasien.ilike.%$search%,'
+            'alamat.ilike.%$search%',
+          )
+          .order('nama_pasien', ascending: true)
+          .limit(_safeLimit(limit));
 
       return List<Map<String, dynamic>>.from(response)
           .map(PasienModel.fromMap)

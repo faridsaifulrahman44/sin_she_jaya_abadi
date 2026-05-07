@@ -345,6 +345,21 @@ BEGIN
       UNION ALL
 
       SELECT
+        t.tanggal AS mutation_date,
+        2 AS priority,
+        t.created_at AS recorded_at,
+        ti.id_item AS sequence_id,
+        -ti.jumlah AS delta,
+        false AS is_reset
+      FROM public.transaksi_item ti
+      JOIN public.transaksi t
+        ON t.id_transaksi = ti.id_transaksi
+      WHERE ti.id_obat = p_id_obat
+        AND t.jenis_transaksi = 'obat_ready_stock'
+
+      UNION ALL
+
+      SELECT
         so.tanggal_opname AS mutation_date,
         3 AS priority,
         so.created_at AS recorded_at,

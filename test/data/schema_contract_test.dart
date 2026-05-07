@@ -13,11 +13,26 @@ String _policyBlock(String sql, String policyName, String tableName) {
   return normalizedSql.substring(start, end + 1);
 }
 
+String _functionBlock(String sql, String functionName) {
+  final normalizedSql = sql.replaceAll('\r\n', '\n');
+  final marker = 'CREATE OR REPLACE FUNCTION $functionName';
+  final start = normalizedSql.indexOf(marker);
+  expect(start, isNonNegative, reason: 'Missing function: $functionName');
+
+  final next =
+      normalizedSql.indexOf('CREATE OR REPLACE FUNCTION public.', start + 1);
+  return normalizedSql.substring(
+    start,
+    next == -1 ? normalizedSql.length : next,
+  );
+}
+
 void main() {
   group('schema contract', () {
     late String schemaSql;
     late String rlsP1Sql;
     late String rlsP2Sql;
+    late String recalculateP2Sql;
 
     setUpAll(() {
       schemaSql = File('supabase/schema.sql').readAsStringSync();
@@ -26,6 +41,9 @@ void main() {
       rlsP2Sql =
           File('supabase/migration_fase21_transaksi_history_owner_only.sql')
               .readAsStringSync();
+      recalculateP2Sql = File(
+        'supabase/migration_fase22_recalculate_include_transaksi_items.sql',
+      ).readAsStringSync();
     });
 
     test('memiliki tabel inti domain klinik', () {
@@ -219,6 +237,46 @@ void main() {
           'GRANT EXECUTE ON FUNCTION public.require_clinic_staff(bigint) TO authenticated;',
         ),
       );
+    });
+
+    test('recalculate stok menghitung transaksi_item ready-stock', () {
+      final blocks = {
+        'schema.sql': _functionBlock(
+          schemaSql,
+          'public.fn_recalculate_obat_stok_single',
+        ),
+        'migration_fase22_recalculate_include_transaksi_items.sql':
+            _functionBlock(
+          recalculateP2Sql,
+          'public.fn_recalculate_obat_stok_single',
+        ),
+      };
+
+      for (final entry in blocks.entries) {
+        final block = entry.value;
+
+        expect(block, contains('FROM public.transaksi_item ti'),
+            reason: entry.key);
+        expect(block, contains('JOIN public.transaksi t'), reason: entry.key);
+        expect(
+          block,
+          contains('ON t.id_transaksi = ti.id_transaksi'),
+          reason: entry.key,
+        );
+        expect(block, contains('t.tanggal AS mutation_date'),
+            reason: entry.key);
+        expect(block, contains('2 AS priority'), reason: entry.key);
+        expect(block, contains('-ti.jumlah AS delta'), reason: entry.key);
+        expect(block, contains('false AS is_reset'), reason: entry.key);
+        expect(
+          block,
+          contains("t.jenis_transaksi = 'obat_ready_stock'"),
+          reason: entry.key,
+        );
+        expect(block, contains('so.tanggal_opname AS mutation_date'),
+            reason: entry.key);
+        expect(block, contains('3 AS priority'), reason: entry.key);
+      }
     });
 
     test('RLS P1 memakai role admin, bukan sekadar authenticated', () {

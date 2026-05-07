@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/database/db_tables.dart';
 import '../../core/supabase/supabase_client_provider.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/parsers.dart';
@@ -22,12 +23,12 @@ class ObatKeluarRepository extends BaseRepository {
     return guard(() async {
       final response = tanggal == null
           ? await _client
-              .from('obat_keluar')
+              .from(DbTables.obatKeluar)
               .select()
               .order('tanggal_terjual', ascending: false)
               .order('id_terjual', ascending: false)
           : await _client
-              .from('obat_keluar')
+              .from(DbTables.obatKeluar)
               .select()
               .eq('tanggal_terjual', formatDateDb(tanggal))
               .order('id_terjual', ascending: false);
@@ -44,7 +45,7 @@ class ObatKeluarRepository extends BaseRepository {
   ) {
     return guard(() async {
       final response = await _client
-          .from('obat_keluar')
+          .from(DbTables.obatKeluar)
           .select()
           .gte('tanggal_terjual', formatDateDb(startDate))
           .lte('tanggal_terjual', formatDateDb(endDate))
@@ -60,7 +61,7 @@ class ObatKeluarRepository extends BaseRepository {
   Future<List<ObatKeluarItemModel>> getObatKeluarItems(int idTerjual) {
     return guard(() async {
       final response = await _client
-          .from('obat_keluar_item')
+          .from(DbTables.obatKeluarItem)
           .select()
           .eq('id_terjual', idTerjual)
           .order('id_item', ascending: true);
@@ -74,13 +75,13 @@ class ObatKeluarRepository extends BaseRepository {
   Future<ObatKeluarModel> getObatKeluarWithItems(int idTerjual) async {
     return guard(() async {
       final header = await _client
-          .from('obat_keluar')
+          .from(DbTables.obatKeluar)
           .select()
           .eq('id_terjual', idTerjual)
           .maybeSingle();
 
       if (header == null) {
-        throw Exception('Transaksi tidak ditemukan: $idTerjual');
+        throw Exception('Pengeluaran stok tidak ditemukan: $idTerjual');
       }
 
       final items = await getObatKeluarItems(idTerjual);
@@ -100,7 +101,7 @@ class ObatKeluarRepository extends BaseRepository {
       final payloadItems = ObatKeluarAtomicPayloadBuilder.build(items);
 
       final rpcResult = await _client.rpc(
-        'fn_obat_keluar_insert_atomic',
+        DbRpc.obatKeluarInsertAtomic,
         params: {
           'p_tanggal_terjual': formatDateDb(tanggalTerjual),
           'p_no_etalase': parseNullableString(noEtalase),
@@ -112,7 +113,7 @@ class ObatKeluarRepository extends BaseRepository {
 
       final idTerjual = parseInt(rpcResult);
       if (idTerjual <= 0) {
-        throw Exception('Gagal membuat transaksi obat keluar.');
+        throw Exception('Gagal membuat pengeluaran stok.');
       }
 
       return getObatKeluarWithItems(idTerjual);
@@ -131,7 +132,7 @@ class ObatKeluarRepository extends BaseRepository {
       final payloadItems = ObatKeluarAtomicPayloadBuilder.build(items);
 
       await _client.rpc(
-        'fn_obat_keluar_update_atomic',
+        DbRpc.obatKeluarUpdateAtomic,
         params: {
           'p_id_terjual': idTerjual,
           'p_tanggal_terjual': formatDateDb(tanggalTerjual),
@@ -149,7 +150,7 @@ class ObatKeluarRepository extends BaseRepository {
   Future<void> deleteObatKeluar(int idTerjual) {
     return guard(() async {
       await _client.rpc(
-        'fn_obat_keluar_delete_atomic',
+        DbRpc.obatKeluarDeleteAtomic,
         params: {'p_id_terjual': idTerjual},
       );
     });
@@ -158,7 +159,7 @@ class ObatKeluarRepository extends BaseRepository {
   Future<void> deleteObatKeluarByTanggal(DateTime tanggal) {
     return guard(() async {
       await _client.rpc(
-        'fn_obat_keluar_delete_by_tanggal_atomic',
+        DbRpc.obatKeluarDeleteByTanggalAtomic,
         params: {'p_tanggal_terjual': formatDateDb(tanggal)},
       );
     });

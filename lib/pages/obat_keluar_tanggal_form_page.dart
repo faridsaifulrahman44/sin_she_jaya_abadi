@@ -67,7 +67,7 @@ class _ObatKeluarTanggalFormPageState extends State<ObatKeluarTanggalFormPage> {
               const PageHeader('Pilih Tanggal'),
               const SizedBox(height: 24),
               const Text(
-                'Tanggal Transaksi',
+                'Tanggal Pengeluaran',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),

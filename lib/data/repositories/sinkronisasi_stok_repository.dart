@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/database/db_tables.dart';
 import '../../core/supabase/supabase_client_provider.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/parsers.dart';
@@ -16,7 +17,7 @@ class SinkronisasiStokRepository extends BaseRepository {
   final SupabaseClient _client;
 
   /// Nama tabel Supabase.
-  static const tableName = 'sinkronisasi_stok';
+  static const tableName = DbTables.sinkronisasiStok;
 
   Future<List<SinkronisasiStokModel>> getSinkronisasiStok({DateTime? tanggal}) {
     return guard(() async {
@@ -83,7 +84,7 @@ class SinkronisasiStokRepository extends BaseRepository {
   }) {
     return guard(() async {
       final rpcResult = await _client.rpc(
-        'fn_stock_opname_insert_atomic',
+        DbRpc.stockOpnameInsertAtomic,
         params: {
           'p_id_obat': idObat,
           'p_tanggal_opname': formatDateDb(tanggalOpname),
@@ -120,7 +121,7 @@ class SinkronisasiStokRepository extends BaseRepository {
   }) {
     return guard(() async {
       await _client.rpc(
-        'fn_stock_opname_update_atomic',
+        DbRpc.stockOpnameUpdateAtomic,
         params: {
           'p_id_opname': idOpname,
           'p_id_obat': idObat,
@@ -145,7 +146,7 @@ class SinkronisasiStokRepository extends BaseRepository {
   Future<void> deleteSinkronisasiStok(int idOpname) {
     return guard(() async {
       await _client.rpc(
-        'fn_stock_opname_delete_atomic',
+        DbRpc.stockOpnameDeleteAtomic,
         params: {'p_id_opname': idOpname},
       );
     });
@@ -154,7 +155,7 @@ class SinkronisasiStokRepository extends BaseRepository {
   Future<void> deleteSinkronisasiStokByTanggal(DateTime tanggalOpname) {
     return guard(() async {
       await _client.rpc(
-        'fn_stock_opname_delete_by_tanggal_atomic',
+        DbRpc.stockOpnameDeleteByTanggalAtomic,
         params: {'p_tanggal_opname': formatDateDb(tanggalOpname)},
       );
     });

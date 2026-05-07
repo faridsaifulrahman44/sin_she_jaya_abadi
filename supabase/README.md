@@ -40,6 +40,7 @@
 - `migration_fase19_supabase_p0_sync.sql` -> `REQUIRED` (patch P0 idempotent: sinkronisasi stok final, kolom foto, dan RPC transaksi/stock_opname kompatibel Flutter).
 - `migration_fase20_rls_owner_admin_harden.sql` -> `REQUIRED` (P1: helper role admin, RLS owner/petugas, validasi RPC SECURITY DEFINER).
 - `migration_fase21_transaksi_history_owner_only.sql` -> `REQUIRED` (P2: riwayat/detail transaksi owner-only; petugas tetap tambah transaksi via RPC).
+- `migration_fase22_recalculate_include_transaksi_items.sql` -> `REQUIRED` (P2: recalculate stok menghitung `transaksi_item` ready-stock).
 
 ### Kontrak Final Pasien
 - Function delete pasien yang dipakai aplikasi: `public.fn_pasien_delete_and_renumber(bigint)`.
@@ -68,6 +69,7 @@
 20. `migration_fase19_supabase_p0_sync.sql` **<- WAJIB**
 21. `migration_fase20_rls_owner_admin_harden.sql` **<- WAJIB**
 22. `migration_fase21_transaksi_history_owner_only.sql` **<- WAJIB**
+23. `migration_fase22_recalculate_include_transaksi_items.sql` **<- WAJIB**
 
 ## Urutan Apply Aman (Fresh Environment)
 1. `schema.sql`

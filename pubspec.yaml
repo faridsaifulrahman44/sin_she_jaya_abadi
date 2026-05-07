@@ -21,6 +21,8 @@ dependencies:
   print_bluetooth_thermal: ^1.1.9
   esc_pos_utils_plus: ^2.0.4
   permission_handler: ^12.0.1
+  flutter_riverpod: ^2.6.1
+  go_router: 17.2.3
 
 dev_dependencies:
   flutter_test:

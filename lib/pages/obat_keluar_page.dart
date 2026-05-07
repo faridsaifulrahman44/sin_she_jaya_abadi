@@ -16,7 +16,7 @@ import 'obat_keluar_detail_page.dart';
 import 'obat_keluar_form_page.dart';
 import 'obat_keluar_tanggal_form_page.dart';
 
-/// Page: Obat Keluar — blue-accent composition.
+/// Page: Pengeluaran Stok — blue-accent composition.
 /// Tidak memiliki Scaffold/AppBar sendiri; dirancang untuk di-embed
 /// di dalam ObatHubPage (tab body).
 class ObatKeluarPage extends StatefulWidget {
@@ -95,16 +95,16 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
 
     final confirm = await showModernConfirmDialog(
       context: context,
-      title: 'Hapus Transaksi',
+      title: 'Hapus Pengeluaran Stok',
       message:
-          'Hapus semua transaksi pada $displayTanggal?\nJumlah data: ${item.jumlahItem}',
+          'Hapus semua pengeluaran stok pada $displayTanggal?\nJumlah data: ${item.jumlahItem}',
     );
     if (!confirm) return;
 
     try {
       await _repo.deleteObatKeluarByTanggal(item.tanggal);
       if (!mounted) return;
-      showModernSnackBar(context, 'Transaksi berhasil dihapus');
+      showModernSnackBar(context, 'Pengeluaran stok berhasil dihapus');
       await _reload();
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -151,7 +151,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
               children: [
                 ModernSearchBar(
                   controller: _searchController,
-                  hintText: 'Cari transaksi...',
+                  hintText: 'Cari pengeluaran stok...',
                   onClear: () => setState(() => _keyword = ''),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -159,7 +159,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Riwayat obat keluar dikelompokkan per tanggal transaksi.',
+                    'Riwayat pengeluaran stok non-penjualan dikelompokkan per tanggal.',
                     style: TextStyle(
                       fontSize: 12,
                       color: ctextSecondary(context),
@@ -198,10 +198,10 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
                 return AppEmptyView(
                   icon: AppIcons.receipt,
                   title: _keyword.isEmpty
-                      ? 'Belum ada transaksi'
-                      : 'Transaksi tidak ditemukan',
+                      ? 'Belum ada pengeluaran stok'
+                      : 'Pengeluaran stok tidak ditemukan',
                   message: _keyword.isEmpty
-                      ? 'Mulai transaksi pertama Anda.'
+                      ? 'Catat stok keluar non-penjualan seperti rusak, kedaluwarsa, hilang, dipakai internal, atau koreksi.'
                       : 'Coba kata kunci atau tanggal yang berbeda.',
                   color: accentColor,
                 );
@@ -219,7 +219,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
                     return ModernListCard(
                       title: asDate(item.tanggal),
                       subtitle:
-                          '${item.jumlahItem} item  •  ${item.jumlahNota} nota',
+                          '${item.jumlahItem} item  •  ${item.jumlahNota} pengeluaran',
                       trailingText: rupiah(item.totalNominal),
                       icon: AppIcons.receipt,
                       accentColor: accentColor,
@@ -240,7 +240,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
             width: double.infinity,
             child: _BlueFAB(
               icon: AppIcons.tambah,
-              label: 'Tambah Transaksi',
+              label: 'Tambah Pengeluaran Stok',
               accentColor: accentColor,
               onPressed: _openTambahTanggal,
             ),

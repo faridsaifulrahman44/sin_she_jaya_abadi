@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/database/db_tables.dart';
 import '../../core/error/app_exception.dart';
 import '../../core/supabase/supabase_client_provider.dart';
 import '../../core/utils/formatters.dart';
@@ -17,7 +18,7 @@ class TransaksiRepository extends BaseRepository {
   Future<List<TransaksiModel>> getAllTransaksi() {
     return guard(() async {
       final response = await _client
-          .from('transaksi')
+          .from(DbTables.transaksi)
           .select()
           .order('tanggal', ascending: false)
           .order('id_transaksi', ascending: false);
@@ -35,7 +36,7 @@ class TransaksiRepository extends BaseRepository {
   ) {
     return guard(() async {
       final response = await _client
-          .from('transaksi')
+          .from(DbTables.transaksi)
           .select()
           .gte('tanggal', formatDateDb(startDate))
           .lte('tanggal', formatDateDb(endDate))
@@ -52,7 +53,7 @@ class TransaksiRepository extends BaseRepository {
   Future<List<TransaksiModel>> getTransaksiByPasien(int idPasien) {
     return guard(() async {
       final response = await _client
-          .from('transaksi')
+          .from(DbTables.transaksi)
           .select()
           .eq('id_pasien', idPasien)
           .order('tanggal', ascending: false)
@@ -68,7 +69,7 @@ class TransaksiRepository extends BaseRepository {
   Future<List<TransaksiItemModel>> getAllTransaksiItems() {
     return guard(() async {
       final response = await _client
-          .from('transaksi_item')
+          .from(DbTables.transaksiItem)
           .select()
           .order('id_item', ascending: false);
 
@@ -82,7 +83,7 @@ class TransaksiRepository extends BaseRepository {
   Future<TransaksiModel?> getTransaksiById(int idTransaksi) async {
     return guard(() async {
       final response = await _client
-          .from('transaksi')
+          .from(DbTables.transaksi)
           .select()
           .eq('id_transaksi', idTransaksi)
           .maybeSingle();
@@ -97,7 +98,7 @@ class TransaksiRepository extends BaseRepository {
   Future<List<TransaksiItemModel>> getTransaksiItems(int idTransaksi) {
     return guard(() async {
       final response = await _client
-          .from('transaksi_item')
+          .from(DbTables.transaksiItem)
           .select()
           .eq('id_transaksi', idTransaksi)
           .order('id_item', ascending: true);
@@ -130,7 +131,8 @@ class TransaksiRepository extends BaseRepository {
                 })
             .toList();
 
-        final rpcResult = await _client.rpc('fn_transaksi_insert', params: {
+        final rpcResult =
+            await _client.rpc(DbRpc.transaksiInsertAtomic, params: {
           'p_tanggal': transaksi.tanggal.toIso8601String().split('T').first,
           'p_jenis_transaksi': transaksi.jenisTransaksi.value,
           'p_total': transaksi.total,
@@ -173,7 +175,7 @@ class TransaksiRepository extends BaseRepository {
     return guard(() async {
       // Ambil semua dan filter di memory (karena in_ tidak tersedia di versi ini)
       final response = await _client
-          .from('obat')
+          .from(DbTables.obat)
           .select()
           .order('nama_obat', ascending: true);
 
@@ -193,7 +195,7 @@ class TransaksiRepository extends BaseRepository {
   Future<List<PasienModel>> getAllPasien() {
     return guard(() async {
       final response = await _client
-          .from('pasien')
+          .from(DbTables.pasien)
           .select()
           .order('nama_pasien', ascending: true);
 
@@ -207,7 +209,7 @@ class TransaksiRepository extends BaseRepository {
   Future<String?> getNamaPasienById(int idPasien) async {
     return guard(() async {
       final response = await _client
-          .from('pasien')
+          .from(DbTables.pasien)
           .select('nama_pasien')
           .eq('id_pasien', idPasien)
           .maybeSingle();
@@ -221,7 +223,7 @@ class TransaksiRepository extends BaseRepository {
   Future<String?> getNamaAdminById(int idAdmin) async {
     return guard(() async {
       final response = await _client
-          .from('admin')
+          .from(DbTables.admin)
           .select('nama_admin')
           .eq('id_admin', idAdmin)
           .maybeSingle();

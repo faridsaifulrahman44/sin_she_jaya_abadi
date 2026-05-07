@@ -69,7 +69,25 @@
       "Bash(rmdir \"lib/pages/stock_opname/widgets\")",
       "Bash(mv lib/pages/stock_opname_page.dart lib/pages/sinkronisasi_stok_page.dart)",
       "Bash(mv lib/pages/stock_opname_form_page.dart lib/pages/sinkronisasi_stok_form_page.dart)",
-      "Bash(rmdir lib/pages/stock_opname)"
+      "Bash(rmdir lib/pages/stock_opname)",
+      "Bash(dart analyze:*)",
+      "Read(//c/Users/farid/**)",
+      "Bash(npx skills:*)",
+      "Bash(npx supabase:*)",
+      "Bash(grep -r \"RLS\\\\| ENABLE ROW\\\\|security barrier\" D:/flutter_klinik_starter/supabase/*.sql)",
+      "Bash(ls /c/Users/farid/.config/supabase*)",
+      "Bash(ls /c/Users/farid/AppData/Roaming/supabase*)",
+      "Bash(ls ~/.claude/mcp*)",
+      "Bash(ls ~/.claude/settings*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('mcp', d.get\\('MCP', {}\\)\\), indent=2\\)\\)\")",
+      "Bash(ls ~/.config/supabase*)",
+      "Bash(ls ~/.cache/supabase*)",
+      "Bash(python3 -c \" import sys, json try: d = json.load\\(sys.stdin\\) for k in d: if 'mcp' in k.lower\\(\\) or 'server' in k.lower\\(\\) or 'tool' in k.lower\\(\\): print\\(f'{k}: {json.dumps\\(d[k], indent=2\\)[:500]}'\\) print\\('All keys:', list\\(d.keys\\(\\)\\)\\) except: pass \")",
+      "mcp__supabase__execute_sql"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

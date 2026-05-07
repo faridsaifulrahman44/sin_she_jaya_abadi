@@ -8,7 +8,7 @@ Aplikasi pencatatan klinik herbal / pengobatan alternatif modern.
 - Dashboard
 - Data Obat (stok & etalase)
 - Obat Masuk (restock)
-- Obat Keluar (transaksi)
+- Pengeluaran Stok Non-Penjualan (obat rusak, kedaluwarsa, hilang, internal, atau koreksi)
 - Stock Opname
 - Data Pasien
 - Kehadiran Pasien

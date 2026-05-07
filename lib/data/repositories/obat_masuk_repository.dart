@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/database/db_tables.dart';
 import '../../core/supabase/supabase_client_provider.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/parsers.dart';
@@ -17,12 +18,12 @@ class ObatMasukRepository extends BaseRepository {
     return guard(() async {
       final response = tanggal == null
           ? await _client
-              .from('obat_masuk')
+              .from(DbTables.obatMasuk)
               .select()
               .order('tanggal_masuk', ascending: false)
               .order('id_masuk', ascending: false)
           : await _client
-              .from('obat_masuk')
+              .from(DbTables.obatMasuk)
               .select()
               .eq('tanggal_masuk', formatDateDb(tanggal))
               .order('id_masuk', ascending: false);
@@ -39,7 +40,7 @@ class ObatMasukRepository extends BaseRepository {
   ) {
     return guard(() async {
       final response = await _client
-          .from('obat_masuk')
+          .from(DbTables.obatMasuk)
           .select()
           .gte('tanggal_masuk', formatDateDb(startDate))
           .lte('tanggal_masuk', formatDateDb(endDate))
@@ -55,7 +56,7 @@ class ObatMasukRepository extends BaseRepository {
   Future<List<ObatMasukModel>> getObatMasukByObat(int idObat) {
     return guard(() async {
       final response = await _client
-          .from('obat_masuk')
+          .from(DbTables.obatMasuk)
           .select()
           .eq('id_obat', idObat)
           .order('tanggal_masuk', ascending: false)
@@ -70,7 +71,7 @@ class ObatMasukRepository extends BaseRepository {
   Future<List<ObatMasukModel>> getObatMasukDetailByTanggal(DateTime tanggal) {
     return guard(() async {
       final response = await _client
-          .from('obat_masuk')
+          .from(DbTables.obatMasuk)
           .select(_detailSelect)
           .eq('tanggal_masuk', formatDateDb(tanggal))
           .order('id_masuk', ascending: false);
@@ -90,7 +91,7 @@ class ObatMasukRepository extends BaseRepository {
   }) {
     return guard(() async {
       final rpcResult = await _client.rpc(
-        'fn_obat_masuk_insert_atomic',
+        DbRpc.obatMasukInsertAtomic,
         params: {
           'p_id_obat': idObat,
           'p_tanggal_masuk': formatDateDb(tanggalMasuk),
@@ -106,7 +107,7 @@ class ObatMasukRepository extends BaseRepository {
       }
 
       final response = await _client
-          .from('obat_masuk')
+          .from(DbTables.obatMasuk)
           .select()
           .eq('id_masuk', idMasuk)
           .single();
@@ -124,7 +125,7 @@ class ObatMasukRepository extends BaseRepository {
   }) {
     return guard(() async {
       await _client.rpc(
-        'fn_obat_masuk_update_atomic',
+        DbRpc.obatMasukUpdateAtomic,
         params: {
           'p_id_masuk': idMasuk,
           'p_id_obat': idObat,
@@ -136,7 +137,7 @@ class ObatMasukRepository extends BaseRepository {
       );
 
       final response = await _client
-          .from('obat_masuk')
+          .from(DbTables.obatMasuk)
           .select()
           .eq('id_masuk', idMasuk)
           .single();
@@ -147,7 +148,7 @@ class ObatMasukRepository extends BaseRepository {
   Future<void> deleteObatMasuk(int idMasuk) {
     return guard(() async {
       await _client.rpc(
-        'fn_obat_masuk_delete_atomic',
+        DbRpc.obatMasukDeleteAtomic,
         params: {'p_id_masuk': idMasuk},
       );
     });
@@ -156,7 +157,7 @@ class ObatMasukRepository extends BaseRepository {
   Future<void> deleteObatMasukByTanggal(DateTime tanggal) {
     return guard(() async {
       await _client.rpc(
-        'fn_obat_masuk_delete_by_tanggal_atomic',
+        DbRpc.obatMasukDeleteByTanggalAtomic,
         params: {'p_tanggal_masuk': formatDateDb(tanggal)},
       );
     });

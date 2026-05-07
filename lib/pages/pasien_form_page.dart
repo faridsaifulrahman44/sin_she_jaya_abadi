@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide RadioGroup;
+import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
@@ -294,24 +294,35 @@ class _PasienFormPageState extends State<PasienFormPage> {
               ),
               const SizedBox(height: 14),
               const Text('Jenis Kelamin'),
-              RadioGroup<String>(
-                groupValue: _jenisKelamin,
-                onChanged: (value) =>
-                    setState(() => _jenisKelamin = value ?? 'L'),
-                child: Column(
-                  children: [
-                    RadioListTile<String>(
-                      contentPadding: EdgeInsets.zero,
-                      value: 'L',
-                      title: const Text('Laki-laki'),
-                    ),
-                    RadioListTile<String>(
-                      contentPadding: EdgeInsets.zero,
-                      value: 'P',
-                      title: const Text('Perempuan'),
-                    ),
-                  ],
-                ),
+              Column(
+                children: [
+                  RadioListTile<String>(
+                    contentPadding: EdgeInsets.zero,
+                    value: 'L',
+                    // ignore: deprecated_member_use
+                    groupValue: _jenisKelamin,
+                    // ignore: deprecated_member_use
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _jenisKelamin = value);
+                      }
+                    },
+                    title: const Text('Laki-laki'),
+                  ),
+                  RadioListTile<String>(
+                    contentPadding: EdgeInsets.zero,
+                    value: 'P',
+                    // ignore: deprecated_member_use
+                    groupValue: _jenisKelamin,
+                    // ignore: deprecated_member_use
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _jenisKelamin = value);
+                      }
+                    },
+                    title: const Text('Perempuan'),
+                  ),
+                ],
               ),
               const Text('Alamat'),
               const SizedBox(height: 6),

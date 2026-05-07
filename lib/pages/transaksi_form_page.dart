@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,6 +10,7 @@ import 'package:klinik_mobile_app/core/utils/parsers.dart';
 import 'package:klinik_mobile_app/data/models/obat_model.dart';
 import 'package:klinik_mobile_app/data/models/pasien_model.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
+import 'package:klinik_mobile_app/data/repositories/pasien_repository.dart';
 import 'package:klinik_mobile_app/data/repositories/transaksi_repository.dart';
 import 'package:klinik_mobile_app/pages/transaksi/struk_pembayaran_page.dart';
 
@@ -25,11 +28,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _repository = TransaksiRepository();
+  final _pasienRepository = PasienRepository();
 
   // Common state
   bool _loading = false;
+  int _activeTabIndex = 0;
   MetodeBayarTransaksi? _selectedMetodeBayar;
   int? _selectedPasienId;
+  PasienModel? _selectedPasien;
   final _catatanController = TextEditingController();
   final _durasiController = TextEditingController();
 
@@ -40,14 +46,31 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
   // Custom mode
   final _totalCustomController = TextEditingController();
 
-  // Patients
-  List<PasienModel> _pasienList = [];
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChanged);
     _loadInitialData();
+  }
+
+  void _handleTabChanged() {
+    final nextIndex = _tabController.index;
+    if (nextIndex == _activeTabIndex) {
+      return;
+    }
+
+    setState(() {
+      _activeTabIndex = nextIndex;
+      if (nextIndex == 0) {
+        _clearSelectedPasien();
+      }
+    });
+  }
+
+  void _clearSelectedPasien() {
+    _selectedPasienId = null;
+    _selectedPasien = null;
   }
 
   Future<void> _loadInitialData() async {
@@ -55,12 +78,10 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
       setState(() => _loading = true);
 
       final obats = await _repository.getObatReadyStock();
-      final patients = await _repository.getAllPasien();
 
       if (mounted) {
         setState(() {
           _availableObats = obats;
-          _pasienList = patients;
           _loading = false;
         });
       }
@@ -78,6 +99,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     _catatanController.dispose();
     _durasiController.dispose();
@@ -107,6 +129,10 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         return;
       }
     } else {
+      if (_selectedPasienId == null) {
+        _showError('Pilih pasien terlebih dahulu untuk transaksi praktek.');
+        return;
+      }
       final totalCustom = parseDouble(_totalCustomController.text, fallback: 0);
       if (totalCustom <= 0) {
         _showError('Total transaksi harus lebih dari 0');
@@ -133,7 +159,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         jenisTransaksi: jenis,
         total: total,
         metodeBayar: _selectedMetodeBayar,
-        idPasien: _selectedPasienId,
+        idPasien: isReadyStock ? null : _selectedPasienId,
         keterangan:
             _catatanController.text.isEmpty ? null : _catatanController.text,
         durasiHarian: durasi > 0 ? durasi : null,
@@ -163,13 +189,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
       );
 
       if (mounted) {
-        String? selectedNamaPasien;
-        for (final pasien in _pasienList) {
-          if (pasien.idPasien == _selectedPasienId) {
-            selectedNamaPasien = pasien.namaPasien;
-            break;
-          }
-        }
+        final selectedNamaPasien =
+            isReadyStock ? null : _selectedPasien?.namaPasien;
 
         String? namaAdmin;
         try {
@@ -253,8 +274,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           tabs: const [
-            Tab(text: 'Obat Ready Stock'),
-            Tab(text: 'Praktek + Custom'),
+            Tab(text: 'Obat'),
+            Tab(text: 'Praktek'),
           ],
         ),
       ),
@@ -395,7 +416,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
       children: [
         // Total input
         Text(
-          'Total Praktek + Obat Custom',
+          'Total Transaksi Praktek',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -467,7 +488,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
   }
 
   Widget _buildBottomBar() {
-    final isReadyStock = _tabController.index == 0;
+    final isReadyStock = _activeTabIndex == 0;
     final total = isReadyStock
         ? _totalReadyStock
         : parseDouble(_totalCustomController.text, fallback: 0);
@@ -527,50 +548,23 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
           const SizedBox(height: 16),
 
-          // Pasien (optional)
-          Row(
-            children: [
-              Text(
-                'Pasien:',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: ctextPrimary(context),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<int?>(
-                  initialValue: _selectedPasienId,
-                  decoration: InputDecoration(
-                    hintText: 'Pilih pasien (opsional)',
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+          if (!isReadyStock) ...[
+            Row(
+              children: [
+                Text(
+                  'Pasien:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: ctextPrimary(context),
                   ),
-                  items: [
-                    const DropdownMenuItem<int?>(
-                      value: null,
-                      child: Text('Tanpa pasien'),
-                    ),
-                    ..._pasienList.map((p) => DropdownMenuItem<int?>(
-                          value: p.idPasien,
-                          child: Text(p.namaPasien),
-                        )),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _selectedPasienId = value);
-                  },
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
+                const SizedBox(width: 12),
+                Expanded(child: _buildPasienPickerField()),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Total display & Save button
           Row(
@@ -623,6 +617,80 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
     );
   }
 
+  Widget _buildPasienPickerField() {
+    final selectedPasien = _selectedPasien;
+    final hasSelection = selectedPasien != null;
+
+    return InkWell(
+      onTap: _showPasienPickerSheet,
+      borderRadius: BorderRadius.circular(12),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          hintText: 'Tanpa pasien',
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          suffixIcon: SizedBox(
+            width: hasSelection ? 88 : 44,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasSelection)
+                  IconButton(
+                    tooltip: 'Tanpa pasien',
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        _selectedPasienId = null;
+                        _selectedPasien = null;
+                      });
+                    },
+                  ),
+                const Icon(Icons.search),
+                const SizedBox(width: 10),
+              ],
+            ),
+          ),
+        ),
+        child: Text(
+          selectedPasien?.namaPasien ?? 'Tanpa pasien',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color:
+                hasSelection ? ctextPrimary(context) : ctextSecondary(context),
+            fontWeight: hasSelection ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPasienPickerSheet() async {
+    final result = await showModalBottomSheet<_PasienPickerResult>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _PasienPickerSheet(
+        repository: _pasienRepository,
+        selectedPasienId: _selectedPasienId,
+      ),
+    );
+
+    if (result == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedPasien = result.pasien;
+      _selectedPasienId = result.pasien?.idPasien;
+    });
+  }
+
   Future<void> _showAddObatDialog() async {
     // Show bottom sheet to select obat
     final selected = await showModalBottomSheet<_SelectedObat>(
@@ -639,6 +707,293 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         _selectedObats.add(selected);
       });
     }
+  }
+}
+
+class _PasienPickerResult {
+  const _PasienPickerResult(this.pasien);
+
+  final PasienModel? pasien;
+}
+
+class _PasienPickerSheet extends StatefulWidget {
+  const _PasienPickerSheet({
+    required this.repository,
+    required this.selectedPasienId,
+  });
+
+  final PasienRepository repository;
+  final int? selectedPasienId;
+
+  @override
+  State<_PasienPickerSheet> createState() => _PasienPickerSheetState();
+}
+
+class _PasienPickerSheetState extends State<_PasienPickerSheet> {
+  static const int _limit = 20;
+
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  List<PasienModel> _items = const [];
+  bool _loading = true;
+  String? _errorMessage;
+  int _requestVersion = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitial();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    final query = parseString(value);
+    _debounce?.cancel();
+
+    if (query.isNotEmpty && query.length < 2) {
+      _requestVersion += 1;
+      setState(() {
+        _items = const [];
+        _loading = false;
+        _errorMessage = null;
+      });
+      return;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (query.isEmpty) {
+        _loadInitial();
+      } else {
+        _search(query);
+      }
+    });
+  }
+
+  Future<void> _loadInitial() {
+    return _loadItems(
+      () => widget.repository.getPasienPickerInitial(limit: _limit),
+    );
+  }
+
+  Future<void> _search(String query) {
+    return _loadItems(
+      () => widget.repository.searchPasien(query, limit: _limit),
+    );
+  }
+
+  Future<void> _loadItems(Future<List<PasienModel>> Function() loader) async {
+    final requestVersion = ++_requestVersion;
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final items = await loader();
+      if (!mounted || requestVersion != _requestVersion) {
+        return;
+      }
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted || requestVersion != _requestVersion) {
+        return;
+      }
+      setState(() {
+        _items = const [];
+        _loading = false;
+        _errorMessage = 'Gagal memuat pasien. Coba lagi.';
+      });
+    }
+  }
+
+  void _selectPasien(PasienModel? pasien) {
+    Navigator.pop(context, _PasienPickerResult(pasien));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final query = parseString(_searchController.text);
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+        child: SizedBox(
+          height: media.size.height * 0.82,
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cdivider(context),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Pilih Pasien',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: ctextPrimary(context),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Tutup',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Cari nama, nomor, atau alamat pasien',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: _onSearchChanged,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.person_off_outlined),
+                title: const Text('Tanpa pasien'),
+                subtitle: const Text('Simpan transaksi tanpa data pasien'),
+                trailing: widget.selectedPasienId == null
+                    ? Icon(Icons.check_circle, color: cteal(context))
+                    : null,
+                onTap: () => _selectPasien(null),
+              ),
+              const Divider(height: 1),
+              Expanded(child: _buildResultList(query)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultList(String query) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: ctextSecondary(context)),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () {
+                  if (query.length >= 2) {
+                    _search(query);
+                  } else {
+                    _loadInitial();
+                  }
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (query.isNotEmpty && query.length < 2) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Ketik minimal 2 karakter untuk mencari pasien.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: ctextSecondary(context)),
+          ),
+        ),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            query.isEmpty
+                ? 'Belum ada pasien untuk ditampilkan.'
+                : 'Pasien tidak ditemukan.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: ctextSecondary(context)),
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _items.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final pasien = _items[index];
+        final isSelected = pasien.idPasien == widget.selectedPasienId;
+        final detailParts = <String>[
+          if (pasien.nomorPasien.isNotEmpty) 'No. ${pasien.nomorPasien}',
+          if (pasien.tanggalJanjian != null)
+            'Janjian ${formatDateDb(pasien.tanggalJanjian!)}',
+          if ((pasien.alamat ?? '').isNotEmpty) pasien.alamat!,
+        ];
+
+        return ListTile(
+          title: Text(
+            pasien.namaPasien,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: detailParts.isEmpty
+              ? null
+              : Text(
+                  detailParts.join(' - '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+          trailing: isSelected
+              ? Icon(Icons.check_circle, color: cteal(context))
+              : null,
+          onTap: () => _selectPasien(pasien),
+        );
+      },
+    );
   }
 }
 

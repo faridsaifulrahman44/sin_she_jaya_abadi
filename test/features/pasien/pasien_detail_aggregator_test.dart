@@ -132,7 +132,7 @@ void main() {
   });
 
   group('buildTransaksiRingkasan', () {
-    test('ready stock tanpa info tambahan', () {
+    test('obat tanpa info tambahan', () {
       final value = buildTransaksiRingkasan(
         transaksi(
           id: 1,
@@ -142,10 +142,10 @@ void main() {
         ),
       );
 
-      expect(value, 'Pembelian obat ready stock');
+      expect(value, 'Pembelian obat');
     });
 
-    test('praktek custom dengan durasi dan catatan', () {
+    test('praktek dengan durasi dan catatan', () {
       final value = buildTransaksiRingkasan(
         transaksi(
           id: 1,
@@ -159,7 +159,7 @@ void main() {
 
       expect(
         value,
-        'Praktek + obat custom • Durasi 7 hari • Kontrol lanjutan',
+        'Transaksi praktek • Durasi 7 hari • Kontrol lanjutan',
       );
     });
   });

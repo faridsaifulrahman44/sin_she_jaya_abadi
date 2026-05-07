@@ -66,7 +66,7 @@ class _ObatHubPageState extends State<ObatHubPage>
           tabs: const [
             Tab(text: 'Master Obat'),
             Tab(text: 'Obat Masuk'),
-            Tab(text: 'Obat Keluar'),
+            Tab(text: 'Pengeluaran Stok'),
           ],
         ),
       ),

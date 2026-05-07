@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart' hide RadioGroup;
+import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
-import '../core/theme/app_widgets.dart';
 import '../core/ui/app_icons.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
@@ -184,24 +183,35 @@ class _KehadiranFormPageState extends State<KehadiranFormPage> {
             ),
             const SizedBox(height: 16),
             const Text('Status Kehadiran'),
-            RadioGroup<StatusHadir>(
-              groupValue: _status,
-              onChanged: (value) =>
-                  setState(() => _status = value ?? StatusHadir.hadir),
-              child: Column(
-                children: [
-                  RadioListTile<StatusHadir>(
-                    contentPadding: EdgeInsets.zero,
-                    value: StatusHadir.hadir,
-                    title: const Text('Hadir'),
-                  ),
-                  RadioListTile<StatusHadir>(
-                    contentPadding: EdgeInsets.zero,
-                    value: StatusHadir.tidakHadir,
-                    title: const Text('Tidak Hadir'),
-                  ),
-                ],
-              ),
+            Column(
+              children: [
+                RadioListTile<StatusHadir>(
+                  contentPadding: EdgeInsets.zero,
+                  value: StatusHadir.hadir,
+                  // ignore: deprecated_member_use
+                  groupValue: _status,
+                  // ignore: deprecated_member_use
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _status = value);
+                    }
+                  },
+                  title: const Text('Hadir'),
+                ),
+                RadioListTile<StatusHadir>(
+                  contentPadding: EdgeInsets.zero,
+                  value: StatusHadir.tidakHadir,
+                  // ignore: deprecated_member_use
+                  groupValue: _status,
+                  // ignore: deprecated_member_use
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _status = value);
+                    }
+                  },
+                  title: const Text('Tidak Hadir'),
+                ),
+              ],
             ),
             TextField(
               controller: _keteranganController,

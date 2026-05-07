@@ -2,8 +2,8 @@ import '../../core/utils/parsers.dart';
 
 /// Jenis transaksi di klinik.
 enum JenisTransaksi {
-  obatReadyStock('obat_ready_stock', 'Obat Ready Stock'),
-  praktekCustom('praktek_custom', 'Praktek + Obat Custom');
+  obatReadyStock('obat_ready_stock', 'Obat'),
+  praktekCustom('praktek_custom', 'Praktek');
 
   const JenisTransaksi(this.value, this.label);
   final String value;

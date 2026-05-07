@@ -74,15 +74,15 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
   Future<void> _deleteItem(ObatKeluarModel item) async {
     final confirm = await showModernConfirmDialog(
       context: context,
-      title: 'Hapus Transaksi',
-      message: 'Yakin ingin menghapus transaksi ini?',
+      title: 'Hapus Pengeluaran Stok',
+      message: 'Yakin ingin menghapus pengeluaran stok ini?',
     );
     if (confirm != true) return;
 
     try {
       await _repo.deleteObatKeluar(item.idTerjual);
       if (!mounted) return;
-      showModernSnackBar(context, 'Transaksi berhasil dihapus');
+      showModernSnackBar(context, 'Pengeluaran stok berhasil dihapus');
       await _reload();
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -97,16 +97,16 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
   Future<void> _deleteAllByTanggal() async {
     final confirm = await showModernConfirmDialog(
       context: context,
-      title: 'Hapus Semua Transaksi',
+      title: 'Hapus Semua Pengeluaran Stok',
       message:
-          'Yakin ingin menghapus semua transaksi pada ${asDate(_tanggal)}?\n\nTindakan ini tidak dapat dibatalkan.',
+          'Yakin ingin menghapus semua pengeluaran stok pada ${asDate(_tanggal)}?\n\nTindakan ini tidak dapat dibatalkan.',
     );
     if (!confirm) return;
 
     try {
       await _repo.deleteObatKeluarByTanggal(_tanggal);
       if (!mounted) return;
-      showModernSnackBar(context, 'Semua transaksi berhasil dihapus');
+      showModernSnackBar(context, 'Semua pengeluaran stok berhasil dihapus');
       Navigator.pop(context);
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -167,7 +167,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
     return Scaffold(
       backgroundColor: cscaffoldBg(context),
       appBar: AppBar(
-        title: const Text('Detail Obat Keluar',
+        title: const Text('Detail Pengeluaran Stok',
             style: TextStyle(fontWeight: FontWeight.w700)),
         backgroundColor: cobatAmber(context),
         foregroundColor: conPrimary(context),
@@ -176,7 +176,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
           PopupMenuButton<int>(
             icon: HugeIcon(
                 icon: AppIcons.deleteOutline, color: conPrimary(context)),
-            tooltip: 'Hapus semua transaksi',
+            tooltip: 'Hapus semua pengeluaran stok',
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             itemBuilder: (ctx) => [
@@ -203,11 +203,11 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const PageHeader('Rincian Transaksi'),
+            const PageHeader('Rincian Pengeluaran Stok'),
             const SizedBox(height: 8),
             Center(
               child: Text(
-                'Tanggal Transaksi: ${asDate(_tanggal)}',
+                'Tanggal Pengeluaran: ${asDate(_tanggal)}',
                 style: TextStyle(
                   color: ctextSecondary(context),
                   fontWeight: FontWeight.w600,
@@ -245,8 +245,9 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                   if (items.isEmpty) {
                     return AppEmptyView(
                       icon: AppIcons.receipt,
-                      title: 'Belum ada transaksi',
-                      message: 'Tambahkan transaksi baru untuk tanggal ini.',
+                      title: 'Belum ada pengeluaran stok',
+                      message:
+                          'Tambahkan pengeluaran stok baru untuk tanggal ini.',
                       color: cwarning(context),
                     );
                   }
@@ -283,7 +284,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total ($_grandItemCount item dari ${_cachedItems.length} transaksi)',
+                      'Total ($_grandItemCount item dari ${_cachedItems.length} pengeluaran)',
                       style: TextStyle(
                         color: ctextSecondary(context),
                         fontWeight: FontWeight.w600,
@@ -314,7 +315,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                 ),
                 onPressed: () => _openForm(),
                 child: const Text(
-                  'Tambah Transaksi',
+                  'Tambah Pengeluaran Stok',
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
