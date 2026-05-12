@@ -2,10 +2,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:klinik_mobile_app/core/error/app_exception.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
 import 'package:klinik_mobile_app/features/stok/services/stock_service.dart';
+import 'package:klinik_mobile_app/test_helpers/mock_repositories.dart';
 
 void main() {
   group('StockService validation', () {
-    final service = StockService();
+    late StockService service;
+
+    setUp(() {
+      // Inject mock repository — validation throw di layer service
+      // sebelum repository method dipanggil. Tidak butuh Supabase real.
+      final mocks = MockRepositories();
+      service = StockService(
+        obatMasukRepository: mocks.obatMasuk,
+        obatKeluarRepository: mocks.obatKeluar,
+        sinkronisasiStokRepository: mocks.sinkronisasiStok,
+        transaksiRepository: mocks.transaksi,
+      );
+    });
 
     test('stokMasuk rejects negative quantity', () async {
       expect(

@@ -504,6 +504,20 @@ class _ObatTabContentState extends State<ObatTabContent> {
                           ],
                         ),
                       ],
+                      // ── Deskripsi Preview (dengan emoji support) ──────────────
+                      if (item.deskripsi != null && item.deskripsi!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          item.deskripsi!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ctextSecondary(context),
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),

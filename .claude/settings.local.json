@@ -123,7 +123,15 @@
       "Bash(cmdline-tools/latest/bin/sdkmanager.bat --list)",
       "Bash(cmdline-tools/latest/bin/sdkmanager.bat \"ndk;28.2.13676358\")",
       "Bash(dir \"D:\\\\flutter_klinik_starter\\\\CLAUDE.md\")",
-      "Bash(dir \"D:\\\\flutter-klinik-starter\\\\CLAUDE.md\")"
+      "Bash(dir \"D:\\\\flutter-klinik-starter\\\\CLAUDE.md\")",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:cdfklvbzbffqvhgifesk.supabase.co)",
+      "mcp__supabase__apply_migration",
+      "Bash(claude mcp:*)",
+      "Bash(dir '__TRACKED_VAR__/.claude\\\\logs')",
+      "Bash(dir __TRACKED_VAR__/.claude)",
+      "Bash(findstr /V \"^$\")",
+      "Bash(npm --version)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,11 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:klinik_mobile_app/core/error/app_exception.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
+import 'package:klinik_mobile_app/features/stok/services/stock_service.dart';
 import 'package:klinik_mobile_app/features/transaksi/usecases/create_transaction_usecase.dart';
+import 'package:klinik_mobile_app/test_helpers/mock_repositories.dart';
 
 void main() {
   group('CreateTransactionUseCase validation', () {
-    final useCase = CreateTransactionUseCase();
+    // Inject mock StockService — validation throw di use case
+    // sebelum stockService method dipanggil. Tidak butuh Supabase real.
+    late CreateTransactionUseCase useCase;
+
+    setUp(() {
+      final mocks = MockRepositories();
+      final stockService = StockService(
+        obatMasukRepository: mocks.obatMasuk,
+        obatKeluarRepository: mocks.obatKeluar,
+        sinkronisasiStokRepository: mocks.sinkronisasiStok,
+        transaksiRepository: mocks.transaksi,
+      );
+      useCase = CreateTransactionUseCase(stockService: stockService);
+    });
 
     test('rejects admin mismatch', () async {
       final transaksi = TransaksiModel(
