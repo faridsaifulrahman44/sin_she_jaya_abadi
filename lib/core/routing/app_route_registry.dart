@@ -4,6 +4,7 @@ import '../../pages/dashboard_page.dart';
 import '../../pages/forgot_password_page.dart';
 import '../../pages/kehadiran_detail_page.dart';
 import '../../pages/kehadiran_form_page.dart';
+import '../../pages/kehadiran_page.dart';
 import '../../pages/kehadiran_tanggal_page.dart';
 import '../../pages/kunjungan_form_page.dart';
 import '../../pages/laporan_page.dart';
@@ -22,7 +23,6 @@ import '../../pages/obat_masuk_tanggal_form_page.dart';
 import '../../pages/obat_page.dart';
 import '../../pages/pasien_detail_page.dart';
 import '../../pages/pasien_form_page.dart';
-import '../../pages/pasien_hub_page.dart';
 import '../../pages/pasien_page.dart';
 import '../../pages/reset_password_page.dart';
 import '../../pages/sinkronisasi_stok_form_page.dart';
@@ -56,14 +56,16 @@ Map<String, WidgetBuilder> buildLegacyRoutes() {
     ObatKeluarFormPage.routeName: (_) => const ObatKeluarFormPage(),
     ObatKeluarTanggalFormPage.routeName: (_) =>
         const ObatKeluarTanggalFormPage(),
+    // ── Pasien & Kehadiran — halaman standalone ─────────────────────────────
     PasienPage.routeName: (_) => const PasienPage(),
     PasienDetailPage.routeName: (_) => const PasienDetailPage(),
     PasienFormPage.routeName: (_) => const PasienFormPage(),
-    PasienHubPage.routeName: (_) => const PasienHubPage(),
-    KunjunganFormPage.routeName: (_) => const KunjunganFormPage(),
+    KehadiranPage.routeName: (_) => const KehadiranPage(),
     KehadiranTanggalPage.routeName: (_) => const KehadiranTanggalPage(),
     KehadiranDetailPage.routeName: (_) => const KehadiranDetailPage(),
     KehadiranFormPage.routeName: (_) => const KehadiranFormPage(),
+    // ── Operasional ─────────────────────────────────────────────────────────
+    KunjunganFormPage.routeName: (_) => const KunjunganFormPage(),
     LaporanPage.routeName: (_) => const LaporanPage(),
     TransaksiHubPage.routeName: (_) => const TransaksiHubPage(),
     TransaksiFormPage.routeName: (_) => const TransaksiFormPage(),

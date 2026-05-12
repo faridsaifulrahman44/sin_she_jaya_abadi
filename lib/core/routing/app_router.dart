@@ -1,7 +1,9 @@
 import 'package:go_router/go_router.dart';
 
 import '../../pages/dashboard_page.dart';
+import '../../pages/kehadiran_page.dart';
 import '../../pages/login_page.dart';
+import '../../pages/pasien_page.dart';
 import '../../pages/startup_page.dart';
 import '../../pages/transaksi_hub_page.dart';
 
@@ -32,6 +34,16 @@ class AppRouter {
           path: DashboardPage.routeName,
           name: 'dashboard',
           builder: (context, state) => const DashboardPage(),
+        ),
+        GoRoute(
+          path: PasienPage.routeName,
+          name: 'pasien',
+          builder: (context, state) => const PasienPage(),
+        ),
+        GoRoute(
+          path: KehadiranPage.routeName,
+          name: 'kehadiran',
+          builder: (context, state) => const KehadiranPage(),
         ),
         GoRoute(
           path: TransaksiHubPage.routeName,

@@ -16,7 +16,8 @@ import '../data/repositories/transaksi_repository.dart';
 import 'laporan_page.dart';
 import 'login_page.dart';
 import 'obat_hub_page.dart';
-import 'pasien_hub_page.dart';
+import 'pasien_page.dart';
+import 'kehadiran_page.dart';
 import 'transaksi_form_page.dart';
 import 'transaksi_hub_page.dart';
 
@@ -31,6 +32,7 @@ class DashboardSummaryCard extends StatelessWidget {
     required this.icon,
     required this.color,
     this.loading = false,
+    this.onTap,
   });
 
   final String label;
@@ -38,6 +40,7 @@ class DashboardSummaryCard extends StatelessWidget {
   final AppHugeIconData icon;
   final Color color;
   final bool loading;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -47,67 +50,74 @@ class DashboardSummaryCard extends StatelessWidget {
     final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
     final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
+    return Material(
+      color: cardBg,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: const EdgeInsets.all(14),
-      child: loading
-          ? _buildLoading()
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+          padding: const EdgeInsets.all(14),
+          child: loading
+              ? _buildLoading()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: HugeIcon(icon: icon, color: color, size: 18),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: HugeIcon(icon: icon, color: color, size: 18),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                        height: 1.2,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: textPrimary,
-                    height: 1.2,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 
@@ -569,7 +579,7 @@ class _DashboardPageState extends State<DashboardPage> {
         title: 'Pasien',
         icon: AppIcons.pasienHub,
         color: pasienAccent,
-        onTap: () => Navigator.pushNamed(context, PasienHubPage.routeName),
+        onTap: () => Navigator.pushNamed(context, PasienPage.routeName),
       ),
     ];
 
@@ -809,6 +819,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     icon: AppIcons.jadwalSummary,
                     color: accent3,
                     loading: _loadingAdmin,
+                    onTap: () =>
+                        Navigator.pushNamed(context, KehadiranPage.routeName),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -819,6 +831,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     icon: AppIcons.hadirSummary,
                     color: accent4,
                     loading: _loadingAdmin,
+                    onTap: () =>
+                        Navigator.pushNamed(context, KehadiranPage.routeName),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -848,6 +862,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: AppIcons.jadwalSummary,
                       color: accent3,
                       loading: _loadingAdmin,
+                      onTap: () =>
+                          Navigator.pushNamed(context, KehadiranPage.routeName),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -860,6 +876,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: AppIcons.hadirSummary,
                       color: accent4,
                       loading: _loadingAdmin,
+                      onTap: () =>
+                          Navigator.pushNamed(context, KehadiranPage.routeName),
                     ),
                   ),
                 ],

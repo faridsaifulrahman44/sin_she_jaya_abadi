@@ -8,21 +8,25 @@ import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
+import '../data/models/kehadiran_model.dart';
 import '../data/models/pasien_model.dart';
+import '../data/repositories/kehadiran_repository.dart';
 import '../data/repositories/pasien_repository.dart';
 import 'kehadiran_form_page.dart';
 import 'pasien_detail_page.dart';
 import 'pasien_form_page.dart';
-import 'pasien_hub_page.dart';
 
 enum _PasienListAction { detail, edit, delete, jadwalkanHadir }
+enum _PasienFilter { total, jadwal, hadir }
 
-/// Body widget untuk tab "Data Pasien".
+/// Body widget untuk halaman "Data Pasien".
+///
+/// Dipakai langsung oleh [PasienPage] — halaman standalone.
+/// Tidak memiliki tab atau navigasi ke halaman lain.
 class PasienTabContent extends StatefulWidget {
-  const PasienTabContent({super.key, this.onRefresh, this.domainSummary});
+  const PasienTabContent({super.key, this.onRefresh});
 
   final VoidCallback? onRefresh;
-  final DomainSummaryPasien? domainSummary;
 
   @override
   State<PasienTabContent> createState() => _PasienTabContentState();
@@ -30,13 +34,17 @@ class PasienTabContent extends StatefulWidget {
 
 class _PasienTabContentState extends State<PasienTabContent> {
   final PasienRepository _repo = PasienRepository();
+  final KehadiranRepository _kehadiranRepo = KehadiranRepository();
   final TextEditingController _searchController = TextEditingController();
   late Future<List<PasienModel>> _future;
+
+  // Filter state
+  _PasienFilter _activeFilter = _PasienFilter.total;
 
   @override
   void initState() {
     super.initState();
-    _future = _repo.getPasien();
+    _future = _buildFilteredFuture();
   }
 
   @override
@@ -45,8 +53,40 @@ class _PasienTabContentState extends State<PasienTabContent> {
     super.dispose();
   }
 
+  Future<List<PasienModel>> _buildFilteredFuture() async {
+    final today = DateTime.now();
+    final keyword = _searchController.text.trim();
+
+    if (_activeFilter == _PasienFilter.jadwal) {
+      final semua = await _repo.getPasienByTanggalJanjian(today);
+      if (keyword.isEmpty) return semua;
+      return semua
+          .where((p) =>
+              p.namaPasien.toLowerCase().contains(keyword.toLowerCase()))
+          .toList();
+    }
+
+    if (_activeFilter == _PasienFilter.hadir) {
+      final allPasien =
+          await (keyword.isEmpty
+              ? _repo.getPasien()
+              : _repo.getPasien(keyword: keyword));
+      final semuaKehadiran = await _kehadiranRepo.getKehadiranByTanggal(today);
+      final hadirIds = semuaKehadiran
+          .where((k) => k.statusHadir == StatusHadir.hadir)
+          .map((k) => k.idPasien)
+          .toSet();
+      return allPasien.where((p) => hadirIds.contains(p.idPasien)).toList();
+    }
+
+    // total
+    return keyword.isEmpty
+        ? _repo.getPasien()
+        : _repo.getPasien(keyword: keyword);
+  }
+
   Future<void> _reload() async {
-    final future = _repo.getPasien(keyword: _searchController.text);
+    final future = _buildFilteredFuture();
     setState(() {
       _future = future;
     });
@@ -54,6 +94,14 @@ class _PasienTabContentState extends State<PasienTabContent> {
       await future;
       widget.onRefresh?.call();
     } catch (_) {}
+  }
+
+  void _setFilter(_PasienFilter filter) {
+    if (_activeFilter == filter) return;
+    setState(() {
+      _activeFilter = filter;
+      _future = _buildFilteredFuture();
+    });
   }
 
   Future<void> _openForm([PasienModel? item]) async {
@@ -148,7 +196,7 @@ class _PasienTabContentState extends State<PasienTabContent> {
             ],
           ),
         ),
-        _buildSummary(widget.domainSummary),
+        _buildFilterChips(),
         Expanded(
           child: FutureBuilder<List<PasienModel>>(
             future: _future,
@@ -171,8 +219,8 @@ class _PasienTabContentState extends State<PasienTabContent> {
               if (items.isEmpty) {
                 return AppEmptyView(
                   icon: AppIcons.person,
-                  title: 'Belum ada data pasien',
-                  message: 'Tambah pasien pertama Anda.',
+                  title: _emptyTitle,
+                  message: _emptyMessage,
                   color: cteal(context),
                 );
               }
@@ -215,71 +263,54 @@ class _PasienTabContentState extends State<PasienTabContent> {
     );
   }
 
-  Widget _buildSummary(DomainSummaryPasien? summary) {
-    final cards = [
-      _StatCardData(
-        label: 'Total Pasien',
-        value: summary?.totalPasien.toString() ?? '-',
-        icon: AppIcons.person,
-        accentColor: cteal(context),
-        onTap: () => widget.domainSummary?.navigateToTab(0),
-      ),
-      _StatCardData(
-        label: 'Jadwal Hari Ini',
-        value: summary?.jadwalHariIni.toString() ?? '-',
-        icon: AppIcons.kalender,
-        accentColor: const Color(0xFF6366F1),
-        onTap: () => widget.domainSummary?.navigateToTab(1),
-      ),
-      _StatCardData(
-        label: 'Hadir Hari Ini',
-        value: summary?.hadirHariIni.toString() ?? '-',
-        icon: AppIcons.pasienHadir,
-        accentColor: const Color(0xFF10B981),
-        onTap: () => widget.domainSummary?.navigateToTab(1),
-      ),
-    ];
+  String get _emptyTitle {
+    switch (_activeFilter) {
+      case _PasienFilter.total:
+        return 'Belum ada data pasien';
+      case _PasienFilter.jadwal:
+        return 'Tidak ada pasien dijadwalkan';
+      case _PasienFilter.hadir:
+        return 'Belum ada pasien hadir';
+    }
+  }
 
+  String? get _emptyMessage {
+    switch (_activeFilter) {
+      case _PasienFilter.total:
+        return 'Tambah pasien pertama Anda.';
+      case _PasienFilter.jadwal:
+      case _PasienFilter.hadir:
+        return null;
+    }
+  }
+
+  Widget _buildFilterChips() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Row(
         children: [
-          Text(
-            'Ringkasan',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: ctextSecondary(context),
-              letterSpacing: 0.2,
-            ),
+          _FilterChip(
+            label: 'Total Pasien',
+            icon: AppIcons.person,
+            isActive: _activeFilter == _PasienFilter.total,
+            color: cteal(context),
+            onTap: () => _setFilter(_PasienFilter.total),
           ),
-          const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < 360) {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < cards.length; i++) ...[
-                        SizedBox(width: 132, child: _StatCard(data: cards[i])),
-                        if (i != cards.length - 1) const SizedBox(width: 8),
-                      ],
-                    ],
-                  ),
-                );
-              }
-
-              return Row(
-                children: [
-                  for (var i = 0; i < cards.length; i++) ...[
-                    Expanded(child: _StatCard(data: cards[i])),
-                    if (i != cards.length - 1) const SizedBox(width: 8),
-                  ],
-                ],
-              );
-            },
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Jadwal Hari Ini',
+            icon: AppIcons.kalender,
+            isActive: _activeFilter == _PasienFilter.jadwal,
+            color: const Color(0xFF6366F1),
+            onTap: () => _setFilter(_PasienFilter.jadwal),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Hadir Hari Ini',
+            icon: AppIcons.pasienHadir,
+            isActive: _activeFilter == _PasienFilter.hadir,
+            color: const Color(0xFF10B981),
+            onTap: () => _setFilter(_PasienFilter.hadir),
           ),
         ],
       ),
@@ -292,6 +323,80 @@ class _PasienTabContentState extends State<PasienTabContent> {
       itemCount: 6,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const SkeletonListCard(),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+    required this.isActive,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final List<List<dynamic>> icon;
+  final bool isActive;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final activeBg = color;
+    final activeFg = Colors.white;
+    final activeBorder = color;
+
+    final inactiveBg = isDark
+        ? DarkColors.surface
+        : color.withValues(alpha: 0.06);
+    final inactiveFg = isDark ? DarkColors.textSecondary : color;
+    final inactiveBorder = isDark
+        ? DarkColors.borderActive
+        : color.withValues(alpha: 0.35);
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? activeBg : inactiveBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isActive ? activeBorder : inactiveBorder,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                icon: icon,
+                color: isActive ? activeFg : inactiveFg,
+                size: 14,
+              ),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? activeFg : inactiveFg,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -539,124 +644,6 @@ class _AddressLine extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _StatCardData {
-  const _StatCardData({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.accentColor,
-    required this.onTap,
-  });
-
-  final String label;
-  final String value;
-  final List<List<dynamic>> icon;
-  final Color accentColor;
-  final VoidCallback onTap;
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.data});
-
-  final _StatCardData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final softBg = isDark
-        ? data.accentColor.withValues(alpha: 0.15)
-        : data.accentColor.withValues(alpha: 0.10);
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final shadowColor = isDark
-        ? DarkColors.shadowLight.withValues(alpha: 0.30)
-        : Colors.black.withValues(alpha: 0.05);
-    final dividerColor = isDark ? DarkColors.divider : LightColors.divider;
-
-    return Material(
-      color: cardBg,
-      borderRadius: BorderRadius.circular(14),
-      elevation: 0,
-      child: InkWell(
-        onTap: data.onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 112),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: dividerColor, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: softBg,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Center(
-                      child: HugeIcon(
-                        icon: data.icon,
-                        color: data.accentColor,
-                        size: 17,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    data.value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: ctextPrimary(context),
-                      height: 1.1,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                data.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: ctextSecondary(context),
-                  height: 1.25,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                width: 30,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: data.accentColor.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

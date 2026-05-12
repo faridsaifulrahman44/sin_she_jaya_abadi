@@ -131,7 +131,8 @@
       "Bash(dir '__TRACKED_VAR__/.claude\\\\logs')",
       "Bash(dir __TRACKED_VAR__/.claude)",
       "Bash(findstr /V \"^$\")",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "Bash(D:)"
     ]
   },
   "enableAllProjectMcpServers": true,

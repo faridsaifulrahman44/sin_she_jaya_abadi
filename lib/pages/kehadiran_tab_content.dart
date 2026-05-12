@@ -1,54 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
-import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_icons.dart';
-import '../core/utils/formatters.dart';
-import '../core/widgets/app_empty_view.dart';
-import '../core/widgets/app_error_view.dart';
-import '../core/widgets/app_loading_view.dart';
-import '../data/models/kehadiran_detail_item.dart';
-import '../data/models/kehadiran_form_args.dart';
-import '../data/models/kehadiran_model.dart';
-import '../data/models/pasien_model.dart';
-import '../data/repositories/kehadiran_repository.dart';
-import '../data/repositories/kunjungan_repository.dart';
-import '../data/repositories/pasien_repository.dart';
-import 'kehadiran_form_page.dart';
-import 'pasien_detail_page.dart';
-import 'pasien_hub_page.dart';
+import '../core/utils/obat_foto_resolver.dart';
+import '../data/models/obat_masuk_model.dart';
+import '../data/repositories/obat_masuk_repository.dart';
+import '../core/design_system/app_tokens.dart';
 
-/// Body-widget (embeddable) untuk tab "Daftar Hadir".
+enum _KehadiranViewMode { bulan, tahun }
+
+/// Body-widget (embeddable) untuk halaman "Daftar Kehadiran".
 ///
-/// Tidak memiliki Scaffold/AppBar sendiri — dirancang untuk di-embed
-/// di dalam TabBarView milik [PasienHubPage].
+/// Dipakai langsung oleh [KehadiranPage] — halaman standalone.
+/// Tidak memiliki Scaffold/AppBar sendiri.
 class KehadiranTabContent extends StatefulWidget {
   const KehadiranTabContent({
     super.key,
     this.onRefresh,
-    this.domainSummary,
   });
 
   /// Callback opsional untuk refresh parent setelah input kehadiran tersimpan.
-  final Future<void> Function()? onRefresh;
-
-  /// Summary data dari parent (PasienHubPage).
-  final DomainSummaryPasien? domainSummary;
+  final VoidCallback? onRefresh;
 
   @override
   State<KehadiranTabContent> createState() => _KehadiranTabContentState();
 }
 
 class _KehadiranTabContentState extends State<KehadiranTabContent> {
-  final PasienRepository _pasienRepository = PasienRepository();
-  final KehadiranRepository _kehadiranRepository = KehadiranRepository();
-  final KunjunganRepository _kunjunganRepository = KunjunganRepository();
+  final ObatMasukRepository _obatMasukRepository = ObatMasukRepository();
 
   /// Tanggal filter aktif. Default = hari ini.
   late DateTime _selectedDate;
-  late Future<List<KehadiranDetailItem>> _future;
+
+  // ── View mode ──────────────────���──────────────────────────────────────────
+  _KehadiranViewMode _viewMode = _KehadiranViewMode.bulan;
+
+  // ── Calendar scroll controller ──────────────────────────────────────────
+  final ScrollController _calendarScrollController = ScrollController();
+
+  // ── Riwayat obat masuk ───────────────────────────────────────────────────
+  late Future<List<ObatMasukModel>> _obatMasukFuture;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
 
@@ -56,65 +48,22 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
-    _future = _loadData(_selectedDate);
+    _obatMasukFuture = _fetchObatMasuk(_selectedDate);
+  }
+
+  @override
+  void dispose() {
+    _calendarScrollController.dispose();
+    super.dispose();
   }
 
   // ── Data ────────────────────────────────────────────────────────────────────
 
-  Future<List<KehadiranDetailItem>> _loadData(DateTime tanggal) async {
-    final results = await Future.wait<dynamic>([
-      _pasienRepository.getPasienByTanggalJanjian(tanggal),
-      _kehadiranRepository.getKehadiranByTanggal(tanggal),
-    ]);
-
-    final pasienList = results[0] as List<PasienModel>;
-    final kehadiranList = results[1] as List<KehadiranModel>;
-
-    final kehadiranMap = <int, KehadiranModel>{
-      for (final item in kehadiranList) item.idPasien: item,
-    };
-
-    // Ambil tanggal kontrol berikutnya untuk semua pasien di list ini.
-    final kontrolMap =
-        await _kunjunganRepository.getKontrolBerikutnyaByPasienIds(
-            pasienList.map((p) => p.idPasien).toList());
-
-    return pasienList.map((pasien) {
-      return KehadiranDetailItem(
-        pasien: pasien,
-        kehadiran: kehadiranMap[pasien.idPasien],
-        tanggalKontrolBerikutnya: kontrolMap[pasien.idPasien],
-      );
-    }).toList();
+  Future<List<ObatMasukModel>> _fetchObatMasuk(DateTime tanggal) {
+    return _obatMasukRepository.getObatMasuk(tanggal: tanggal);
   }
 
-  Future<void> _reload() async {
-    final future = _loadData(_selectedDate);
-    setState(() => _future = future);
-    try {
-      await future;
-    } catch (_) {}
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      builder: (ctx, child) {
-        return Theme(
-          data: Theme.of(ctx).copyWith(
-            colorScheme: ColorScheme.light(primary: cteal(ctx)),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      _setDate(picked);
-    }
-  }
+  // ── Date helpers ─────────────────────────────────────────────────────────────
 
   void _setDate(DateTime date) {
     if (_selectedDate.year == date.year &&
@@ -122,10 +71,9 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
         _selectedDate.day == date.day) {
       return;
     }
-
     setState(() {
       _selectedDate = date;
-      _future = _loadData(date);
+      _obatMasukFuture = _fetchObatMasuk(date);
     });
   }
 
@@ -140,341 +88,674 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
         _selectedDate.day == now.day;
   }
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
+  String get _relatifText {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final diff = selected.difference(today).inDays;
 
-  Future<void> _openForm(KehadiranDetailItem item) async {
-    await Navigator.pushNamed(
+    if (diff == 0) return 'Hari ini';
+    if (diff < 0) {
+      final abs = diff.abs();
+      return '$abs hari yang lalu';
+    }
+    return '$diff hari lagi';
+  }
+
+  void _setViewMode(_KehadiranViewMode mode) {
+    if (_viewMode == mode) return;
+    setState(() => _viewMode = mode);
+  }
+
+  void _onMonthSelected(int month, int year) {
+    _setDate(DateTime(year, month, 1));
+    _setViewMode(_KehadiranViewMode.bulan);
+  }
+
+  // ── Actions ────────────────────────────────────────────────────────────────
+
+  Future<void> _editObatMasuk(ObatMasukModel item) async {
+    // ignore: use_build_context_synchronously
+    final result = await Navigator.pushNamed<bool>(
       context,
-      KehadiranFormPage.routeName,
-      arguments: KehadiranFormArgs(
-        tanggal: _selectedDate,
-        idPasien: item.pasien.idPasien,
-        namaPasien: item.pasien.namaPasien,
-        statusHadir: item.kehadiran?.statusHadir,
-        keterangan: item.keteranganKehadiran,
-      ),
+      'ObatMasukFormPage',
+      arguments: {'isEdit': true, 'editData': item},
     );
-    await _reload();
-    if (widget.onRefresh != null) {
-      await widget.onRefresh!();
+    if (result == true) {
+      setState(() {
+        _obatMasukFuture = _fetchObatMasuk(_selectedDate);
+      });
     }
   }
 
-  Future<void> _openPasienDetail(PasienModel pasien) async {
-    await Navigator.pushNamed(
-      context,
-      PasienDetailPage.routeName,
-      arguments: pasien,
+  Future<void> _deleteObatMasuk(ObatMasukModel item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Riwayat Obat Masuk'),
+        content: Text(
+          'Hapus riwayat obat masuk "${item.namaObat ?? 'ini'}" pada '
+          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
     );
-  }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  String _formatDateFull(DateTime date) {
-    return DateFormat('dd MMMM yyyy', 'id_ID').format(date);
-  }
-
-  String _formatDateShort(DateTime date) {
-    return DateFormat('dd MMM yyyy', 'id_ID').format(date);
+    if (confirmed == true) {
+      await _obatMasukRepository.deleteObatMasuk(item.idMasuk);
+      setState(() {
+        _obatMasukFuture = _fetchObatMasuk(_selectedDate);
+      });
+    }
   }
 
   // ── Build ────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final tealColor = cteal(context);
-    final successColor = csuccess(context);
-    final dangerColor = cdanger(context);
-
     return Column(
       children: [
-        // ── Date filter ───────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          child: Column(
-            children: [
-              Text(
-                'Pilih tanggal untuk melihat daftar pasien dijadwalkan hadir',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: ctextSecondary(context),
-                  fontWeight: FontWeight.w500,
+        // ── Header: bulan/tahun + relatif ─────────────────────────────────
+        _buildCalendarHeader(),
+        // ── Kalender / Toggle ──────────────────────────────────────────────
+        _buildViewModeToggle(),
+        if (_viewMode == _KehadiranViewMode.bulan)
+          _buildHorizontalCalendar()
+        else
+          _buildYearPicker(),
+        // ── Riwayat Obat Masuk ────────────────────────────────────────────
+        Expanded(
+          child: _buildRiwayatSection(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            '${_selectedDate.month} / ${_selectedDate.year}',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: ctextPrimary(context),
+            ),
+          ),
+          Text(
+            _relatifText,
+            style: TextStyle(
+              fontSize: 12,
+              color: ctextMuted(context),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildViewModeToggle() {
+    final tealColor = cteal(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+      child: Row(
+        children: [
+          _ViewToggleBtn(
+            label: 'Bulan',
+            isActive: _viewMode == _KehadiranViewMode.bulan,
+            activeColor: tealColor,
+            onTap: () => _setViewMode(_KehadiranViewMode.bulan),
+          ),
+          const SizedBox(width: 8),
+          _ViewToggleBtn(
+            label: 'Tahun',
+            isActive: _viewMode == _KehadiranViewMode.tahun,
+            activeColor: tealColor,
+            onTap: () => _setViewMode(_KehadiranViewMode.tahun),
+          ),
+          const Spacer(),
+          if (!_isToday)
+            GestureDetector(
+              onTap: _goToToday,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: tealColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: tealColor.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HugeIcon(icon: AppIcons.calendar03, color: tealColor, size: 14),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Hari Ini',
+                      style: TextStyle(
+                        color: tealColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  _isToday
-                      ? const SizedBox.shrink()
-                      : Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _HariIniChip(onTap: _goToToday),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHorizontalCalendar() {
+    final now = DateTime.now();
+    // Build 35 days: centered around selectedDate (show ~2 weeks before and after)
+    final firstDay = _selectedDate.subtract(Duration(days: 20));
+    final days = List.generate(
+      41,
+      (i) => DateTime(firstDay.year, firstDay.month, firstDay.day + i),
+    );
+
+    // Auto-scroll to today index after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_calendarScrollController.hasClients) {
+        final todayIndex = days.indexWhere((d) =>
+            d.year == now.year && d.month == now.month && d.day == now.day);
+        if (todayIndex >= 0) {
+          final itemWidth = 44.0;
+          final screenWidth = MediaQuery.of(context).size.width;
+          final targetOffset = (todayIndex * itemWidth) - (screenWidth / 2) + (itemWidth / 2);
+          if (_calendarScrollController.offset != targetOffset.clamp(0.0, _calendarScrollController.position.maxScrollExtent)) {
+            _calendarScrollController.animateTo(
+              targetOffset.clamp(0.0, _calendarScrollController.position.maxScrollExtent),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        }
+      }
+    });
+
+    return SizedBox(
+      height: 72,
+      child: ListView.builder(
+        controller: _calendarScrollController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: days.length,
+        itemBuilder: (ctx, index) {
+          final date = days[index];
+          final isSelected = date.year == _selectedDate.year &&
+              date.month == _selectedDate.month &&
+              date.day == _selectedDate.day;
+          final isToday = date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day;
+          final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: _CalendarDayItem(
+              dayName: dayNames[date.weekday % 7],
+              date: date.day,
+              isSelected: isSelected,
+              isToday: isToday,
+              onTap: () => _setDate(date),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildYearPicker() {
+    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    final today = DateTime.now();
+    final currentYear = _selectedDate.year;
+    final selectedMonth = _selectedDate.month;
+
+    return Expanded(
+      child: Column(
+        children: [
+          // Header: tahun + panah kiri/kanan
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => setState(() {
+                    _selectedDate = DateTime(_selectedDate.year - 1, _selectedDate.month, 1);
+                  }),
+                  icon: HugeIcon(icon: AppIcons.arrowBack, color: cteal(context), size: 18),
+                  tooltip: 'Tahun sebelumnya',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _setViewMode(_KehadiranViewMode.bulan),
+                    child: Center(
+                      child: Text(
+                        '$currentYear',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: ctextPrimary(context),
                         ),
-                  Expanded(
-                    child: _DatePickerButton(
-                      date: _selectedDate,
-                      onTap: _pickDate,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _reload,
-                    icon: const Icon(Icons.refresh_rounded),
-                    tooltip: 'Refresh',
-                    color: tealColor,
-                  ),
-                ],
+                ),
+                IconButton(
+                  onPressed: () => setState(() {
+                    _selectedDate = DateTime(_selectedDate.year + 1, _selectedDate.month, 1);
+                  }),
+                  icon: HugeIcon(icon: AppIcons.arrowRight, color: cteal(context), size: 18),
+                  tooltip: 'Tahun berikutnya',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
+              ],
+            ),
+          ),
+          // Grid 4x3 bulan
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 1.5,
+                ),
+                itemCount: 12,
+                itemBuilder: (ctx, index) {
+                  final month = index + 1;
+                  final isSelected = month == selectedMonth;
+                  final isCurrentMonth = today.year == currentYear && today.month == month;
+
+                  return _MonthGridItem(
+                    label: monthNames[index],
+                    isSelected: isSelected,
+                    isCurrentMonth: isCurrentMonth,
+                    onTap: () => _onMonthSelected(month, currentYear),
+                  );
+                },
               ),
-            ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiwayatSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
+          child: Text(
+            'Riwayat Obat Masuk',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: ctextPrimary(context),
+            ),
           ),
         ),
-
-        // ── List ─────────────────────────────────────────────────────────
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: FutureBuilder<List<ObatMasukModel>>(
+            future: _obatMasukFuture,
+            builder: (ctx, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(
+                        icon: AppIcons.warning,
+                        color: ctextMuted(context),
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Gagal memuat data',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ctextMuted(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final items = snapshot.data ?? [];
+
+              if (items.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(
+                        icon: AppIcons.obatMasuk,
+                        color: ctextMuted(context),
+                        size: 36,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _isToday
+                            ? 'Belum ada obat masuk hari ini'
+                            : 'Tidak ada obat masuk pada tanggal ini',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ctextMuted(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                itemCount: items.length,
+                itemBuilder: (ctx, index) {
+                  return _buildObatMasukItem(items[index]);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildObatMasukItem(ObatMasukModel item) {
+    final fotoUri = ObatFotoResolver.resolveStorageUrl(
+      fotoKey: item.fotoKey,
+      fotoUpdatedAt: item.fotoUpdatedAt,
+      fotoUrl: item.fotoUrl,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cdivider(context)),
+      ),
+      child: Row(
+        children: [
+          // Foto obat / placeholder
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: fotoUri != null
+                  ? Image.network(
+                      fotoUri.toString(),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildFotoPlaceholder(),
+                    )
+                  : _buildFotoPlaceholder(),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Nama + jumlah
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isToday ? 'Hari Ini' : _formatDateShort(_selectedDate),
+                  item.namaObat ?? 'Obat #${item.idObat}',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: ctextPrimary(context),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: FutureBuilder<List<KehadiranDetailItem>>(
-                    future: _future,
-                    builder: (ctx, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const AppLoadingView();
-                      }
-                      if (snapshot.hasError) {
-                        return AppErrorView(
-                          message: AppErrorMapper.toMessage(
-                            snapshot.error!,
-                            snapshot.stackTrace,
-                          ),
-                          onRetry: _reload,
-                        );
-                      }
-
-                      final items = snapshot.data ?? const [];
-                      if (items.isEmpty) {
-                        return AppEmptyView(
-                          title: _isToday
-                              ? 'Belum ada pasien dijadwalkan hadir hari ini'
-                              : 'Belum ada pasien dijadwalkan hadir\n${_formatDateFull(_selectedDate)}',
-                          message: _isToday
-                              ? 'Pasien dijadwalkan hadir ${_formatDateFull(_selectedDate)} akan tampil di sini.'
-                              : null,
-                          icon: AppIcons.calendar03,
-                          color: tealColor,
-                        );
-                      }
-
-                      return RefreshIndicator(
-                        onRefresh: _reload,
-                        child: ListView.builder(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount: items.length,
-                          itemBuilder: (ctx, index) {
-                            final item = items[index];
-                            final status = item.statusHadirLabel;
-                            final statusColor =
-                                item.kehadiran?.statusHadir == StatusHadir.hadir
-                                    ? successColor
-                                    : dangerColor;
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              decoration: BoxDecoration(
-                                color: ccardBg(ctx),
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => _openForm(item),
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(14),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: statusColor.withValues(
-                                                alpha: 0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: HugeIcon(
-                                            icon: AppIcons.person,
-                                            color: statusColor,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                item.pasien.namaPasien,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 14,
-                                                  color: ctextPrimary(ctx),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                'No. Pasien: ${item.pasien.nomorPasien}',
-                                                style: TextStyle(
-                                                  color: ctextSecondary(ctx),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              if (item.kehadiran != null) ...[
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  'Status: $status',
-                                                  style: TextStyle(
-                                                    color: statusColor,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
-                                              if (item
-                                                  .hasKontrolBerikutnya) ...[
-                                                const SizedBox(height: 4),
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3),
-                                                  decoration: BoxDecoration(
-                                                    color: cwarning(context)
-                                                        .withValues(
-                                                            alpha: 0.14),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            999),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      HugeIcon(
-                                                        icon:
-                                                            AppIcons.calendar03,
-                                                        color:
-                                                            cwarning(context),
-                                                        size: 12,
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        'Kontrol: ${asMediumDate(item.tanggalKontrolBerikutnya!)}',
-                                                        style: TextStyle(
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color:
-                                                              cwarning(context),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        InkWell(
-                                          onTap: () =>
-                                              _openPasienDetail(item.pasien),
-                                          borderRadius:
-                                              BorderRadius.circular(999),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(6),
-                                            child: HugeIcon(
-                                              icon: AppIcons.detail,
-                                              color: ctextSecondary(ctx),
-                                              size: 18,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
+                const SizedBox(height: 3),
+                Text(
+                  '+ ${item.jumlahMasuk} unit',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.positive,
                   ),
                 ),
               ],
             ),
           ),
+          // Popup menu
+          PopupMenuButton<String>(
+            icon: HugeIcon(
+              icon: AppIcons.more,
+              color: ctextMuted(context),
+              size: 20,
+            ),
+            onSelected: (value) {
+              if (value == 'edit') {
+                _editObatMasuk(item);
+              } else if (value == 'hapus') {
+                _deleteObatMasuk(item);
+              }
+            },
+            itemBuilder: (ctx) => [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    HugeIcon(icon: AppIcons.edit, color: ctextSecondary(context), size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Edit',
+                      style: TextStyle(color: ctextSecondary(context)),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'hapus',
+                child: Row(
+                  children: [
+                    HugeIcon(icon: AppIcons.hapus, color: Colors.red, size: 16),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Hapus',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFotoPlaceholder() {
+    return Container(
+      color: cdivider(context),
+      child: Center(
+        child: HugeIcon(
+          icon: AppIcons.obat,
+          color: ctextMuted(context),
+          size: 24,
         ),
-      ],
+      ),
     );
   }
 }
 
 // ── Sub-widgets ──────────────────────────────────────────────────────────────
 
-class _HariIniChip extends StatelessWidget {
-  const _HariIniChip({required this.onTap});
+class _ViewToggleBtn extends StatelessWidget {
+  const _ViewToggleBtn({
+    required this.label,
+    required this.isActive,
+    required this.activeColor,
+    required this.onTap,
+  });
 
+  final String label;
+  final bool isActive;
+  final Color activeColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final activeBg = activeColor;
+    final activeFg = Colors.white;
+
+    final inactiveBg = isDark
+        ? DarkColors.surface
+        : activeColor.withValues(alpha: 0.06);
+    final inactiveFg = isDark ? DarkColors.textSecondary : activeColor;
+    final inactiveBorder = isDark
+        ? DarkColors.borderActive
+        : activeColor.withValues(alpha: 0.35);
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: cteal(context).withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(12),
+          color: isActive ? activeBg : inactiveBg,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: cteal(context).withValues(alpha: 0.25),
+            color: isActive ? activeColor : inactiveBorder,
             width: 1,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: isActive ? activeFg : inactiveFg,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CalendarDayItem extends StatelessWidget {
+  const _CalendarDayItem({
+    required this.dayName,
+    required this.date,
+    required this.isSelected,
+    required this.isToday,
+    required this.onTap,
+  });
+
+  final String dayName;
+  final int date;
+  final bool isSelected;
+  final bool isToday;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tealColor = cteal(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final activeBg = tealColor;
+    final activeFg = Colors.white;
+
+    final todayBg = isDark
+        ? tealColor.withValues(alpha: 0.15)
+        : tealColor.withValues(alpha: 0.08);
+    final todayFg = isDark ? Colors.white : tealColor;
+    final todayBorder = tealColor.withValues(alpha: 0.4);
+
+    final normalFg = isDark ? DarkColors.textSecondary : ctextMuted(context);
+
+    Color bg;
+    Color fg;
+    Border? border;
+
+    if (isSelected) {
+      bg = activeBg;
+      fg = activeFg;
+    } else if (isToday) {
+      bg = todayBg;
+      fg = todayFg;
+      border = Border.all(color: todayBorder, width: 1.5);
+    } else {
+      bg = isDark ? DarkColors.surface : Colors.white;
+      fg = normalFg;
+      border = Border.all(
+        color: isDark ? DarkColors.borderActive : cdivider(context),
+        width: 1,
+      );
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 44,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          border: border,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            HugeIcon(
-              icon: AppIcons.calendar03,
-              color: cteal(context),
-              size: 16,
-            ),
-            const SizedBox(width: 6),
             Text(
-              'Hari Ini',
+              dayName,
               style: TextStyle(
-                color: cteal(context),
-                fontSize: 13,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? activeFg.withValues(alpha: 0.7)
+                    : fg.withValues(alpha: isSelected ? 1 : 0.6),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '$date',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isToday || isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? activeFg : fg,
               ),
             ),
           ],
@@ -484,47 +765,55 @@ class _HariIniChip extends StatelessWidget {
   }
 }
 
-class _DatePickerButton extends StatelessWidget {
-  const _DatePickerButton({
-    required this.date,
+class _MonthGridItem extends StatelessWidget {
+  const _MonthGridItem({
+    required this.label,
+    required this.isSelected,
+    required this.isCurrentMonth,
     required this.onTap,
   });
 
-  final DateTime date;
+  final String label;
+  final bool isSelected;
+  final bool isCurrentMonth;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final tealColor = cteal(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bg = isSelected
+        ? tealColor
+        : isCurrentMonth
+            ? (isDark ? DarkColors.surface : tealColor.withValues(alpha: 0.08))
+            : (isDark ? DarkColors.surface : ccardBg(context));
+    final fg = isSelected
+        ? Colors.white
+        : (isDark ? DarkColors.textPrimary : ctextPrimary(context));
+    final border = isDark ? DarkColors.borderActive : cdivider(context);
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: cteal(context).withValues(alpha: 0.10),
+          color: bg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: cteal(context).withValues(alpha: 0.25),
-            width: 1,
+            color: isCurrentMonth && !isSelected ? tealColor.withValues(alpha: 0.4) : border,
+            width: isCurrentMonth && !isSelected ? 1.5 : 1,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: AppIcons.calendar03,
-              color: cteal(context),
-              size: 16,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected || isCurrentMonth ? FontWeight.w800 : FontWeight.w600,
+              color: fg,
             ),
-            const SizedBox(width: 8),
-            Text(
-              DateFormat('dd MMMM yyyy', 'id_ID').format(date),
-              style: TextStyle(
-                color: cteal(context),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
