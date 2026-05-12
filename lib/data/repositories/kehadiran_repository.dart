@@ -149,4 +149,16 @@ class KehadiranRepository extends BaseRepository {
           .eq('id_kehadiran', idKehadiran);
     });
   }
+
+  /// Jumlah total record jadwal hari ini (semua status).
+  Future<int> getCountKehadiranByTanggal(DateTime tanggal) async {
+    final all = await getKehadiranByTanggal(tanggal);
+    return all.length;
+  }
+
+  /// Jumlah pasien hadir (status=hadir) hari ini.
+  Future<int> getCountHadirByTanggal(DateTime tanggal) async {
+    final all = await getKehadiranByTanggal(tanggal);
+    return all.where((k) => k.statusHadir == StatusHadir.hadir).length;
+  }
 }

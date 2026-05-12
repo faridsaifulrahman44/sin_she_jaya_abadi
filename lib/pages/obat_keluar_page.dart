@@ -12,6 +12,7 @@ import '../data/models/obat_keluar_daily_summary.dart';
 import '../data/models/obat_keluar_model.dart';
 import '../data/repositories/obat_keluar_repository.dart';
 import '../features/obat_keluar/obat_keluar_grouping.dart';
+import '../features/stok/services/stock_service.dart';
 import 'obat_keluar_detail_page.dart';
 import 'obat_keluar_form_page.dart';
 import 'obat_keluar_tanggal_form_page.dart';
@@ -30,6 +31,7 @@ class ObatKeluarPage extends StatefulWidget {
 
 class _ObatKeluarPageState extends State<ObatKeluarPage> {
   final ObatKeluarRepository _repo = ObatKeluarRepository();
+  final StockService _stockService = StockService();
   final TextEditingController _searchController = TextEditingController();
   late Future<List<ObatKeluarModel>> _future;
   String _keyword = '';
@@ -102,7 +104,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatKeluarByTanggal(item.tanggal);
+      await _stockService.deleteStokKeluarByTanggal(item.tanggal);
       if (!mounted) return;
       showModernSnackBar(context, 'Pengeluaran stok berhasil dihapus');
       await _reload();

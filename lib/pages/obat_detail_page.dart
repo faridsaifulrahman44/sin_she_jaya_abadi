@@ -252,6 +252,65 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 ),
               ),
             ],
+            // ── Deskripsi ─────────────────────────────────────────────────────────
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: ccardBg(context),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: AppIcons.description,
+                          color: cprimary(context),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Deskripsi',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: ctextPrimary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: Text(
+                      _obat.deskripsi != null && _obat.deskripsi!.trim().isNotEmpty
+                          ? _obat.deskripsi!
+                          : 'Deskripsi belum tersedia.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _obat.deskripsi != null && _obat.deskripsi!.trim().isNotEmpty
+                            ? ctextPrimary(context)
+                            : ctextMuted(context),
+                        fontWeight: _obat.deskripsi != null && _obat.deskripsi!.trim().isNotEmpty
+                            ? FontWeight.w400
+                            : FontWeight.w400,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

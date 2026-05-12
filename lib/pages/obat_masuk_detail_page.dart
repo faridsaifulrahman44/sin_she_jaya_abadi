@@ -10,6 +10,7 @@ import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
 import '../data/models/obat_masuk_model.dart';
 import '../data/repositories/obat_masuk_repository.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 import 'obat_masuk_form_page.dart';
 
@@ -24,6 +25,7 @@ class ObatMasukDetailPage extends StatefulWidget {
 
 class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
   final ObatMasukRepository _repo = ObatMasukRepository();
+  final StockService _stockService = StockService();
   late DateTime _tanggal;
   late Future<List<ObatMasukModel>> _future;
   bool _initialized = false;
@@ -70,7 +72,7 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
     if (confirm != true) return;
 
     try {
-      await _repo.deleteObatMasuk(item.idMasuk);
+      await _stockService.deleteStokMasuk(item.idMasuk);
       if (!mounted) return;
       showModernSnackBar(context, 'Transaksi berhasil dihapus');
       await _reload();
@@ -94,7 +96,7 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatMasukByTanggal(_tanggal);
+      await _stockService.deleteStokMasukByTanggal(_tanggal);
       if (!mounted) return;
       showModernSnackBar(context, 'Semua transaksi berhasil dihapus');
       Navigator.pop(context);
@@ -253,17 +255,15 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
                             (item.namaObat ?? '').trim().isNotEmpty
                                 ? item.namaObat!.trim()
                                 : 'Obat #${item.idObat}';
-                        final safeFotoUrl =
-                            (item.fotoUrl ?? '').trim().isNotEmpty
-                                ? item.fotoUrl!.trim()
-                                : null;
                         return ModernListCard(
                           title: safeNamaObat,
                           subtitle: 'Jumlah masuk: ${item.jumlahMasuk} unit',
                           trailingText: '+${item.jumlahMasuk}',
                           leading: ObatImage(
                             namaObat: safeNamaObat,
-                            fotoUrl: safeFotoUrl,
+                            fotoKey: item.fotoKey,
+                            fotoUpdatedAt: item.fotoUpdatedAt,
+                            fotoUrl: item.fotoUrl,
                             width: 44,
                             height: 44,
                             borderRadius: 12,

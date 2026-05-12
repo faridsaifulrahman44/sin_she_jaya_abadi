@@ -1,9 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/database/db_tables.dart';
-import '../../core/error/app_exception.dart';
 import '../../core/supabase/supabase_client_provider.dart';
 import '../../core/utils/formatters.dart';
+import '../../features/transaksi/dto/create_transaction_payload_dto.dart';
 import '../models/obat_model.dart';
 import '../models/pasien_model.dart';
 import '../models/transaksi_model.dart';
@@ -110,29 +110,34 @@ class TransaksiRepository extends BaseRepository {
   }
 
   /// Insert transaksi baru dengan item (jika ready stock).
-  /// Menggunakan RPC atomik `fn_transaksi_insert`.
+  /// Menggunakan RPC atomik `fn_create_transaction`.
   /// RPC ini menangani header, item, dan pengurangan stok dalam 1 transaksi DB.
   Future<TransaksiModel> insertTransaksi({
     required TransaksiModel transaksi,
     required List<TransaksiItemModel> items,
     required int idAdmin,
+  }) {
+    return createTransactionAtomic(
+      transaksi: transaksi,
+      items: items,
+      idAdmin: idAdmin,
+    );
+  }
+
+  /// Canonical path transaksi atomik.
+  /// Fallback ke RPC lama (`fn_transaksi_insert`) jika environment belum apply
+  /// migration terbaru.
+  Future<TransaksiModel> createTransactionAtomic({
+    required TransaksiModel transaksi,
+    required List<TransaksiItemModel> items,
+    required int idAdmin,
   }) async {
     return guard(() async {
-      // Coba RPC atomik dulu (fn_transaksi_insert sudah termasuk
-      // INSERT item dengan FK id_transaksi yang benar + pengurangan stok).
-      try {
-        final itemsJson = items
-            .map((item) => {
-                  'id_obat': item.idObat,
-                  'jumlah': item.jumlah,
-                  'harga_satuan': item.hargaSatuan,
-                  'subtotal': item.subtotal,
-                  'satuan_terjual': item.satuanTerjual,
-                })
-            .toList();
+      final itemsJson = _buildItemsPayload(items);
 
+      try {
         final rpcResult =
-            await _client.rpc(DbRpc.transaksiInsertAtomic, params: {
+            await _client.rpc(DbRpc.createTransactionAtomic, params: {
           'p_tanggal': transaksi.tanggal.toIso8601String().split('T').first,
           'p_jenis_transaksi': transaksi.jenisTransaksi.value,
           'p_total': transaksi.total,
@@ -144,30 +149,46 @@ class TransaksiRepository extends BaseRepository {
           'p_items': itemsJson,
         });
 
-        final row = rpcResult is List
-            ? (rpcResult).first as Map<String, dynamic>
-            : rpcResult as Map<String, dynamic>;
-
-        return TransaksiModel.fromMap(Map<String, dynamic>.from(row));
+        return _parseRpcTransaksiRow(rpcResult);
       } on PostgrestException catch (error) {
-        final fnNotFound = error.code == '42883' ||
-            error.code == 'PGRST202' ||
-            error.message
-                .toLowerCase()
-                .contains('fn_transaksi_insert does not exist');
+        if (!_isFunctionMissing(error, DbRpc.createTransactionAtomic)) rethrow;
 
-        if (!fnNotFound) rethrow;
-
-        throw DatabaseException(
-          'RPC fn_transaksi_insert belum tersedia. '
-          'Terapkan migration Supabase terbaru sebelum tambah transaksi.',
-          code: 'fn_transaksi_insert_missing',
-          cause: error,
-          debugMessage:
-              'PostgrestException code=${error.code} message=${error.message}',
-        );
+        final legacyResult = await _client.rpc(DbRpc.transaksiInsertAtomic,
+            params: {
+              'p_tanggal': transaksi.tanggal.toIso8601String().split('T').first,
+              'p_jenis_transaksi': transaksi.jenisTransaksi.value,
+              'p_total': transaksi.total,
+              'p_metode_bayar': transaksi.metodeBayar?.value,
+              'p_id_pasien': transaksi.idPasien,
+              'p_keterangan': transaksi.keterangan,
+              'p_durasi_harian': transaksi.durasiHarian,
+              'p_id_admin': idAdmin,
+              'p_items': itemsJson,
+            });
+        return _parseRpcTransaksiRow(legacyResult);
       }
     });
+  }
+
+  bool _isFunctionMissing(PostgrestException error, String functionName) {
+    final message = error.message.toLowerCase();
+    return error.code == '42883' ||
+        error.code == 'PGRST202' ||
+        message.contains('$functionName does not exist');
+  }
+
+  List<Map<String, dynamic>> _buildItemsPayload(List<TransaksiItemModel> items) {
+    return items
+        .map(CreateTransactionItemDto.fromDomain)
+        .map((dto) => dto.toMap())
+        .toList(growable: false);
+  }
+
+  TransaksiModel _parseRpcTransaksiRow(dynamic rpcResult) {
+    final row = rpcResult is List
+        ? (rpcResult).first as Map<String, dynamic>
+        : rpcResult as Map<String, dynamic>;
+    return TransaksiModel.fromMap(Map<String, dynamic>.from(row));
   }
 
   /// Ambil obat yang ready stock (etalase 1 atau 2).
@@ -256,5 +277,34 @@ class TransaksiRepository extends BaseRepository {
             t.tanggal.isAfter(start.subtract(const Duration(days: 1))) &&
             t.tanggal.isBefore(end.add(const Duration(days: 1))))
         .length;
+  }
+
+  /// Total nominal semua transaksi hari ini.
+  Future<double> getTotalTransaksiHariIni(DateTime hariIni) {
+    final start = DateTime(hariIni.year, hariIni.month, hariIni.day);
+    final end = start.add(const Duration(days: 1));
+    return getTotalTransaksiByRange(start, end);
+  }
+
+  /// Total nominal transaksi jenis Obat (obatReadyStock) hari ini.
+  Future<double> getTotalObatHariIni(DateTime hariIni) async {
+    final start = DateTime(hariIni.year, hariIni.month, hariIni.day);
+    final end = start.add(const Duration(days: 1));
+    final all = await getTransaksiByRange(start, end);
+    final filtered = all
+        .where((t) => t.jenisTransaksi == JenisTransaksi.obatReadyStock)
+        .toList();
+    double total = 0.0;
+    for (final t in filtered) {
+      total += t.total;
+    }
+    return total;
+  }
+
+  /// Jumlah transaksi hari ini (untuk card opsional).
+  Future<int> getCountTransaksiHariIni(DateTime hariIni) {
+    final start = DateTime(hariIni.year, hariIni.month, hariIni.day);
+    final end = start.add(const Duration(days: 1));
+    return getCountTransaksiByRange(start, end);
   }
 }

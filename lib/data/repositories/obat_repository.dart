@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -298,11 +297,21 @@ class ObatRepository extends BaseRepository {
     return raw == 'true' || raw == '1' || raw == 't' || raw == 'yes';
   }
 
-  /// Upload foto obat ke Supabase Storage lalu simpan public URL ke tabel obat.
+  /// Upload foto obat ke Supabase Storage lalu simpan ke tabel obat.
+  ///
+  /// Path Storage: `{etalase.value}/{nama_obat_snake_case}.webp`
+  /// Contoh: `etalase-1/die_da_tay_ping_yao_jing.webp`
+  ///
+  /// Kolom yang diupdate di tabel `obat`:
+  /// - `foto_key`        → path relatif (TANPA prefix bucket)
+  /// - `foto_updated_at` → DateTime.now().toUtc()
+  /// - `foto_url`        → publicUrl (backward compat, legacy data lama tetap works)
   Future<String> uploadFotoObat({
     required int idObat,
     required Uint8List bytes,
     required String fileName,
+    required Etalase etalase,
+    required String namaObat,
     String? previousFotoUrl,
   }) {
     return guard(() async {
@@ -331,8 +340,10 @@ class ObatRepository extends BaseRepository {
         );
       }
 
+      // Path: etalase-1/nama_obat_snake_case.webp
       final objectPath = _buildFotoObjectPath(
-        idObat: idObat,
+        etalase: etalase,
+        namaObat: namaObat,
         extension: extension,
       );
 
@@ -359,9 +370,15 @@ class ObatRepository extends BaseRepository {
             objectPath,
           );
 
-      await _client
-          .from('obat')
-          .update({'foto_url': publicUrl}).eq('id_obat', idObat);
+      final nowUtc = DateTime.now().toUtc();
+
+      // Update kolom foto_key + foto_updated_at (source of truth baru)
+      // foto_url tetap diupdate untuk backward compat data lama
+      await _client.from('obat').update({
+        'foto_key': objectPath,
+        'foto_updated_at': nowUtc.toIso8601String(),
+        'foto_url': publicUrl,
+      }).eq('id_obat', idObat);
 
       final oldPath = _extractStoragePathFromFotoUrl(previousFotoUrl);
       if (oldPath != null && oldPath != objectPath) {
@@ -413,13 +430,44 @@ class ObatRepository extends BaseRepository {
     });
   }
 
+  /// Build path object untuk Supabase Storage.
+  ///
+  /// Format: `{etalase.value}/{nama_obat_snake_case}.{ext}`
+  /// Contoh: `etalase-1/die_da_tay_ping_yao_jing.webp`
+  ///
+  /// snake_case: lowercase, spasi → underscore, non-alphanumeric
+  /// (kecuali underscore) dihapus.
   String _buildFotoObjectPath({
-    required int idObat,
+    required Etalase etalase,
+    required String namaObat,
     required String extension,
   }) {
-    final timestamp = DateTime.now().microsecondsSinceEpoch;
-    final randomSuffix = Random.secure().nextInt(0x7fffffff).toRadixString(16);
-    return 'obat/$idObat/$timestamp-$randomSuffix.$extension';
+    final snakeCase = _toSnakeCase(namaObat);
+    return '${etalase.value}/$snakeCase.$extension';
+  }
+
+  /// Konversi nama obat ke snake_case.
+  ///
+  /// - Lowercase
+  /// - Spasi / hyphen → underscore
+  /// - Non-alphanumeric (kecuali underscore) dihapus
+  ///
+  /// Contoh:
+  ///   "Die Da Tay Ping Yao Jing" → "die_da_tay_ping_yao_jing"
+  ///   "San Jin Tablets (Kunyit)"  → "san_jin_tablets_kunyit"
+  String _toSnakeCase(String input) {
+    final trimmed = input.trim();
+    // Lowercase
+    var result = trimmed.toLowerCase();
+    // Spasi & hyphen → underscore
+    result = result.replaceAll(RegExp(r'[\s\-]+'), '_');
+    // Hapus karakter non-alphanumeric (kecuali underscore)
+    result = result.replaceAll(RegExp(r'[^a-z0-9_]'), '');
+    // Hapus underscore berlebih
+    result = result.replaceAll(RegExp(r'_+'), '_');
+    // Hapus underscore di awal/akhir
+    result = result.replaceAll(RegExp(r'^_|_$'), '');
+    return result;
   }
 
   String? _extractFileExtension(String fileName) {

@@ -12,7 +12,7 @@ class ObatMasukRepository extends BaseRepository {
 
   final SupabaseClient _client;
   static const String _detailSelect =
-      'id_masuk,id_obat,tanggal_masuk,jumlah_masuk,keterangan,id_admin,created_at,obat(nama_obat,foto_url)';
+      'id_masuk,id_obat,tanggal_masuk,jumlah_masuk,keterangan,id_admin,created_at,obat(nama_obat,foto_key,foto_updated_at,foto_url)';
 
   Future<List<ObatMasukModel>> getObatMasuk({DateTime? tanggal}) {
     return guard(() async {

@@ -37,3 +37,10 @@ String formatDateRangeLabel(DateTime startDate, DateTime endDate) {
   }
   return '${asDate(startDate)} - ${asDate(endDate)}';
 }
+
+/// Jam besar di dashboard, contoh: "11.14"
+String formatClock(DateTime time) => DateFormat('HH.mm').format(time);
+
+/// Tanggal lengkap Bahasa Indonesia, contoh: "Senin, 11 Mei 2026"
+String formatDashboardDate(DateTime date) =>
+    DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(date);

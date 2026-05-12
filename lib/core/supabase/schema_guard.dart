@@ -24,6 +24,16 @@ class SchemaGuard {
       table: DbTables.pasien,
       columns: const [DbColumns.idPasien, DbColumns.namaPasien],
     );
+    await _assertColumnsExist(
+      table: DbTables.stockMovements,
+      columns: const [
+        DbColumns.stockMovementId,
+        DbColumns.idObat,
+        DbColumns.stockMovementQty,
+        DbColumns.stockMovementType,
+        DbColumns.stockMovementCreatedBy,
+      ],
+    );
   }
 
   Future<void> _assertColumnsExist({

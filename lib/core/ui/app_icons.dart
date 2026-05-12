@@ -267,6 +267,20 @@ class AppIcons {
   /// Compare / selisih
   static const AppHugeIconData compare = HugeIcons.strokeRoundedGitCompare;
 
+  // ─── Dashboard Summary ─────────────────────────────────────────────────────
+
+  /// Wallet / omzet — untuk ringkasan omzet hari ini
+  static const AppHugeIconData wallet = HugeIcons.strokeRoundedWallet01;
+
+  /// Calendar / jadwal — untuk ringkasan jadwal hari ini
+  static const AppHugeIconData jadwalSummary = HugeIcons.strokeRoundedCalendar03;
+
+  /// Receipt / transaksi — untuk ringkasan transaksi hari ini
+  static const AppHugeIconData receiptSummary = HugeIcons.strokeRoundedInvoice;
+
+  /// User check / hadir — untuk ringkasan hadir hari ini
+  static const AppHugeIconData hadirSummary = HugeIcons.strokeRoundedUserCheck01;
+
   /// Check circle
   static const AppHugeIconData checkCircle =
       HugeIcons.strokeRoundedCheckmarkCircle01;

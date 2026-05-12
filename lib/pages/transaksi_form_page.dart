@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:klinik_mobile_app/core/auth/admin_session.dart';
+import 'package:klinik_mobile_app/core/error/app_exception.dart';
+import 'package:klinik_mobile_app/core/feedback/app_feedback.dart';
 import 'package:klinik_mobile_app/core/theme/app_theme.dart';
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
 import 'package:klinik_mobile_app/core/utils/parsers.dart';
@@ -12,6 +14,7 @@ import 'package:klinik_mobile_app/data/models/pasien_model.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
 import 'package:klinik_mobile_app/data/repositories/pasien_repository.dart';
 import 'package:klinik_mobile_app/data/repositories/transaksi_repository.dart';
+import 'package:klinik_mobile_app/features/transaksi/usecases/create_transaction_usecase.dart';
 import 'package:klinik_mobile_app/pages/transaksi/struk_pembayaran_page.dart';
 
 /// Halaman form tambah transaksi.
@@ -29,6 +32,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
   late TabController _tabController;
   final _repository = TransaksiRepository();
   final _pasienRepository = PasienRepository();
+  final _createTransactionUseCase = CreateTransactionUseCase();
 
   // Common state
   bool _loading = false;
@@ -85,14 +89,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           _loading = false;
         });
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
         setState(() {
           _loading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat data: $e')),
-        );
+        AppFeedback.showError(context, error, stackTrace);
       }
     }
   }
@@ -182,7 +184,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           .toList();
 
       // Save and get inserted transaction with ID
-      final savedTransaksi = await _repository.insertTransaksi(
+      final savedTransaksi = await _createTransactionUseCase.execute(
         transaksi: transaksi,
         items: items,
         idAdmin: idAdmin,
@@ -237,25 +239,18 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           ),
         );
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
         setState(() {
           _loading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan: $e')),
-        );
+        AppFeedback.showError(context, error, stackTrace);
       }
     }
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: cdanger(context),
-      ),
-    );
+    AppFeedback.showError(context, ValidationException(msg));
   }
 
   @override
@@ -527,10 +522,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     ButtonSegment(
                       value: MetodeBayarTransaksi.cash,
                       label: Text('Tunai'),
+                      icon: Icon(Icons.payments_outlined, size: 18),
                     ),
                     ButtonSegment(
                       value: MetodeBayarTransaksi.qris,
                       label: Text('QRIS'),
+                      icon: Icon(Icons.qr_code_2_outlined, size: 18),
                     ),
                   ],
                   selected: _selectedMetodeBayar != null

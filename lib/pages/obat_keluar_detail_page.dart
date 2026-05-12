@@ -10,6 +10,7 @@ import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
 import '../data/models/obat_keluar_model.dart';
 import '../data/repositories/obat_keluar_repository.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 import 'obat_keluar_form_page.dart';
 
@@ -24,6 +25,7 @@ class ObatKeluarDetailPage extends StatefulWidget {
 
 class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
   final ObatKeluarRepository _repo = ObatKeluarRepository();
+  final StockService _stockService = StockService();
   late DateTime _tanggal;
   late Future<List<ObatKeluarModel>> _future;
   bool _initialized = false;
@@ -80,7 +82,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
     if (confirm != true) return;
 
     try {
-      await _repo.deleteObatKeluar(item.idTerjual);
+      await _stockService.deleteStokKeluar(item.idTerjual);
       if (!mounted) return;
       showModernSnackBar(context, 'Pengeluaran stok berhasil dihapus');
       await _reload();
@@ -104,7 +106,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatKeluarByTanggal(_tanggal);
+      await _stockService.deleteStokKeluarByTanggal(_tanggal);
       if (!mounted) return;
       showModernSnackBar(context, 'Semua pengeluaran stok berhasil dihapus');
       Navigator.pop(context);

@@ -24,7 +24,6 @@ fun releaseSigningProperty(name: String): String =
 android {
     namespace = "id.sinshe.jayaabadi"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -43,6 +42,15 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
+    }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols += listOf("**/*.so")
+        }
     }
 
     signingConfigs {

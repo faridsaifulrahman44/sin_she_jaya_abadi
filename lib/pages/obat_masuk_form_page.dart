@@ -6,8 +6,8 @@ import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/obat_masuk_model.dart';
 import '../data/models/obat_model.dart';
-import '../data/repositories/obat_masuk_repository.dart';
 import '../data/repositories/obat_repository.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 
 class ObatMasukFormPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class ObatMasukFormPage extends StatefulWidget {
 
 class _ObatMasukFormPageState extends State<ObatMasukFormPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final ObatMasukRepository _repo = ObatMasukRepository();
+  final StockService _stockService = StockService();
   final ObatRepository _obatRepo = ObatRepository();
   final TextEditingController _jumlahController = TextEditingController();
   bool _loading = false;
@@ -94,14 +94,14 @@ class _ObatMasukFormPageState extends State<ObatMasukFormPage> {
       final jumlah = int.parse(_jumlahController.text.trim());
 
       if (_idMasuk == null) {
-        await _repo.insertObatMasuk(
+        await _stockService.stokMasuk(
           idObat: _selectedIdObat!,
           tanggalMasuk: _selectedDate,
           jumlahMasuk: jumlah,
           idAdmin: await AdminSession.getCurrentId(),
         );
       } else {
-        await _repo.updateObatMasuk(
+        await _stockService.updateStokMasuk(
           idMasuk: _idMasuk!,
           idObat: _selectedIdObat!,
           tanggalMasuk: _selectedDate,

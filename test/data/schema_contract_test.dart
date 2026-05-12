@@ -59,6 +59,7 @@ void main() {
         'public.transaksi',
         'public.transaksi_item',
         'public.kunjungan_pasien',
+        'public.stock_movements',
       ];
 
       for (final table in tables) {
@@ -94,6 +95,7 @@ void main() {
         'public.fn_recalculate_obat_stok_single',
         'public.fn_recalculate_obat_stok_bulk',
         'public.fn_transaksi_insert',
+        'public.fn_create_transaction',
         'public.fn_obat_kurangi_stok',
         'public.fn_obat_keluar_refresh_totals',
         'public.fn_obat_keluar_insert_atomic',
@@ -129,6 +131,12 @@ void main() {
     });
 
     test('grant execute tersedia untuk fungsi atomic utama', () {
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_create_transaction(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;',
+        ),
+      );
       expect(
         schemaSql,
         contains(
@@ -358,6 +366,7 @@ void main() {
 
     test('RPC SECURITY DEFINER memvalidasi admin login', () {
       const guardedFunctions = [
+        'public.fn_create_transaction',
         'public.fn_transaksi_insert',
         'public.fn_obat_kurangi_stok',
         'public.fn_obat_keluar_insert_atomic',

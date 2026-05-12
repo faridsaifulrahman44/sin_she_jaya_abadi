@@ -190,3 +190,9 @@ Semua tabel berikut sudah ada di `schema.sql` dan dipakai oleh kode aplikasi:
 - Jika ditemukan kasus stok melonjak saat tambah obat masuk (contoh 11 -> 33), jalankan `migration_fase5_fix_stock_double_count.sql`.
 - Kolom `obat_keluar.jumlah_transaksi` dan `obat_keluar.total_nominal` tetap dipertahankan sebagai summary cache karena masih dipakai kode saat ini.
 - Guard oversell (`CHECK_STOCK_FAILED`) di `fn_obat_keluar_insert_atomic` dan `fn_obat_keluar_update_atomic` mencegah transaksi yang qty > stok tersedia. Guard ini idempotent â€” aman dijalankan ulang.
+
+## Update 2026-05-09 (P3)
+- Tambahan migration terstruktur: `supabase/migrations/202605091030__stock_movements_and_create_transaction_rpc.sql`.
+- Introduces tabel `stock_movements` untuk audit mutasi stok (ledger).
+- Introduces RPC `fn_create_transaction(...)` sebagai jalur atomik utama transaksi.
+- `fn_transaksi_insert(...)` tetap dipertahankan sebagai alias kompatibilitas.

@@ -12,6 +12,7 @@ import '../data/models/obat_masuk_daily_summary.dart';
 import '../data/models/obat_masuk_model.dart';
 import '../data/repositories/obat_masuk_repository.dart';
 import '../features/obat_masuk/obat_masuk_grouping.dart';
+import '../features/stok/services/stock_service.dart';
 import 'obat_masuk_detail_page.dart';
 import 'obat_masuk_form_page.dart';
 import 'obat_masuk_tanggal_form_page.dart';
@@ -30,6 +31,7 @@ class ObatMasukPage extends StatefulWidget {
 
 class _ObatMasukPageState extends State<ObatMasukPage> {
   final ObatMasukRepository _repo = ObatMasukRepository();
+  final StockService _stockService = StockService();
   final TextEditingController _searchController = TextEditingController();
   late Future<List<ObatMasukModel>> _future;
   String _keyword = '';
@@ -102,7 +104,7 @@ class _ObatMasukPageState extends State<ObatMasukPage> {
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatMasukByTanggal(item.tanggal);
+      await _stockService.deleteStokMasukByTanggal(item.tanggal);
       if (!mounted) return;
       showModernSnackBar(context, 'Semua transaksi berhasil dihapus');
       await _reload();

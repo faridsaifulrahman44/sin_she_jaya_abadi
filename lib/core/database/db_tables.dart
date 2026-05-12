@@ -10,6 +10,7 @@ class DbTables {
   static const obatKeluar = 'obat_keluar';
   static const obatKeluarItem = 'obat_keluar_item';
   static const sinkronisasiStok = 'sinkronisasi_stok';
+  static const stockMovements = 'stock_movements';
 }
 
 class DbColumns {
@@ -42,12 +43,20 @@ class DbColumns {
 
   static const idTerjual = 'id_terjual';
   static const tanggalTerjual = 'tanggal_terjual';
+
+  static const stockMovementId = 'id';
+  static const stockMovementQty = 'qty';
+  static const stockMovementType = 'movement_type';
+  static const stockMovementReferenceType = 'reference_type';
+  static const stockMovementReferenceId = 'reference_id';
+  static const stockMovementCreatedBy = 'created_by';
 }
 
 class DbRpc {
   const DbRpc._();
 
   static const transaksiInsertAtomic = 'fn_transaksi_insert';
+  static const createTransactionAtomic = 'fn_create_transaction';
   static const obatMasukInsertAtomic = 'fn_obat_masuk_insert_atomic';
   static const obatMasukUpdateAtomic = 'fn_obat_masuk_update_atomic';
   static const obatMasukDeleteAtomic = 'fn_obat_masuk_delete_atomic';

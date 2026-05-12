@@ -609,7 +609,7 @@ class _TransaksiHubPageState extends ConsumerState<TransaksiHubPage> {
     if (result == true) {
       await _refreshTransaksi();
     } else if (result == false) {
-      AppFeedback.showInfo(context, 'Transaksi dibatalkan.');
+      if (mounted) AppFeedback.showInfo(context, 'Transaksi dibatalkan.');
     }
   }
 }
@@ -912,6 +912,7 @@ class CompactStatCard extends StatelessWidget {
 
 class CompactFilterChip extends StatelessWidget {
   const CompactFilterChip({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,

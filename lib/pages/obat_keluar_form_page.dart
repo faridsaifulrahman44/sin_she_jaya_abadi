@@ -13,6 +13,7 @@ import '../data/repositories/obat_keluar_repository.dart';
 import '../data/repositories/obat_repository.dart';
 import '../features/obat_keluar/obat_keluar_etalase_sync.dart';
 import '../features/obat_keluar/obat_keluar_form_entry.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 import 'obat_keluar/widgets/obat_keluar_item_row.dart';
 
@@ -28,6 +29,7 @@ class ObatKeluarFormPage extends StatefulWidget {
 class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _repo = ObatKeluarRepository();
+  final _stockService = StockService();
   final _obatRepo = ObatRepository();
   final _keteranganCtrl = TextEditingController();
 
@@ -180,7 +182,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
       );
 
       if (_idTerjual == null) {
-        await _repo.insertObatKeluar(
+        await _stockService.stokKeluar(
           tanggalTerjual: _selectedDate,
           noEtalase: headerNoEtalase,
           items: items,
@@ -190,7 +192,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
           idAdmin: await AdminSession.getCurrentId(),
         );
       } else {
-        await _repo.updateObatKeluar(
+        await _stockService.updateStokKeluar(
           idTerjual: _idTerjual!,
           tanggalTerjual: _selectedDate,
           noEtalase: headerNoEtalase,

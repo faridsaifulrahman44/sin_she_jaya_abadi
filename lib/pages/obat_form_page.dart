@@ -57,11 +57,10 @@ class _ObatFormPageState extends State<ObatFormPage> {
   Etalase _etalase = Etalase.etalase1;
   Uint8List? _selectedFotoBytes;
   String? _selectedFotoFileName;
-  // TODO(farid): Setelah upload ke foto_key selesai, aktifkan kembali _existingFotoKey + _existingFotoUpdatedAt
-  // dan hapus _existingFotoUrl. fields ini siap dipakai saat migrsi upload selesai.
-  // ignore: unused_field
+  // ── Foto Obat — Source of Truth (FASE 2, 2026-05-12) ──────────────────
+  // Upload fix: uploadFotoObat() sekarang menulis ke foto_key + foto_updated_at.
+  // Field ini sudah aktif dan dipakai resolver saat render foto obat.
   String? _existingFotoKey;
-  // ignore: unused_field
   DateTime? _existingFotoUpdatedAt;
   String? _existingFotoUrl;
   bool _hapusFoto = false;
@@ -189,12 +188,14 @@ class _ObatFormPageState extends State<ObatFormPage> {
             idObat: savedObat.idObat,
             bytes: _selectedFotoBytes!,
             fileName: _resolveUploadFileName(),
+            etalase: _etalase,
+            namaObat: _namaController.text.trim(),
             previousFotoUrl: previousFotoUrl,
           );
+          // Update state dengan nilai baru setelah upload sukses
+          _existingFotoKey = _buildFotoKey(_etalase, _namaController.text.trim());
+          _existingFotoUpdatedAt = DateTime.now().toUtc();
           _existingFotoUrl = uploadedFotoUrl;
-          _existingFotoKey =
-              null; // upload masih ke foto_url — naik ke foto_key nanti
-          _existingFotoUpdatedAt = null;
           _hapusFoto = false;
         } catch (error, stackTrace) {
           warningMessage =
@@ -454,6 +455,21 @@ class _ObatFormPageState extends State<ObatFormPage> {
     return _replaceFileExtension(raw, 'jpg');
   }
 
+  /// Build path foto_key untuk state management setelah upload sukses.
+  ///
+  /// Format: `{etalase.value}/{nama_obat_snake_case}.webp`
+  /// Ini harus sinkron dengan _buildFotoObjectPath() di ObatRepository.
+  String _buildFotoKey(Etalase etalase, String namaObat) {
+    final snakeCase = namaObat
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[\s\-]+'), '_')
+        .replaceAll(RegExp(r'[^a-z0-9_]'), '')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return '${etalase.value}/$snakeCase.webp';
+  }
+
   Future<void> _showFotoActionSheet() async {
     if (_processingFoto) {
       return;
@@ -564,12 +580,13 @@ class _ObatFormPageState extends State<ObatFormPage> {
     }
 
     final existingFotoUrl = _hapusFoto ? null : _existingFotoUrl;
+    final existingFotoKey = _hapusFoto ? null : _existingFotoKey;
+    final existingFotoUpdatedAt = _hapusFoto ? null : _existingFotoUpdatedAt;
     return ObatImage(
       namaObat:
           _namaController.text.trim().isEmpty ? 'Obat' : _namaController.text,
-      fotoKey:
-          null, // upload masih pakai foto_url legacy — naik ke foto_key nanti
-      fotoUpdatedAt: null,
+      fotoKey: existingFotoKey,
+      fotoUpdatedAt: existingFotoUpdatedAt,
       fotoUrl: existingFotoUrl,
       width: 96,
       height: 96,

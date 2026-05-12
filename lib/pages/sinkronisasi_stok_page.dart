@@ -10,6 +10,7 @@ import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
 import '../data/models/sinkronisasi_stok_model.dart';
 import '../data/repositories/sinkronisasi_stok_repository.dart';
+import '../features/stok/services/stock_service.dart';
 import 'sinkronisasi_stok_form_page.dart';
 
 class SinkronisasiStokPage extends StatefulWidget {
@@ -25,6 +26,7 @@ class SinkronisasiStokPage extends StatefulWidget {
 
 class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
   final SinkronisasiStokRepository _repo = SinkronisasiStokRepository();
+  final StockService _stockService = StockService();
   final TextEditingController _searchController = TextEditingController();
   late Future<List<SinkronisasiStokModel>> _future;
   String _keyword = '';
@@ -72,7 +74,7 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
     if (confirm != true) return;
 
     try {
-      await _repo.deleteSinkronisasiStok(item.idOpname);
+      await _stockService.deleteSyncOpname(item.idOpname);
       if (!mounted) return;
       showModernSnackBar(context, 'Entri berhasil dihapus');
       await _reload();

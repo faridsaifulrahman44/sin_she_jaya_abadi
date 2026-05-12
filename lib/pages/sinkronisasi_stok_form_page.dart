@@ -9,8 +9,8 @@ import '../core/utils/formatters.dart';
 import '../data/models/obat_model.dart';
 import '../data/models/sinkronisasi_stok_model.dart';
 import '../data/repositories/obat_repository.dart';
-import '../data/repositories/sinkronisasi_stok_repository.dart';
 import '../features/sinkronisasi_stok/sinkronisasi_stok_calc.dart';
+import '../features/stok/usecases/sync_stock_usecase.dart';
 import '../widgets/page_header.dart';
 import 'sinkronisasi_stok/widgets/sinkronisasi_stok_panels.dart';
 
@@ -28,7 +28,7 @@ class SinkronisasiStokFormPage extends StatefulWidget {
 
 class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final SinkronisasiStokRepository _repo = SinkronisasiStokRepository();
+  final SyncStockUseCase _syncStockUseCase = SyncStockUseCase();
   final ObatRepository _obatRepo = ObatRepository();
   final TextEditingController _stokFisikController = TextEditingController();
   final TextEditingController _alasanController = TextEditingController();
@@ -145,26 +145,15 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
       setState(() => _loading = true);
       final stokFisik = int.parse(_stokFisikController.text.trim());
 
-      if (_idOpname == null) {
-        await _repo.insertSinkronisasiStok(
-          idObat: _selectedIdObat!,
-          tanggalOpname: _selectedDate,
-          stokSistem: _stokSistem,
-          stokFisik: stokFisik,
-          idAdmin: await AdminSession.getCurrentId(),
-          alasanPenyesuaian: _alasanController.text.trim(),
-        );
-      } else {
-        await _repo.updateSinkronisasiStok(
-          idOpname: _idOpname!,
-          idObat: _selectedIdObat!,
-          tanggalOpname: _selectedDate,
-          stokSistem: _stokSistem,
-          stokFisik: stokFisik,
-          idAdmin: await AdminSession.getCurrentId(),
-          alasanPenyesuaian: _alasanController.text.trim(),
-        );
-      }
+      await _syncStockUseCase.execute(
+        idOpname: _idOpname,
+        idObat: _selectedIdObat!,
+        tanggalOpname: _selectedDate,
+        stokSistem: _stokSistem,
+        stokFisik: stokFisik,
+        idAdmin: await AdminSession.getCurrentId(),
+        alasanPenyesuaian: _alasanController.text.trim(),
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
