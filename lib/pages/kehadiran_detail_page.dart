@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -175,7 +174,7 @@ class _KehadiranDetailPageState extends State<KehadiranDetailPage> {
                     return AppEmptyView(
                       title: 'Belum ada pasien pada tanggal ini',
                       message: 'Silakan pilih tanggal janjian lain.',
-                      icon: AppIcons.calendar03,
+                      icon: AppSymbols.calendar03,
                       color: cteal(ctx),
                     );
                   }
@@ -222,8 +221,8 @@ class _KehadiranDetailPageState extends State<KehadiranDetailPage> {
                                             statusColor.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: HugeIcon(
-                                        icon: AppIcons.person,
+                                      child: Icon(
+                                        AppSymbols.person,
                                         color: statusColor,
                                         size: 22,
                                       ),
@@ -267,8 +266,8 @@ class _KehadiranDetailPageState extends State<KehadiranDetailPage> {
                                           _openPasienDetail(item.pasien),
                                       child: Padding(
                                         padding: const EdgeInsets.all(8),
-                                        child: HugeIcon(
-                                          icon: AppIcons.detail,
+                                        child: Icon(
+                                          AppSymbols.detail,
                                           color: ctextSecondary(ctx),
                                           size: 20,
                                         ),
@@ -279,8 +278,8 @@ class _KehadiranDetailPageState extends State<KehadiranDetailPage> {
                                         onTap: () => _delete(item),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8),
-                                          child: HugeIcon(
-                                            icon: AppIcons.deleteOutline,
+                                          child: Icon(
+                                            AppSymbols.deleteOutline,
                                             color: cdanger(ctx),
                                             size: 20,
                                           ),

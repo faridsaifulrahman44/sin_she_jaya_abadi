@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/obat_foto_resolver.dart';
 import '../data/models/obat_masuk_model.dart';
 import '../data/repositories/obat_masuk_repository.dart';
@@ -174,9 +173,10 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
         else
           _buildYearPicker(),
         // ── Riwayat Obat Masuk ────────────────────────────────────────────
-        Expanded(
-          child: _buildRiwayatSection(),
-        ),
+        if (_viewMode == _KehadiranViewMode.bulan)
+          Expanded(child: _buildRiwayatSection())
+        else
+          const SizedBox(height: 0),
       ],
     );
   }
@@ -247,7 +247,7 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    HugeIcon(icon: AppIcons.calendar03, color: tealColor, size: 14),
+                    Icon(AppSymbols.calendar03, color: tealColor, size: 14),
                     const SizedBox(width: 5),
                     Text(
                       'Hari Ini',
@@ -333,80 +333,78 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
     final currentYear = _selectedDate.year;
     final selectedMonth = _selectedDate.month;
 
-    return Expanded(
-      child: Column(
-        children: [
-          // Header: tahun + panah kiri/kanan
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => setState(() {
-                    _selectedDate = DateTime(_selectedDate.year - 1, _selectedDate.month, 1);
-                  }),
-                  icon: HugeIcon(icon: AppIcons.arrowBack, color: cteal(context), size: 18),
-                  tooltip: 'Tahun sebelumnya',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _setViewMode(_KehadiranViewMode.bulan),
-                    child: Center(
-                      child: Text(
-                        '$currentYear',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: ctextPrimary(context),
-                        ),
+    return Column(
+      children: [
+        // Header: tahun + panah kiri/kanan
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => setState(() {
+                  _selectedDate = DateTime(_selectedDate.year - 1, _selectedDate.month, 1);
+                }),
+                icon: Icon(AppSymbols.arrowBack, color: cteal(context), size: 18),
+                tooltip: 'Tahun sebelumnya',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _setViewMode(_KehadiranViewMode.bulan),
+                  child: Center(
+                    child: Text(
+                      '$currentYear',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: ctextPrimary(context),
                       ),
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () => setState(() {
-                    _selectedDate = DateTime(_selectedDate.year + 1, _selectedDate.month, 1);
-                  }),
-                  icon: HugeIcon(icon: AppIcons.arrowRight, color: cteal(context), size: 18),
-                  tooltip: 'Tahun berikutnya',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                ),
-              ],
-            ),
-          ),
-          // Grid 4x3 bulan
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 1.5,
-                ),
-                itemCount: 12,
-                itemBuilder: (ctx, index) {
-                  final month = index + 1;
-                  final isSelected = month == selectedMonth;
-                  final isCurrentMonth = today.year == currentYear && today.month == month;
-
-                  return _MonthGridItem(
-                    label: monthNames[index],
-                    isSelected: isSelected,
-                    isCurrentMonth: isCurrentMonth,
-                    onTap: () => _onMonthSelected(month, currentYear),
-                  );
-                },
               ),
+              IconButton(
+                onPressed: () => setState(() {
+                  _selectedDate = DateTime(_selectedDate.year + 1, _selectedDate.month, 1);
+                }),
+                icon: Icon(AppSymbols.arrowRight, color: cteal(context), size: 18),
+                tooltip: 'Tahun berikutnya',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+            ],
+          ),
+        ),
+        // Grid 4x3 bulan
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.5,
+              ),
+              itemCount: 12,
+              itemBuilder: (ctx, index) {
+                final month = index + 1;
+                final isSelected = month == selectedMonth;
+                final isCurrentMonth = today.year == currentYear && today.month == month;
+
+                return _MonthGridItem(
+                  label: monthNames[index],
+                  isSelected: isSelected,
+                  isCurrentMonth: isCurrentMonth,
+                  onTap: () => _onMonthSelected(month, currentYear),
+                );
+              },
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -425,7 +423,7 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
             ),
           ),
         ),
-        Expanded(
+        Flexible(
           child: FutureBuilder<List<ObatMasukModel>>(
             future: _obatMasukFuture,
             builder: (ctx, snapshot) {
@@ -438,8 +436,8 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      HugeIcon(
-                        icon: AppIcons.warning,
+                      Icon(
+                        AppSymbols.warning,
                         color: ctextMuted(context),
                         size: 32,
                       ),
@@ -463,8 +461,8 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      HugeIcon(
-                        icon: AppIcons.obatMasuk,
+                      Icon(
+                        AppSymbols.obatMasuk,
                         color: ctextMuted(context),
                         size: 36,
                       ),
@@ -559,8 +557,8 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
           ),
           // Popup menu
           PopupMenuButton<String>(
-            icon: HugeIcon(
-              icon: AppIcons.more,
+            icon: Icon(
+              AppSymbols.more,
               color: ctextMuted(context),
               size: 20,
             ),
@@ -576,7 +574,7 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
                 value: 'edit',
                 child: Row(
                   children: [
-                    HugeIcon(icon: AppIcons.edit, color: ctextSecondary(context), size: 16),
+                    Icon(AppSymbols.edit, color: ctextSecondary(context), size: 16),
                     const SizedBox(width: 8),
                     Text(
                       'Edit',
@@ -589,7 +587,7 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
                 value: 'hapus',
                 child: Row(
                   children: [
-                    HugeIcon(icon: AppIcons.hapus, color: Colors.red, size: 16),
+                    Icon(AppSymbols.hapus, color: Colors.red, size: 16),
                     const SizedBox(width: 8),
                     const Text(
                       'Hapus',
@@ -609,8 +607,8 @@ class _KehadiranTabContentState extends State<KehadiranTabContent> {
     return Container(
       color: cdivider(context),
       child: Center(
-        child: HugeIcon(
-          icon: AppIcons.obat,
+        child: Icon(
+          AppSymbols.obat,
           color: ctextMuted(context),
           size: 24,
         ),

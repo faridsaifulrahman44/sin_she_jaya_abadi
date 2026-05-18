@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -147,7 +146,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                   return const AppEmptyView(
                     title: 'Data detail pasien belum tersedia',
                     message: 'Silakan tarik ulang untuk memuat data pasien.',
-                    icon: AppIcons.person,
+                    icon: AppSymbols.person,
                   );
                 }
 
@@ -190,8 +189,8 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
               },
               backgroundColor: cteal(context),
               foregroundColor: conPrimary(context),
-              icon: const HugeIcon(
-                icon: AppIcons.addBox,
+              icon: const Icon(
+                AppSymbols.addBox,
                 color: Colors.white,
                 size: 20,
               ),
@@ -238,8 +237,8 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: HugeIcon(
-                  icon: AppIcons.person,
+                child: Icon(
+                  AppSymbols.person,
                   color: Colors.white,
                   size: 18,
                 ),
@@ -335,7 +334,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
           value: '${summary.totalKehadiran}',
           subtitle:
               'Hadir ${summary.totalHadir} • Tidak ${summary.totalTidakHadir}',
-          icon: AppIcons.event,
+          icon: AppSymbols.event,
           accentColor: cteal(context),
         ),
         if (_isOwner) ...[
@@ -343,7 +342,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
             title: 'Total Transaksi',
             value: '${summary.totalTransaksi}',
             subtitle: rupiah(summary.totalNominalTransaksi),
-            icon: AppIcons.receipt,
+            icon: AppSymbols.receipt,
             accentColor: csuccess(context),
           ),
           _buildRingkasanCard(
@@ -352,7 +351,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
               summary.transaksiTerakhir?.tanggal,
             ),
             subtitle: summary.transaksiTerakhir?.jenisTransaksi.label ?? '-',
-            icon: AppIcons.payment,
+            icon: AppSymbols.payment,
             accentColor: cindigo(context),
           ),
         ],
@@ -360,7 +359,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
           title: 'Terakhir Datang',
           value: _formatNullableMediumDate(summary.terakhirHadir),
           subtitle: 'Status hadir terakhir',
-          icon: AppIcons.calendar03,
+          icon: AppSymbols.calendar03,
           accentColor: cwarning(context),
         ),
       ],
@@ -371,7 +370,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
     required String title,
     required String value,
     required String subtitle,
-    required List<List<dynamic>> icon,
+    required IconData icon,
     required Color accentColor,
   }) {
     return Container(
@@ -391,7 +390,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                   color: accentColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: HugeIcon(icon: icon, color: accentColor, size: 14),
+                child: Icon(icon, color: accentColor, size: 14),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -602,7 +601,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
           ? const AppEmptyView(
               title: 'Belum ada riwayat kehadiran',
               message: 'Kehadiran pasien akan muncul setelah dicatat.',
-              icon: AppIcons.calendar03,
+              icon: AppSymbols.calendar03,
             )
           : Column(
               children: [
@@ -711,7 +710,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
               title: 'Belum ada transaksi terhubung',
               message:
                   'Riwayat transaksi akan tampil jika transaksi dikaitkan ke pasien ini.',
-              icon: AppIcons.receipt,
+              icon: AppSymbols.receipt,
             )
           : Column(
               children: [
@@ -847,7 +846,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
           ? const AppEmptyView(
               title: 'Belum ada riwayat kunjungan',
               message: 'Klik tombol + untuk mencatat kunjungan pertama.',
-              icon: AppIcons.calendar03,
+              icon: AppSymbols.calendar03,
             )
           : Column(
               children: [

@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/utils/jadwal_praktek_helper.dart';
 import '../data/models/pasien_model.dart';
@@ -287,7 +286,7 @@ class _PasienFormPageState extends State<PasienFormPage> {
                 child: InputDecorator(
                   decoration: const InputDecoration(
                     hintText: 'Pilih tanggal janjian',
-                    suffixIcon: HugeIcon(icon: AppIcons.calendar03),
+                    suffixIcon: Icon(AppSymbols.calendar03),
                   ),
                   child: Text(tanggalLabel),
                 ),

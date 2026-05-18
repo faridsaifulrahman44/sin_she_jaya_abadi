@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -144,7 +144,7 @@ class _KehadiranFormPageState extends State<KehadiranFormPage> {
                   return const AppEmptyView(
                     title: 'Pasien belum tersedia',
                     message: 'Tidak ada pasien dengan tanggal janjian ini.',
-                    icon: AppIcons.pasienTidakHadir,
+                    icon: AppSymbols.pasienTidakHadir,
                   );
                 }
 
