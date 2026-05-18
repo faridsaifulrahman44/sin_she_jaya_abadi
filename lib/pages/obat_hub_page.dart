@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/widgets/domain_tab_navigation.dart';
 import '../core/widgets/keep_alive_tab.dart';
 import 'obat_keluar_page.dart';
@@ -51,8 +50,8 @@ class _ObatHubPageState extends State<ObatHubPage>
             tooltip: 'Sinkronisasi Stok',
             onPressed: () =>
                 Navigator.pushNamed(context, SinkronisasiStokPage.routeName),
-            icon: HugeIcon(
-              icon: AppIcons.refresh,
+            icon: Icon(
+              AppSymbols.refresh,
               color: conPrimary(context),
               size: 20,
             ),

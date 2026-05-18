@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -112,8 +111,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
 
   PopupMenuButton<int> _buildRowPopup(ObatMasukModel item) {
     return PopupMenuButton<int>(
-      icon: HugeIcon(
-        icon: AppIcons.more,
+      icon: Icon(
+        AppSymbols.more,
         color: ctextSecondary(context),
         size: 20,
       ),
@@ -123,8 +122,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
           value: 0,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.editOutline,
+              Icon(
+                  AppSymbols.edit,
                   size: 18,
                   color: ctextSecondary(ctx)),
               const SizedBox(width: 10),
@@ -136,8 +135,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
           value: 1,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.deleteOutline, size: 18, color: cdanger(ctx)),
+              Icon(
+                  AppSymbols.hapus, size: 18, color: cdanger(ctx)),
               const SizedBox(width: 10),
               Text('Hapus', style: TextStyle(color: cdanger(ctx))),
             ],
@@ -166,8 +165,9 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
         elevation: 0,
         actions: [
           PopupMenuButton<int>(
-            icon: HugeIcon(
-                icon: AppIcons.deleteOutline, color: conPrimary(context)),
+            icon: Icon(
+                AppSymbols.hapus,
+                color: conPrimary(context)),
             tooltip: 'Hapus semua transaksi',
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -176,8 +176,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
                 value: 0,
                 child: Row(
                   children: [
-                    HugeIcon(
-                        icon: AppIcons.hapusSweep,
+                    Icon(
+                        AppSymbols.hapusSweep,
                         size: 18,
                         color: cdanger(ctx)),
                     const SizedBox(width: 10),
@@ -236,7 +236,7 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
                   final items = snapshot.data ?? const <ObatMasukModel>[];
                   if (items.isEmpty) {
                     return AppEmptyView(
-                      icon: AppIcons.input,
+                      icon: AppSymbols.input,
                       title: 'Belum ada transaksi masuk',
                       message: 'Tambahkan transaksi untuk tanggal ini.',
                       color: cteal(context),

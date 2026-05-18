@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -342,8 +341,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        icon: HugeIcon(
-          icon: AppIcons.sort,
+        icon: Icon(
+          AppSymbols.sort,
           color: isOperational ? accent : ctextSecondary(context),
           size: 14,
         ),
@@ -529,8 +528,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
                       tooltip: 'Edit obat',
                       visualDensity: VisualDensity.compact,
                       onPressed: () => _openForm(item),
-                      icon: HugeIcon(
-                          icon: AppIcons.editOutline,
+                      icon: Icon(
+                          AppSymbols.edit,
                           color: cprimary(context),
                           size: 18),
                     ),
@@ -538,8 +537,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
                       tooltip: 'Hapus obat',
                       visualDensity: VisualDensity.compact,
                       onPressed: () => _delete(item),
-                      icon: HugeIcon(
-                          icon: AppIcons.deleteOutline,
+                      icon: Icon(
+                          AppSymbols.hapus,
                           color: cdanger(context),
                           size: 18),
                     ),
@@ -588,7 +587,7 @@ class _ObatTabContentState extends State<ObatTabContent> {
   Widget _buildEmpty(List<ObatModel> allItems) {
     if (allItems.isEmpty) {
       return AppEmptyView(
-        icon: AppIcons.pills,
+        icon: AppSymbols.pills,
         title: 'Belum ada data obat',
         message: 'Tambah obat pertama Anda.',
         color: cobatBlue(context),
@@ -600,8 +599,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(
-                icon: AppIcons.filter, color: ctextMuted(context), size: 40),
+            Icon(
+                AppSymbols.filter, color: ctextMuted(context), size: 40),
             const SizedBox(height: 12),
             Text('Tidak ada obat sesuai filter',
                 style: TextStyle(
@@ -781,7 +780,7 @@ class _PrimaryTambahObatButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: AppIcons.tambah, color: Colors.white, size: 20),
+                Icon(AppSymbols.tambah, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'Tambah Obat Baru',

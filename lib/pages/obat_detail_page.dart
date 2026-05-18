@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/obat_etalase.dart';
 import '../data/models/obat_model.dart';
@@ -72,7 +71,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 ),
                 child: Row(
                   children: [
-                    HugeIcon(icon: AppIcons.warning, color: cdanger(context)),
+                    Icon(AppSymbols.warning, color: cdanger(context)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -186,8 +185,8 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
                       child: Row(
                         children: [
-                          HugeIcon(
-                            icon: AppIcons.payment,
+                          Icon(
+                            AppSymbols.payment,
                             color: cprimary(context),
                             size: 18,
                           ),
@@ -234,8 +233,8 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 ),
                 child: Row(
                   children: [
-                    HugeIcon(
-                      icon: AppIcons.payment,
+                    Icon(
+                      AppSymbols.payment,
                       color: ctextMuted(context),
                       size: 18,
                     ),
@@ -273,8 +272,8 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
                     child: Row(
                       children: [
-                        HugeIcon(
-                          icon: AppIcons.description,
+                        Icon(
+                          AppSymbols.description,
                           color: cprimary(context),
                           size: 18,
                         ),

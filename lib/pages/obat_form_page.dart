@@ -2,13 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../core/error/app_exception.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../data/models/obat_etalase.dart';
 import '../data/models/obat_model.dart';
 import '../data/repositories/obat_repository.dart';
@@ -706,8 +705,8 @@ class _ObatFormPageState extends State<ObatFormPage> {
                                 onPressed: (_loading || _processingFoto)
                                     ? null
                                     : _showFotoActionSheet,
-                                icon: HugeIcon(
-                                  icon: AppIcons.pills,
+                                icon: Icon(
+                                  AppSymbols.pills,
                                   size: 16,
                                   color: cprimary(context),
                                 ),
