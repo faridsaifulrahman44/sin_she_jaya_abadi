@@ -522,12 +522,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     ButtonSegment(
                       value: MetodeBayarTransaksi.cash,
                       label: Text('Tunai'),
-                      icon: Icon(Icons.payments_outlined, size: 18),
+                      icon: Icon(Icons.payments, size: 18),
                     ),
                     ButtonSegment(
                       value: MetodeBayarTransaksi.qris,
                       label: Text('QRIS'),
-                      icon: Icon(Icons.qr_code_2_outlined, size: 18),
+                      icon: Icon(Icons.qr_code_2, size: 18),
                     ),
                   ],
                   selected: _selectedMetodeBayar != null
