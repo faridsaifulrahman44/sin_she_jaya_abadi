@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -113,10 +114,10 @@ class ObatRepository extends BaseRepository {
     String? satuan,
     String? keterangan,
     String? fotoUrl,
-    // ── Harga Source of Truth (FASE 1, 2026-04-27) ────────────────────
+    // ── Harga Source of Truth (FASE 1) ────────────────────────────────────
     num? hargaJual,
     String? satuanJual,
-    bool bisaEcer = false,
+    bool? bisaEcer,
     num? hargaEcer,
     String? satuanEcer,
   }) {
@@ -133,11 +134,11 @@ class ObatRepository extends BaseRepository {
             'satuan': parseNullableString(satuan),
             'keterangan': parseNullableString(keterangan),
             'foto_url': parseNullableString(fotoUrl),
-            // ── Harga ────────────────────────────────────────────────────
-            if (hargaJual != null) 'harga_jual': hargaJual,
+            // ── Harga ────────────────────────────────────────────────────────
+            'harga_jual': hargaJual,
             'satuan_jual': parseNullableString(satuanJual),
-            'bisa_ecer': bisaEcer,
-            if (hargaEcer != null) 'harga_ecer': hargaEcer,
+            'bisa_ecer': bisaEcer ?? false,
+            'harga_ecer': hargaEcer,
             'satuan_ecer': parseNullableString(satuanEcer),
           })
           .select()
@@ -155,10 +156,10 @@ class ObatRepository extends BaseRepository {
     String? satuan,
     String? keterangan,
     String? fotoUrl,
-    // ── Harga Source of Truth (FASE 1, 2026-04-27) ────────────────────
+    // ── Harga Source of Truth (FASE 1) ────────────────────────────────────
     num? hargaJual,
     String? satuanJual,
-    bool bisaEcer = false,
+    bool? bisaEcer,
     num? hargaEcer,
     String? satuanEcer,
   }) {
@@ -172,11 +173,11 @@ class ObatRepository extends BaseRepository {
             'satuan': parseNullableString(satuan),
             'keterangan': parseNullableString(keterangan),
             if (fotoUrl != null) 'foto_url': parseNullableString(fotoUrl),
-            // ── Harga ────────────────────────────────────────────────────
-            if (hargaJual != null) 'harga_jual': hargaJual,
+            // ── Harga ──────────────────────────────────────────────────────
+            'harga_jual': hargaJual,
             'satuan_jual': parseNullableString(satuanJual),
-            'bisa_ecer': bisaEcer,
-            if (hargaEcer != null) 'harga_ecer': hargaEcer,
+            'bisa_ecer': bisaEcer ?? false,
+            'harga_ecer': hargaEcer,
             'satuan_ecer': parseNullableString(satuanEcer),
           })
           .eq('id_obat', idObat)
@@ -208,7 +209,7 @@ class ObatRepository extends BaseRepository {
         idObat: idObat,
       );
       final usedInSinkronisasiStok = await _existsUsage(
-        table: 'sinkronisasi_stok',
+        table: 'stock_opname',
         idColumn: 'id_opname',
         idObat: idObat,
       );
@@ -299,20 +300,20 @@ class ObatRepository extends BaseRepository {
 
   /// Upload foto obat ke Supabase Storage lalu simpan ke tabel obat.
   ///
-  /// Path Storage: `{etalase.value}/{nama_obat_snake_case}.webp`
-  /// Contoh: `etalase-1/die_da_tay_ping_yao_jing.webp`
+  /// Menulis ke kolom: `foto_key` + `foto_updated_at` (source of truth).
+  /// Fallback: `foto_url` untuk backward compatibility data lama.
   ///
-  /// Kolom yang diupdate di tabel `obat`:
-  /// - `foto_key`        → path relatif (TANPA prefix bucket)
-  /// - `foto_updated_at` → DateTime.now().toUtc()
-  /// - `foto_url`        → publicUrl (backward compat, legacy data lama tetap works)
+  /// Jika [etalase] dan [namaObat] supplied, pathStorage di-generate
+  /// sebagai `etalase-value/nama_obat_snake_case.webp`.
+  /// Jika tidak supplied, fallback ke format lama `obat/{idObat}/{timestamp}.{ext}`.
   Future<String> uploadFotoObat({
     required int idObat,
     required Uint8List bytes,
     required String fileName,
-    required Etalase etalase,
-    required String namaObat,
     String? previousFotoUrl,
+    // ── Foto Source of Truth (FASE 2) ─────────────────────────────────────
+    Etalase? etalase,
+    String? namaObat,
   }) {
     return guard(() async {
       if (idObat <= 0) {
@@ -340,11 +341,12 @@ class ObatRepository extends BaseRepository {
         );
       }
 
-      // Path: etalase-1/nama_obat_snake_case.webp
-      final objectPath = _buildFotoObjectPath(
+      // ── Build object path (FASE 2: etalase-format, fallback legacy) ──────
+      final objectPath = _buildUploadObjectPath(
+        idObat: idObat,
+        extension: extension,
         etalase: etalase,
         namaObat: namaObat,
-        extension: extension,
       );
 
       try {
@@ -366,19 +368,16 @@ class ObatRepository extends BaseRepository {
         );
       }
 
-      final publicUrl = _client.storage.from(_fotoBucket).getPublicUrl(
-            objectPath,
-          );
+      final fotoUpdatedAt = DateTime.now().toUtc();
 
-      final nowUtc = DateTime.now().toUtc();
-
-      // Update kolom foto_key + foto_updated_at (source of truth baru)
-      // foto_url tetap diupdate untuk backward compat data lama
+      // ── Write to foto_key + foto_updated_at (source of truth FASE 2) ─────
       await _client.from('obat').update({
         'foto_key': objectPath,
-        'foto_updated_at': nowUtc.toIso8601String(),
-        'foto_url': publicUrl,
+        'foto_updated_at': fotoUpdatedAt.toIso8601String(),
       }).eq('id_obat', idObat);
+
+      // Legacy: juga tulis foto_url agar data lama tetap bisa resolve
+      final publicUrl = _client.storage.from(_fotoBucket).getPublicUrl(objectPath);
 
       final oldPath = _extractStoragePathFromFotoUrl(previousFotoUrl);
       if (oldPath != null && oldPath != objectPath) {
@@ -407,10 +406,10 @@ class ObatRepository extends BaseRepository {
       String? currentFotoUrl = parseNullableString(fotoUrl);
       currentFotoUrl ??= await getFotoObat(idObat);
 
-      // Clear foto_url in obat record
+      // Clear foto_key and foto_url in obat record
       await _client
           .from('obat')
-          .update({'foto_url': null}).eq('id_obat', idObat);
+          .update({'foto_key': null, 'foto_url': null}).eq('id_obat', idObat);
 
       await _removeFotoObjectIfExists(currentFotoUrl, swallowErrors: false);
     });
@@ -430,44 +429,27 @@ class ObatRepository extends BaseRepository {
     });
   }
 
-  /// Build path object untuk Supabase Storage.
-  ///
-  /// Format: `{etalase.value}/{nama_obat_snake_case}.{ext}`
-  /// Contoh: `etalase-1/die_da_tay_ping_yao_jing.webp`
-  ///
-  /// snake_case: lowercase, spasi → underscore, non-alphanumeric
-  /// (kecuali underscore) dihapus.
-  String _buildFotoObjectPath({
-    required Etalase etalase,
-    required String namaObat,
+  String _buildUploadObjectPath({
+    required int idObat,
     required String extension,
+    Etalase? etalase,
+    String? namaObat,
   }) {
-    final snakeCase = _toSnakeCase(namaObat);
-    return '${etalase.value}/$snakeCase.$extension';
-  }
-
-  /// Konversi nama obat ke snake_case.
-  ///
-  /// - Lowercase
-  /// - Spasi / hyphen → underscore
-  /// - Non-alphanumeric (kecuali underscore) dihapus
-  ///
-  /// Contoh:
-  ///   "Die Da Tay Ping Yao Jing" → "die_da_tay_ping_yao_jing"
-  ///   "San Jin Tablets (Kunyit)"  → "san_jin_tablets_kunyit"
-  String _toSnakeCase(String input) {
-    final trimmed = input.trim();
-    // Lowercase
-    var result = trimmed.toLowerCase();
-    // Spasi & hyphen → underscore
-    result = result.replaceAll(RegExp(r'[\s\-]+'), '_');
-    // Hapus karakter non-alphanumeric (kecuali underscore)
-    result = result.replaceAll(RegExp(r'[^a-z0-9_]'), '');
-    // Hapus underscore berlebih
-    result = result.replaceAll(RegExp(r'_+'), '_');
-    // Hapus underscore di awal/akhir
-    result = result.replaceAll(RegExp(r'^_|_$'), '');
-    return result;
+    if (etalase != null && (namaObat ?? '').trim().isNotEmpty) {
+      final snakeCase = namaObat!
+          .trim()
+          .toLowerCase()
+          .replaceAll(RegExp(r'[\s\-]+'), '_')
+          .replaceAll(RegExp(r'[^a-z0-9_]'), '')
+          .replaceAll(RegExp(r'_+'), '_')
+          .replaceAll(RegExp(r'^_|_$'), '');
+      return '${etalase.value}/$snakeCase.webp';
+    }
+    // Legacy fallback: obat/{idObat}/{timestamp}.{ext}
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final randomSuffix =
+        Random.secure().nextInt(0x7fffffff).toRadixString(16);
+    return 'obat/$idObat/$timestamp-$randomSuffix.$extension';
   }
 
   String? _extractFileExtension(String fileName) {
