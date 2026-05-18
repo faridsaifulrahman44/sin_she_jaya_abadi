@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/auth/auth_email_helper.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
 import '../core/ui/app_legacy_icons.dart';
+import '../core/ui/app_symbols.dart';
 import 'login_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
@@ -57,7 +56,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         context,
         AppErrorMapper.toMessage(error, stackTrace),
         isError: true,
-        icon: AppIcons.error,
+        icon: AppSymbols.error,
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -145,8 +144,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             color: primaryColor.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: HugeIcon(
-                            icon: AppIcons.lock,
+                          child: Icon(
+                            AppSymbols.lock,
                             color: primaryColor,
                             size: 30,
                           ),
@@ -372,8 +371,8 @@ class _SubmitButton extends StatelessWidget {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      HugeIcon(
-                        icon: AppIcons.send,
+                      Icon(
+                        AppSymbols.send,
                         color: isReady ? Colors.white : Colors.grey[600],
                         size: 20,
                       ),
@@ -422,8 +421,8 @@ class _SuccessState extends StatelessWidget {
             color: primaryColor.withValues(alpha: 0.10),
             shape: BoxShape.circle,
           ),
-          child: HugeIcon(
-            icon: AppIcons.success,
+          child: Icon(
+            AppSymbols.success,
             color: primaryColor,
             size: 36,
           ),
