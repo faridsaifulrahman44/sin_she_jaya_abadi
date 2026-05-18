@@ -1,11 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/date_range_validator.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
@@ -280,7 +279,7 @@ class _LaporanPageState extends State<LaporanPage> {
       return const AppEmptyView(
         title: 'Data laporan belum tersedia',
         message: 'Silakan tarik ulang untuk memuat laporan.',
-        icon: AppIcons.laporan,
+        icon: AppSymbols.laporan,
       );
     }
 
@@ -344,8 +343,8 @@ class _LaporanPageState extends State<LaporanPage> {
                   color: heroColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: HugeIcon(
-                  icon: AppIcons.laporan,
+                child: Icon(
+                  AppSymbols.laporan,
                   color: conPrimary(context),
                   size: 20,
                 ),
@@ -451,21 +450,21 @@ class _LaporanPageState extends State<LaporanPage> {
           title: 'Pendapatan',
           value: rupiah(summary.pendapatanPeriodeAktif),
           subtitle: 'Periode aktif',
-          icon: AppIcons.payment,
+          icon: AppSymbols.payment,
           accentColor: csuccess(context),
         ),
         _buildKpiCard(
           title: 'Transaksi',
           value: '${summary.jumlahTransaksi}',
           subtitle: 'Ready + custom',
-          icon: AppIcons.receipt,
+          icon: AppSymbols.receipt,
           accentColor: cindigo(context),
         ),
         _buildKpiCard(
           title: 'Kehadiran',
           value: '${summary.jumlahHadir}/${summary.jumlahKehadiran}',
           subtitle: 'Hadir / total kehadiran',
-          icon: AppIcons.event,
+          icon: AppSymbols.event,
           accentColor: cteal(context),
         ),
         _buildKpiCard(
@@ -473,7 +472,7 @@ class _LaporanPageState extends State<LaporanPage> {
           value: '${summary.jumlahStokKritis}',
           subtitle:
               'Menipis ${summary.jumlahStokMenipis} • Habis ${summary.jumlahStokHabis}',
-          icon: AppIcons.inventory,
+          icon: AppSymbols.inventory,
           accentColor: summary.jumlahStokKritis == 0
               ? csuccess(context)
               : cdanger(context),
@@ -486,7 +485,7 @@ class _LaporanPageState extends State<LaporanPage> {
     required String title,
     required String value,
     required String subtitle,
-    required List<List<dynamic>> icon,
+    required IconData icon,
     required Color accentColor,
   }) {
     return Container(
@@ -504,7 +503,7 @@ class _LaporanPageState extends State<LaporanPage> {
               color: accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: HugeIcon(icon: icon, color: accentColor, size: 18),
+            child: Icon(icon, color: accentColor, size: 18),
           ),
           const SizedBox(height: 10),
           Text(
@@ -699,7 +698,7 @@ class _LaporanPageState extends State<LaporanPage> {
           ? const AppEmptyView(
               title: 'Tidak ada stok kritis',
               message: 'Semua stok berada pada kondisi aman.',
-              icon: AppIcons.inventory,
+              icon: AppSymbols.inventory,
             )
           : Column(
               children: [
@@ -736,8 +735,8 @@ class _LaporanPageState extends State<LaporanPage> {
               color: statusColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: HugeIcon(
-              icon: AppIcons.inventory,
+            child: Icon(
+              AppSymbols.inventory,
               color: statusColor,
               size: 16,
             ),

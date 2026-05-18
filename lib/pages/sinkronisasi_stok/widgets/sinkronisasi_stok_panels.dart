@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/ui/app_icons.dart';
+import '../../../../core/ui/app_symbols.dart';
 
 class StockSystemInfoCard extends StatelessWidget {
   const StockSystemInfoCard({
@@ -29,7 +28,7 @@ class StockSystemInfoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          HugeIcon(icon: AppIcons.computer, color: cteal(context), size: 20),
+          Icon(AppSymbols.computer, color: cteal(context), size: 20),
           const SizedBox(width: 10),
           Text(
             'Stok Sistem:',
@@ -87,8 +86,8 @@ class StockDifferencePreviewCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          HugeIcon(
-            icon: selisih == 0 ? AppIcons.checkCircle : AppIcons.compare,
+          Icon(
+            selisih == 0 ? AppSymbols.checkCircle : AppSymbols.compare,
             color: color,
             size: 20,
           ),

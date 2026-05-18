@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../../core/theme/app_theme.dart';
 
@@ -66,7 +65,7 @@ class LaporanSummaryCard extends StatelessWidget {
 
   final String title;
   final String value;
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final Color? accentColor;
 
   @override
@@ -87,7 +86,7 @@ class LaporanSummaryCard extends StatelessWidget {
               color: acc.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: HugeIcon(icon: icon, color: acc),
+            child: Icon(icon, color: acc),
           ),
           const Spacer(),
           Text(
@@ -197,7 +196,7 @@ class LaporanInsightCard extends StatelessWidget {
 
   final String title;
   final String subtitle;
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final bool isSuccess;
   final bool isIndigo;
 
@@ -224,7 +223,7 @@ class LaporanInsightCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: HugeIcon(icon: icon, color: Colors.white),
+            child: Icon(icon, color: Colors.white),
           ),
           const SizedBox(height: 10),
           Expanded(

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -166,7 +165,7 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
 
                       if (items.isEmpty) {
                         return AppEmptyView(
-                          icon: AppIcons.refresh,
+                          icon: AppSymbols.refresh,
                           title: _keyword.isEmpty
                               ? 'Belum ada riwayat sinkronisasi'
                               : 'Entri tidak ditemukan',
@@ -206,7 +205,7 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
         ),
       ),
       floatingActionButton: GradientFAB(
-        icon: AppIcons.refresh,
+        icon: AppSymbols.refresh,
         label: 'Sinkronkan Stok',
         onPressed: () => _openForm(),
       ),
@@ -267,8 +266,8 @@ class _SinkronisasiStokCard extends StatelessWidget {
                     color: cteal(context).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: HugeIcon(
-                    icon: AppIcons.refresh,
+                  child: Icon(
+                    AppSymbols.refresh,
                     color: cteal(context),
                     size: 22,
                   ),
@@ -340,8 +339,8 @@ class _SinkronisasiStokCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: onDelete,
-                      child: HugeIcon(
-                        icon: AppIcons.deleteOutline,
+                      child: Icon(
+                        AppSymbols.deleteOutline,
                         color: cdanger(context),
                         size: 20,
                       ),

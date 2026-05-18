@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/kunjungan_model.dart';
 import '../data/repositories/kunjungan_repository.dart';
@@ -31,8 +30,8 @@ class _OwnerGate extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HugeIcon(
-                    icon: AppIcons.error,
+                  Icon(
+                    AppSymbols.error,
                     color: cdanger(context),
                     size: 56,
                   ),
@@ -359,8 +358,8 @@ class _KunjunganFormPageState extends State<KunjunganFormPage> {
         ),
         child: Row(
           children: [
-            HugeIcon(
-                icon: AppIcons.calendar03,
+            Icon(
+                AppSymbols.calendar03,
                 color: ctextSecondary(context),
                 size: 18),
             const SizedBox(width: 10),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/obat_model.dart';
 import '../data/models/sinkronisasi_stok_model.dart';
@@ -249,8 +248,8 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                     onTap: _pickDate,
                     child: InputDecorator(
                       decoration: InputDecoration(
-                        suffixIcon: HugeIcon(
-                            icon: AppIcons.calendar03, color: ctextMuted(ctx)),
+                        suffixIcon: Icon(
+                            AppSymbols.calendar03, color: ctextMuted(ctx)),
                       ),
                       child: Text(asDate(_selectedDate)),
                     ),
