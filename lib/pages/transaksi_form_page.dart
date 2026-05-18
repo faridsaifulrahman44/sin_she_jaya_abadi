@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:klinik_mobile_app/core/auth/admin_session.dart';
 import 'package:klinik_mobile_app/core/error/app_exception.dart';
 import 'package:klinik_mobile_app/core/feedback/app_feedback.dart';
 import 'package:klinik_mobile_app/core/theme/app_theme.dart';
+import 'package:klinik_mobile_app/core/ui/app_symbols.dart';
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
 import 'package:klinik_mobile_app/core/utils/parsers.dart';
 import 'package:klinik_mobile_app/data/models/obat_model.dart';
@@ -522,12 +522,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     ButtonSegment(
                       value: MetodeBayarTransaksi.cash,
                       label: Text('Tunai'),
-                      icon: Icon(Icons.payments, size: 18),
+                      icon: Icon(AppSymbols.tunai, size: 18),
                     ),
                     ButtonSegment(
                       value: MetodeBayarTransaksi.qris,
                       label: Text('QRIS'),
-                      icon: Icon(Icons.qr_code_2, size: 18),
+                      icon: Icon(AppSymbols.qris, size: 18),
                     ),
                   ],
                   selected: _selectedMetodeBayar != null
