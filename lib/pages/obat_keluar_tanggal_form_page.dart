@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../widgets/page_header.dart';
 
@@ -75,7 +74,7 @@ class _ObatKeluarTanggalFormPageState extends State<ObatKeluarTanggalFormPage> {
                 onTap: _pickDate,
                 child: InputDecorator(
                   decoration: const InputDecoration(
-                    suffixIcon: HugeIcon(icon: AppIcons.calendar03),
+                    suffixIcon: Icon(AppSymbols.calendarToday),
                   ),
                   child: Text(asDate(_selectedDate)),
                 ),

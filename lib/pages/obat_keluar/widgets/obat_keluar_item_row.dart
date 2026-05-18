@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/ui/app_icons.dart';
+import '../../../core/ui/app_symbols.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/obat_model.dart';
 import '../../../features/obat_keluar/obat_keluar_etalase_sync.dart';
@@ -108,8 +107,8 @@ class _ObatKeluarItemRowState extends State<ObatKeluarItemRow> {
               if (widget.totalEntries > 1)
                 IconButton(
                   onPressed: widget.onRemove,
-                  icon: HugeIcon(
-                      icon: AppIcons.removeCircle,
+                  icon: Icon(
+                      AppSymbols.removeCircle,
                       color: cdanger(context),
                       size: 20),
                   padding: EdgeInsets.zero,

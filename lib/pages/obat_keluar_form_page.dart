@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/obat_keluar_item_model.dart';
 import '../data/models/obat_keluar_model.dart';
@@ -286,8 +285,8 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                     ),
                     child: Row(
                       children: [
-                        HugeIcon(
-                            icon: AppIcons.etalase,
+                        Icon(
+                            AppSymbols.etalase,
                             size: 18,
                             color: ctextMuted(context)),
                         const SizedBox(width: 8),
@@ -345,8 +344,8 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                       ),
                       TextButton.icon(
                         onPressed: _addItem,
-                        icon: HugeIcon(
-                            icon: AppIcons.tambahCircle,
+                        icon: Icon(
+                            AppSymbols.tambahCircle,
                             color: cwarning(context),
                             size: 18),
                         label: Text(

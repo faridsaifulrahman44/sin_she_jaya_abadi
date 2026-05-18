@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -122,8 +121,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
 
   PopupMenuButton<int> _buildRowPopup(ObatKeluarModel item) {
     return PopupMenuButton<int>(
-      icon: HugeIcon(
-        icon: AppIcons.more,
+      icon: Icon(
+        AppSymbols.more,
         color: ctextSecondary(context),
         size: 20,
       ),
@@ -133,8 +132,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
           value: 0,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.editOutline,
+              Icon(
+                  AppSymbols.edit,
                   size: 18,
                   color: ctextSecondary(ctx)),
               const SizedBox(width: 10),
@@ -146,8 +145,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
           value: 1,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.deleteOutline, size: 18, color: cdanger(ctx)),
+              Icon(
+                  AppSymbols.hapus, size: 18, color: cdanger(ctx)),
               const SizedBox(width: 10),
               Text('Hapus', style: TextStyle(color: cdanger(ctx))),
             ],
@@ -176,8 +175,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
         elevation: 0,
         actions: [
           PopupMenuButton<int>(
-            icon: HugeIcon(
-                icon: AppIcons.deleteOutline, color: conPrimary(context)),
+            icon: Icon(
+                AppSymbols.hapus, color: conPrimary(context)),
             tooltip: 'Hapus semua pengeluaran stok',
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -186,8 +185,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                 value: 0,
                 child: Row(
                   children: [
-                    HugeIcon(
-                        icon: AppIcons.hapusSweep,
+                    Icon(
+                        AppSymbols.hapus,
                         size: 18,
                         color: cdanger(ctx)),
                     const SizedBox(width: 10),
@@ -246,7 +245,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                   final items = snapshot.data ?? const <ObatKeluarModel>[];
                   if (items.isEmpty) {
                     return AppEmptyView(
-                      icon: AppIcons.receipt,
+                      icon: AppSymbols.receipt,
                       title: 'Belum ada pengeluaran stok',
                       message:
                           'Tambahkan pengeluaran stok baru untuk tanggal ini.',
@@ -267,7 +266,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                           subtitle:
                               '${item.displayJumlahItem} item${item.isLegacyOnly ? ' (legacy)' : ''}',
                           trailingText: rupiah(item.displayTotalNominal),
-                          icon: AppIcons.receipt,
+                          icon: AppSymbols.receipt,
                           accentColor: cwarning(ctx),
                           onTap: () => _openForm(item),
                           trailingPopup: _buildRowPopup(item),

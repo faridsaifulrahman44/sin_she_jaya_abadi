@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -198,7 +197,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
 
               if (summaryItems.isEmpty) {
                 return AppEmptyView(
-                  icon: AppIcons.receipt,
+                  icon: AppSymbols.receipt,
                   title: _keyword.isEmpty
                       ? 'Belum ada pengeluaran stok'
                       : 'Pengeluaran stok tidak ditemukan',
@@ -223,7 +222,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
                       subtitle:
                           '${item.jumlahItem} item  •  ${item.jumlahNota} pengeluaran',
                       trailingText: rupiah(item.totalNominal),
-                      icon: AppIcons.receipt,
+                      icon: AppSymbols.receipt,
                       accentColor: accentColor,
                       onTap: () => _openDetail(item.tanggal),
                       onDelete: () => _deleteTanggal(item),
@@ -241,7 +240,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
           child: SizedBox(
             width: double.infinity,
             child: _BlueFAB(
-              icon: AppIcons.tambah,
+              icon: AppSymbols.tambah,
               label: 'Tambah Pengeluaran Stok',
               accentColor: accentColor,
               onPressed: _openTambahTanggal,
@@ -272,7 +271,7 @@ class _BlueFAB extends StatelessWidget {
     required this.onPressed,
   });
 
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String label;
   final Color accentColor;
   final VoidCallback onPressed;
@@ -302,7 +301,7 @@ class _BlueFAB extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: icon, color: Colors.white, size: 20),
+                Icon(icon, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   label,
