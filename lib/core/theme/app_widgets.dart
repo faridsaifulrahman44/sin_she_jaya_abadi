@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../ui/app_icons.dart';
+import '../ui/app_symbols.dart';
 import '../ui/obat_asset_registry.dart';
 import '../utils/obat_foto_resolver.dart';
 import 'app_colors.dart';
@@ -93,16 +92,10 @@ class ModernSearchBar extends StatelessWidget {
             color: colorScheme.onSurfaceVariant,
             fontSize: 14,
           ),
-          prefixIcon: HugeIcon(
-              icon: AppIcons.cari,
-              color: colorScheme.onSurfaceVariant,
-              size: 20),
+          prefixIcon: Icon(AppSymbols.cari, color: colorScheme.onSurfaceVariant, size: 20),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: HugeIcon(
-                      icon: AppIcons.close,
-                      color: colorScheme.onSurfaceVariant,
-                      size: 18),
+                  icon: Icon(AppSymbols.close, color: colorScheme.onSurfaceVariant, size: 18),
                   onPressed: () {
                     controller.clear();
                     onClear?.call();
@@ -161,7 +154,7 @@ class GradientFAB extends StatelessWidget {
   });
 
   final VoidCallback onPressed;
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String label;
 
   @override
@@ -191,7 +184,7 @@ class GradientFAB extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                HugeIcon(icon: icon, color: Colors.white, size: 20),
+                Icon(icon, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   label,
@@ -229,7 +222,7 @@ class ModernListCard extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String? trailingText;
-  final List<List<dynamic>>? icon;
+  final IconData? icon;
   final Color? accentColor;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
@@ -287,7 +280,7 @@ class ModernListCard extends StatelessWidget {
                       color: color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: HugeIcon(icon: icon!, color: color, size: 22),
+                    child: Icon(icon!, color: color, size: 22),
                   ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -357,7 +350,7 @@ class ModernEmptyState extends StatelessWidget {
     this.color,
   });
 
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String title;
   final String? subtitle;
   final Color? color;
@@ -379,7 +372,7 @@ class ModernEmptyState extends StatelessWidget {
                 color: c.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: HugeIcon(icon: icon, size: 40, color: c),
+              child: Icon(icon, size: 40, color: c),
             ),
             const SizedBox(height: 16),
             Text(
@@ -542,8 +535,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                   else if (automaticallyImplyLeading &&
                       Navigator.canPop(context))
                     IconButton(
-                      icon: HugeIcon(
-                          icon: AppIcons.arrowBack, color: Colors.white),
+                      icon: Icon(AppSymbols.arrowBack, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     )
                   else
@@ -861,7 +853,7 @@ void showModernSnackBar(
   BuildContext context,
   String message, {
   bool isError = false,
-  List<List<dynamic>>? icon,
+  IconData? icon,
 }) {
   final colorScheme = Theme.of(context).colorScheme;
   final bgColor = isError ? colorScheme.error : colorScheme.primary;
@@ -871,11 +863,7 @@ void showModernSnackBar(
     SnackBar(
       content: Row(
         children: [
-          HugeIcon(
-            icon: icon ?? (isError ? AppIcons.error : AppIcons.success),
-            color: contentColor,
-            size: 20,
-          ),
+          Icon(icon ?? (isError ? AppSymbols.error : AppSymbols.success), color: contentColor, size: 20),
           const SizedBox(width: 10),
           Expanded(child: Text(message, style: TextStyle(color: contentColor))),
         ],

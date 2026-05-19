@@ -1,15 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../app.dart';
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
 import '../core/ui/app_legacy_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/repositories/kehadiran_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
@@ -17,7 +16,6 @@ import 'laporan_page.dart';
 import 'login_page.dart';
 import 'obat_hub_page.dart';
 import 'pasien_page.dart';
-import 'kehadiran_page.dart';
 import 'transaksi_form_page.dart';
 import 'transaksi_hub_page.dart';
 
@@ -32,15 +30,13 @@ class DashboardSummaryCard extends StatelessWidget {
     required this.icon,
     required this.color,
     this.loading = false,
-    this.onTap,
   });
 
   final String label;
   final String value;
-  final AppHugeIconData icon;
+  final IconData icon;
   final Color color;
   final bool loading;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -50,74 +46,67 @@ class DashboardSummaryCard extends StatelessWidget {
     final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
     final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
 
-    return Material(
-      color: cardBg,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          padding: const EdgeInsets.all(14),
-          child: loading
-              ? _buildLoading()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: loading
+          ? _buildLoading()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: HugeIcon(icon: icon, color: color, size: 18),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: textPrimary,
-                        height: 1.2,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Icon(icon, color: color, size: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
-        ),
-      ),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
     );
   }
 
@@ -218,11 +207,11 @@ class _DashboardClockState extends State<_DashboardClock> {
         Text(
           formatClock(_now),
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
             color: clockColor,
-            letterSpacing: -0.3,
-            height: 1.1,
+            letterSpacing: -0.5,
+            height: 1,
           ),
         ),
         const SizedBox(height: 2),
@@ -230,7 +219,7 @@ class _DashboardClockState extends State<_DashboardClock> {
           formatDashboardDate(_now),
           style: TextStyle(
             fontSize: 11,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             color: dateColor,
           ),
           maxLines: 1,
@@ -254,7 +243,7 @@ class DashboardMenuCard extends StatefulWidget {
   });
 
   final String title;
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
@@ -358,8 +347,8 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: HugeIcon(
-                        icon: widget.icon,
+                      child: Icon(
+                        widget.icon,
                         color: widget.color,
                         size: 26,
                       ),
@@ -405,12 +394,12 @@ class ThemeToggleBtn extends StatelessWidget {
     return GestureDetector(
       onTap: () => ThemeServiceInstance.notifier.toggle(),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isDark
               ? DarkColors.surfaceHigh
               : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: isDark
               ? Border.all(color: DarkColors.borderActive, width: 1)
               : null,
@@ -421,7 +410,7 @@ class ThemeToggleBtn extends StatelessWidget {
             isDark ? AppLegacyIcons.lightMode : AppLegacyIcons.darkMode,
             key: ValueKey(isDark),
             color: isDark ? DarkColors.textPrimary : Colors.white,
-            size: 18,
+            size: 22,
           ),
         ),
       ),
@@ -448,6 +437,7 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _loadingOwner = false;
   bool _loadingAdmin = false;
 
+  double _omzetHariIni = 0;
   double _penjualanObatHariIni = 0;
   int _jadwalHariIni = 0;
   int _hadirHariIni = 0;
@@ -494,6 +484,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ]);
         if (mounted) {
           setState(() {
+            _omzetHariIni = results[0] as double;
             _penjualanObatHariIni = results[1] as double;
             _jadwalHariIni = results[2] as int;
             _hadirHariIni = results[3] as int;
@@ -543,7 +534,6 @@ class _DashboardPageState extends State<DashboardPage> {
         context,
         AppErrorMapper.toMessage(error, stackTrace),
         isError: true,
-        icon: AppIcons.error,
       );
       return;
     }
@@ -571,13 +561,13 @@ class _DashboardPageState extends State<DashboardPage> {
     final menuCards = <Widget>[
       DashboardMenuCard(
         title: 'Data Obat',
-        icon: AppIcons.pills,
+        icon: AppSymbols.pills,
         color: obatAccent,
         onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
       ),
       DashboardMenuCard(
         title: 'Pasien',
-        icon: AppIcons.pasienHub,
+        icon: AppSymbols.pasienHub,
         color: pasienAccent,
         onTap: () => Navigator.pushNamed(context, PasienPage.routeName),
       ),
@@ -586,7 +576,7 @@ class _DashboardPageState extends State<DashboardPage> {
     menuCards.add(
       DashboardMenuCard(
         title: role.isOwner ? 'Transaksi' : 'Tambah Transaksi',
-        icon: AppIcons.receipt,
+        icon: AppSymbols.receipt,
         color: transaksiAccent,
         onTap: () => Navigator.pushNamed(
           context,
@@ -601,7 +591,7 @@ class _DashboardPageState extends State<DashboardPage> {
       menuCards.add(
         DashboardMenuCard(
           title: 'Laporan',
-          icon: AppIcons.laporan,
+          icon: AppSymbols.laporan,
           color: laporanAccent,
           onTap: () => Navigator.pushNamed(context, LaporanPage.routeName),
         ),
@@ -631,113 +621,77 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Kiri: greeting + ringkasan owner ──
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Greeting + nama klinik
-                        Column(
+                  // Row: title left, clock+date right
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left: greeting + clinic name
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               greeting,
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 color: textOnPrimary,
                                 letterSpacing: -0.3,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            const SizedBox(height: 4),
                             Text(
                               'Klinik Sin She Jaya Abadi',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: textOnPrimary.withValues(alpha: 0.72),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
-                        // Ringkasan owner — di bawah greeting
-                        if (role.isOwner) ...[
-                          const SizedBox(height: 12),
-                          // Row 1: Laporan Hari Ini (hanya label)
-                          Row(
-                            children: [
-                              HugeIcon(
-                                icon: AppIcons.laporan,
-                                color: textOnPrimary.withValues(alpha: 0.85),
-                                size: 14,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Laporan Hari Ini',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: textOnPrimary.withValues(alpha: 0.92),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          // Row 2: Penjualan (dengan nominal)
-                          Row(
-                            children: [
-                              HugeIcon(
-                                icon: AppIcons.receipt,
-                                color: textOnPrimary.withValues(alpha: 0.65),
-                                size: 13,
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  _loadingOwner
-                                      ? 'Penjualan : ...'
-                                      : 'Penjualan : ${rupiah(_penjualanObatHariIni)}',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: textOnPrimary.withValues(alpha: 0.68),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // ── Kanan: jam + action buttons (bottom right) ──
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                      ),
+                      // Right: clock + date
                       const _DashboardClock(),
-                      const SizedBox(height: 12),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Subtitle row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          role.isOwner
+                              ? 'Ringkasan aktivitas klinik hari ini'
+                              : 'Aktivitas klinik hari ini',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: textOnPrimary.withValues(alpha: 0.65),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      // Action buttons (theme + logout)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const ThemeToggleBtn(),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => _logout(context),
                             child: Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: textOnPrimary.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              child: HugeIcon(
-                                icon: AppIcons.logout,
+                              child: Icon(
+                                AppSymbols.logout,
                                 color: textOnPrimary,
-                                size: 18,
+                                size: 22,
                               ),
                             ),
                           ),
@@ -789,11 +743,145 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildSummarySection(AdminRole role) {
     if (role.isOwner) {
-      // Owner summary sudah di-inline di dalam header biru
-      return const SizedBox.shrink();
+      return _buildOwnerSummary();
     } else {
       return _buildAdminSummary();
     }
+  }
+
+  Widget _buildOwnerSummary() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? DarkColors.surface : const Color(0xFFF1F5F9);
+    final accent1 = cprimary(context);       // blue for omzet
+    final accent2 = cobatAmber(context);     // amber for penjualan obat
+    final accent3 = cteal(context);          // teal for jadwal
+    final accent4 = csuccess(context);        // green for hadir
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      color: bgColor,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // 2-column grid for wider screens, 1-column for narrow
+          if (constraints.maxWidth >= 500) {
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        label: 'Omzet Hari Ini',
+                        value: _loadingOwner ? '...' : rupiah(_omzetHariIni),
+                        icon: AppSymbols.wallet,
+                        color: accent1,
+                        loading: _loadingOwner,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        label: 'Penjualan Obat Hari Ini',
+                        value: _loadingOwner ? '...' : rupiah(_penjualanObatHariIni),
+                        icon: AppSymbols.pills,
+                        color: accent2,
+                        loading: _loadingOwner,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        label: 'Jadwal Hari Ini',
+                        value: _loadingOwner ? '...' : '$_jadwalHariIni',
+                        icon: AppSymbols.jadwalSummary,
+                        color: accent3,
+                        loading: _loadingOwner,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        label: 'Hadir Hari Ini',
+                        value: _loadingOwner ? '...' : '$_hadirHariIni',
+                        icon: AppSymbols.hadirSummary,
+                        color: accent4,
+                        loading: _loadingOwner,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
+            );
+          }
+          // Narrow / 1-column
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: DashboardSummaryCard(
+                      label: 'Omzet Hari Ini',
+                      value: _loadingOwner
+                          ? '...'
+                          : rupiah(_omzetHariIni),
+                      icon: AppSymbols.wallet,
+                      color: accent1,
+                      loading: _loadingOwner,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DashboardSummaryCard(
+                      label: 'Penjualan Obat Hari Ini',
+                      value: _loadingOwner
+                          ? '...'
+                          : rupiah(_penjualanObatHariIni),
+                      icon: AppSymbols.pills,
+                      color: accent2,
+                      loading: _loadingOwner,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: DashboardSummaryCard(
+                      label: 'Jadwal Hari Ini',
+                      value: _loadingOwner
+                          ? '...'
+                          : '$_jadwalHariIni',
+                      icon: AppSymbols.jadwalSummary,
+                      color: accent3,
+                      loading: _loadingOwner,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DashboardSummaryCard(
+                      label: 'Hadir Hari Ini',
+                      value: _loadingOwner
+                          ? '...'
+                          : '$_hadirHariIni',
+                      icon: AppSymbols.hadirSummary,
+                      color: accent4,
+                      loading: _loadingOwner,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildAdminSummary() {
@@ -815,32 +903,28 @@ class _DashboardPageState extends State<DashboardPage> {
                 Expanded(
                   child: DashboardSummaryCard(
                     label: 'Jadwal Hari Ini',
-                    value: _loadingAdmin ? '...' : _jadwalHariIni.toString(),
-                    icon: AppIcons.jadwalSummary,
+                    value: _loadingAdmin ? '...' : '$_jadwalHariIni',
+                    icon: AppSymbols.jadwalSummary,
                     color: accent3,
                     loading: _loadingAdmin,
-                    onTap: () =>
-                        Navigator.pushNamed(context, KehadiranPage.routeName),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: DashboardSummaryCard(
                     label: 'Hadir Hari Ini',
-                    value: _loadingAdmin ? '...' : _hadirHariIni.toString(),
-                    icon: AppIcons.hadirSummary,
+                    value: _loadingAdmin ? '...' : '$_hadirHariIni',
+                    icon: AppSymbols.hadirSummary,
                     color: accent4,
                     loading: _loadingAdmin,
-                    onTap: () =>
-                        Navigator.pushNamed(context, KehadiranPage.routeName),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: DashboardSummaryCard(
                     label: 'Transaksi Hari Ini',
-                    value: _loadingAdmin ? '...' : _transaksiHariIni.toString(),
-                    icon: AppIcons.receiptSummary,
+                    value: _loadingAdmin ? '...' : '$_transaksiHariIni',
+                    icon: AppSymbols.receiptSummary,
                     color: accent5,
                     loading: _loadingAdmin,
                   ),
@@ -859,11 +943,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       value: _loadingAdmin
                           ? '...'
                           : '$_jadwalHariIni',
-                      icon: AppIcons.jadwalSummary,
+                      icon: AppSymbols.jadwalSummary,
                       color: accent3,
                       loading: _loadingAdmin,
-                      onTap: () =>
-                          Navigator.pushNamed(context, KehadiranPage.routeName),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -873,11 +955,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       value: _loadingAdmin
                           ? '...'
                           : '$_hadirHariIni',
-                      icon: AppIcons.hadirSummary,
+                      icon: AppSymbols.hadirSummary,
                       color: accent4,
                       loading: _loadingAdmin,
-                      onTap: () =>
-                          Navigator.pushNamed(context, KehadiranPage.routeName),
                     ),
                   ),
                 ],
@@ -891,7 +971,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       value: _loadingAdmin
                           ? '...'
                           : '$_transaksiHariIni',
-                      icon: AppIcons.receiptSummary,
+                      icon: AppSymbols.receiptSummary,
                       color: accent5,
                       loading: _loadingAdmin,
                     ),

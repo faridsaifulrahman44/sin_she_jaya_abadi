@@ -279,29 +279,36 @@ class TransaksiRepository extends BaseRepository {
         .length;
   }
 
-  /// Total nominal semua transaksi hari ini.
+  /// Total nominal transaksi hari ini (owner dashboard).
   Future<double> getTotalTransaksiHariIni(DateTime hariIni) {
     final start = DateTime(hariIni.year, hariIni.month, hariIni.day);
     final end = start.add(const Duration(days: 1));
     return getTotalTransaksiByRange(start, end);
   }
 
-  /// Total nominal transaksi jenis Obat (obatReadyStock) hari ini.
+  /// Total nominal transaksi obat Ready Stock hari ini.
   Future<double> getTotalObatHariIni(DateTime hariIni) async {
     final start = DateTime(hariIni.year, hariIni.month, hariIni.day);
     final end = start.add(const Duration(days: 1));
-    final all = await getTransaksiByRange(start, end);
-    final filtered = all
-        .where((t) => t.jenisTransaksi == JenisTransaksi.obatReadyStock)
-        .toList();
+    final allItems = await getAllTransaksiItems();
+    // Filter items that belong to transaksi obat hari ini
+    final allTransaksi = await getAllTransaksi();
+    final todayTxIds = allTransaksi
+        .where((t) =>
+            !t.tanggal.isBefore(start) && t.tanggal.isBefore(end) &&
+            t.jenisTransaksi.value == 'obatReadyStock')
+        .map((t) => t.idTransaksi)
+        .toSet();
     double total = 0.0;
-    for (final t in filtered) {
-      total += t.total;
+    for (final item in allItems) {
+      if (todayTxIds.contains(item.idTransaksi)) {
+        total += item.subtotal;
+      }
     }
     return total;
   }
 
-  /// Jumlah transaksi hari ini (untuk card opsional).
+  /// Jumlah transaksi hari ini (admin dashboard).
   Future<int> getCountTransaksiHariIni(DateTime hariIni) {
     final start = DateTime(hariIni.year, hariIni.month, hariIni.day);
     final end = start.add(const Duration(days: 1));

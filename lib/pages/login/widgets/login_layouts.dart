@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../core/ui/app_icons.dart';
 import '../../../core/ui/app_legacy_icons.dart';
+import '../../../core/ui/app_symbols.dart';
 
 class LoginMobileLayout extends StatelessWidget {
   const LoginMobileLayout({
@@ -219,8 +218,8 @@ class LoginDesktopLayout extends StatelessWidget {
                               color: primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: HugeIcon(
-                              icon: AppIcons.wavingHand,
+                            child: Icon(
+                              AppSymbols.wavingHand,
                               color: primaryColor,
                               size: 22,
                             ),
@@ -443,9 +442,9 @@ class _FeaturePillsRow extends StatelessWidget {
       runSpacing: 10,
       alignment: WrapAlignment.center,
       children: [
-        _FeaturePill(icon: AppIcons.pills, text: 'Manajemen Obat'),
-        _FeaturePill(icon: AppIcons.peopleGroup, text: 'Kelola Pasien'),
-        _FeaturePill(icon: AppIcons.assessment, text: 'Laporan Lengkap'),
+        _FeaturePill(icon: AppSymbols.pills, text: 'Manajemen Obat'),
+        _FeaturePill(icon: AppSymbols.peopleGroup, text: 'Kelola Pasien'),
+        _FeaturePill(icon: AppSymbols.assessment, text: 'Laporan Lengkap'),
       ],
     );
   }
@@ -457,7 +456,7 @@ class _FeaturePill extends StatelessWidget {
     required this.text,
   });
 
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String text;
 
   @override
@@ -475,10 +474,11 @@ class _FeaturePill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          HugeIcon(
-              icon: icon,
-              color: Colors.white.withValues(alpha: 0.85),
-              size: 16),
+          Icon(
+            icon,
+            color: Colors.white.withValues(alpha: 0.85),
+            size: 16,
+          ),
           const SizedBox(width: 7),
           Text(
             text,
@@ -741,8 +741,7 @@ class _LoginButton extends StatelessWidget {
                 : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      HugeIcon(
-                          icon: AppIcons.login, color: Colors.white, size: 20),
+                      Icon(AppSymbols.login, color: Colors.white, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Masuk',

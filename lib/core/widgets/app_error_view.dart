@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../ui/app_icons.dart';
+import '../ui/app_symbols.dart';
 
 class AppErrorView extends StatelessWidget {
   const AppErrorView({
@@ -31,8 +30,8 @@ class AppErrorView extends StatelessWidget {
                 color: colorScheme.errorContainer,
                 shape: BoxShape.circle,
               ),
-              child: HugeIcon(
-                icon: AppIcons.error,
+              child: Icon(
+                AppSymbols.error,
                 size: 36,
                 color: colorScheme.error,
               ),
@@ -56,7 +55,7 @@ class AppErrorView extends StatelessWidget {
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: onRetry,
-                icon: HugeIcon(icon: AppIcons.refresh),
+                icon: const Icon(AppSymbols.refresh),
                 label: const Text('Coba Lagi'),
               ),
             ],

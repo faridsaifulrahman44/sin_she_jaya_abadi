@@ -5,7 +5,6 @@ import '../core/auth/admin_session.dart';
 import '../core/auth/auth_email_helper.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
 import 'dashboard_page.dart';
 import 'forgot_password_page.dart';
 import 'login/widgets/login_layouts.dart';
@@ -60,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
       context,
       message,
       isError: true,
-      icon: AppIcons.error,
     );
   }
 

@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
-import '../ui/app_icons.dart';
+import '../ui/app_symbols.dart';
 
 class AppEmptyView extends StatelessWidget {
   const AppEmptyView({
     super.key,
     required this.title,
     this.message,
-    this.icon = AppIcons.empty,
+    this.icon = AppSymbols.empty,
     this.color,
   });
 
   final String title;
   final String? message;
-  final List<List<dynamic>> icon;
+  final IconData icon;
 
   /// Optional accent color. Falls back to theme primary if not provided.
   final Color? color;
@@ -36,7 +35,7 @@ class AppEmptyView extends StatelessWidget {
                 color: accentColor.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
-              child: HugeIcon(icon: icon, size: 32, color: accentColor),
+              child: Icon(icon, size: 32, color: accentColor),
             ),
             const SizedBox(height: 16),
             Text(

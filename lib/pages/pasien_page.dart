@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import 'pasien_tab_content.dart';
 
-/// Halaman route untuk "Data Pasien".
+/// Halaman route untuk "Pasien".
 ///
 /// Wrapper scaffold di sekitar [PasienTabContent].
 /// Jika diakses langsung via route, tampil normal.
@@ -21,7 +21,7 @@ class PasienPage extends StatelessWidget {
       backgroundColor: cscaffoldBg(context),
       appBar: AppBar(
         title: const Text(
-          'Data Pasien',
+          'Pasien',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         backgroundColor: cteal(context),
