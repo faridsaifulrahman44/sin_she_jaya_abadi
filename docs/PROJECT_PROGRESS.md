@@ -5,8 +5,8 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Sedang mengerjakan:** F2 — Phase 1 (Material Symbols + Schema) — SELESAI ✅
-- **Task berikutnya:** Brainstorm Phase 2 (F2-C: Stok Alert System) sebelum mulai coding
+- **Sedang mengerjakan:** F2 — Phase 2 (Stok Alert System)
+- **Task berikutnya:** Badge stok + Tab chip ObatPage + /stok-alert
 - **Terakhir dikerjakan:** 19 Mei 2026 (~11:00)
 
 ---
@@ -33,30 +33,27 @@ Semua fitur F1 sudah selesai dan di-merge ke master:
 Spec lengkap: `docs/superpowers/specs/2026-05-18-f2-feature-maturity-design.md`
 Plan Phase 1: `docs/superpowers/plans/2026-05-18-f2-phase1-material-symbols-schema.md`
 
-### Phase 1 — Material Symbols + Schema (AKTIF)
+### Phase 1 — Material Symbols + Schema ✅ SELESAI
 
 **Selesai:**
 - [x] Task 1: AppSymbols wrapper (61 icons) → commit `875f8cb`
 - [x] Task 2: pubspec.yaml — add material_symbols_icons, pdf, printing, csv; remove hugeicons → commit `875f8cb`
 - [x] Task 3: transaksi_form_page.dart icon swap (tunai/qris) → commit `234f98b`
-- [x] Task 4 Batch 4a: dashboard, login, login_layouts, app_error_view, app_empty_view + app_widgets.dart → commit terpisah
-
-**Lagi (in-progress):**
-- [x] Task 4 Batch 4a: dashboard, login, login_layouts, app_error_view, app_empty_view, app_widgets.dart → commit `7ca282f` (beserta batch 4b, jadi batch 4a+4b selesai bersamaan)
-
-**Belum selesai:**
-- [x] Task 4 Batch 4C: obat_keluar pages → 0 HugeIcon, sudah murni AppSymbols ✅
-- [x] Task 4 Batch 4D: pasien & kehadiran pages → 0 HugeIcon, sudah murni AppSymbols ✅
-- [x] Task 4 Batch 4E: transaksi & laporan pages → 0 HugeIcon, sudah murni AppSymbols ✅
-- [x] Task 4 Batch 4F: auth pages → 0 HugeIcon, sudah murni AppSymbols ✅
-- [x] Task 4 — Grep verifikasi: ✅ 0 HugeIcon usage (hanya di app_icons.dart legacy + comment) | 173/173 tests passed
+- [x] Task 4 Batch 4a: dashboard, login, login_layouts, app_error_view, app_empty_view + app_widgets.dart → commit `7ca282f`
+- [x] Task 4 Batch 4b: obat pages (obat_page, obat_form, obat_detail, obat_hub, obat_masuk*) → commit `875f8cb`
+- [x] Task 4 Batch 4c: obat_keluar pages → commit `bf747fa`
+- [x] Task 4 Batch 4d: pasien & kehadiran pages → commit `f19402e`
+- [x] Task 4 Batch 4e: transaksi & laporan pages → commit `03d962f`
+- [x] Task 4 Batch 4f: auth pages → commit `08ec380`
+- [x] Task 4 — Grep verifikasi: ✅ 0 HugeIcon usage | flutter analyze: clean | flutter test: 178/178 passed
+- [x] Task 5: Deprecate app_icons.dart (notice + migration hint)
 - [x] Task 6: ALTER TABLE transaksi ADD status_lunas ✅ (eksusi via MCP)
 - [x] Task 7: CREATE TABLE kas_keluar + RLS ✅ (eksusi via MCP)
-- [x] Task 8: KasKeluarModel + KasKeluarRepository + tests (5 test) ✅
+- [x] Task 8: KasKeluarModel + KasKeluarRepository + 5 tests ✅
 - [x] Task 9: TransaksiModel tambah status_lunas field ✅
-- [x] Task 10: Final verification + push → commit `f6dac3d` ✅
+- [x] Task 10: Final verification + push → commit `c4ab475`
 
-### Phase 2 — F2-C: Stok Alert System
+### Phase 2 — F2-C: Stok Alert System (AKTIF)
 - [ ] Badge merah/orange di menu Obat
 - [ ] Tab chip [Semua][Aman][Menipis][Habis] di ObatPage
 - [ ] Halaman `/stok-alert` (Owner only)
