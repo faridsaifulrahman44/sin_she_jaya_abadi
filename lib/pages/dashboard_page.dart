@@ -11,7 +11,9 @@ import '../core/ui/app_legacy_icons.dart';
 import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/repositories/kehadiran_repository.dart';
+import '../data/repositories/obat_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
+import '../features/stok/stok_alert_logic.dart';
 import 'laporan_page.dart';
 import 'login_page.dart';
 import 'obat_hub_page.dart';
@@ -382,6 +384,64 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
 }
 
 // ============================================================================
+// OBAT STOK BADGE — shown on Data Obat card for owner only
+// ============================================================================
+class _ObatStokBadge extends StatelessWidget {
+  const _ObatStokBadge({required this.summary});
+
+  final StokAlertSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    if (summary.hasHabis) {
+      return _StokAlertPill(
+        label: '${summary.habis.length} habis',
+        color: cdanger(context),
+      );
+    }
+    if (summary.hasMenipis) {
+      return _StokAlertPill(
+        label: '${summary.menipis.length} menipis',
+        color: cwarning(context),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  static Future<StokAlertSummary> _fetchStokSummary() async {
+    final repo = ObatRepository();
+    final obatList = await repo.getObat();
+    return buildStokAlertSummary(obatList);
+  }
+}
+
+class _StokAlertPill extends StatelessWidget {
+  const _StokAlertPill({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
 // THEME TOGGLE BUTTON
 // ============================================================================
 class ThemeToggleBtn extends StatelessWidget {
@@ -443,6 +503,9 @@ class _DashboardPageState extends State<DashboardPage> {
   int _hadirHariIni = 0;
   int _transaksiHariIni = 0;
 
+  // Stok alert badge data (for owner)
+  StokAlertSummary? _stokAlertSummary;
+
   @override
   void initState() {
     super.initState();
@@ -481,6 +544,7 @@ class _DashboardPageState extends State<DashboardPage> {
           transaksiRepo.getTotalObatHariIni(hariIni),
           kehadiranRepo.getCountKehadiranByTanggal(hariIni),
           kehadiranRepo.getCountHadirByTanggal(hariIni),
+          _ObatStokBadge._fetchStokSummary(),
         ]);
         if (mounted) {
           setState(() {
@@ -488,6 +552,7 @@ class _DashboardPageState extends State<DashboardPage> {
             _penjualanObatHariIni = results[1] as double;
             _jadwalHariIni = results[2] as int;
             _hadirHariIni = results[3] as int;
+            _stokAlertSummary = results[4] as StokAlertSummary;
             _loadingOwner = false;
           });
         }
@@ -558,13 +623,33 @@ class _DashboardPageState extends State<DashboardPage> {
     final canViewReports = role.isOwner;
 
     // Build menu cards
+    Widget obatCard = DashboardMenuCard(
+      title: 'Data Obat',
+      icon: AppSymbols.pills,
+      color: obatAccent,
+      onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
+    );
+
+    // Owner badge on Data Obat card — outside the shadow boundary
+    if (role.isOwner) {
+      obatCard = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          obatCard,
+          if (_stokAlertSummary != null &&
+              (_stokAlertSummary!.hasHabis ||
+                  _stokAlertSummary!.hasMenipis))
+            Positioned(
+              top: -4,
+              right: -4,
+              child: _ObatStokBadge(summary: _stokAlertSummary!),
+            ),
+        ],
+      );
+    }
+
     final menuCards = <Widget>[
-      DashboardMenuCard(
-        title: 'Data Obat',
-        icon: AppSymbols.pills,
-        color: obatAccent,
-        onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
-      ),
+      obatCard,
       DashboardMenuCard(
         title: 'Pasien',
         icon: AppSymbols.pasienHub,

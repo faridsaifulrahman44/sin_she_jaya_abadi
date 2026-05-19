@@ -560,9 +560,11 @@ class _ObatTabContentState extends State<ObatTabContent> {
       child: Row(
         children: [
           _StatusChip(
-              label: 'Semua',
-              isActive: _filterStatus == null,
-              onTap: () => _setStatusFilter(null)),
+              label: 'Habis',
+              isActive: _filterStatus == StokStatus.habis,
+              color: cdanger(context),
+              showDot: _hasHabis,
+              onTap: () => _setStatusFilter(StokStatus.habis)),
           const SizedBox(width: 6),
           _StatusChip(
               label: 'Menipis',
@@ -572,11 +574,15 @@ class _ObatTabContentState extends State<ObatTabContent> {
               onTap: () => _setStatusFilter(StokStatus.menipis)),
           const SizedBox(width: 6),
           _StatusChip(
-              label: 'Habis',
-              isActive: _filterStatus == StokStatus.habis,
-              color: cdanger(context),
-              showDot: _hasHabis,
-              onTap: () => _setStatusFilter(StokStatus.habis)),
+              label: 'Aman',
+              isActive: _filterStatus == StokStatus.aman,
+              color: csuccess(context),
+              onTap: () => _setStatusFilter(StokStatus.aman)),
+          const SizedBox(width: 6),
+          _StatusChip(
+              label: 'Semua',
+              isActive: _filterStatus == null,
+              onTap: () => _setStatusFilter(null)),
         ],
       ),
     );
