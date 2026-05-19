@@ -5,9 +5,9 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Sedang mengerjakan:** F2 — Phase 2 (Stok Alert System)
-- **Task berikutnya:** Badge stok + Tab chip ObatPage + /stok-alert
-- **Terakhir dikerjakan:** 19 Mei 2026 (~11:00)
+- **Sedang mengerjakan:** F2 — Phase 2 (Stok Alert System) — SELESAI ✅
+- **Task berikutnya:** Brainstorm Phase 3 (F2-D: Jadwal + Reminder)
+- **Terakhir dikerjakan:** 19 Mei 2026 (~12:00)
 
 ---
 
@@ -53,11 +53,16 @@ Plan Phase 1: `docs/superpowers/plans/2026-05-18-f2-phase1-material-symbols-sche
 - [x] Task 9: TransaksiModel tambah status_lunas field ✅
 - [x] Task 10: Final verification + push → commit `c4ab475`
 
-### Phase 2 — F2-C: Stok Alert System (AKTIF)
-- [ ] Badge merah/orange di menu Obat
-- [ ] Tab chip [Semua][Aman][Menipis][Habis] di ObatPage
-- [ ] Halaman `/stok-alert` (Owner only)
-- [ ] Cetak thermal laporan stok alert
+### Phase 2 — F2-C: Stok Alert System ✅ SELESAI
+- [x] Badge merah/orange di menu Obat (dashboard) → commit `1fecb91`
+- [x] Tab chip [Habis][Menipis][Aman][Semua] di ObatPage → commit `1fecb91`
+- [x] Halaman `/stok-alert` (Owner only) → commit `43e12a5`
+- [x] Cetak thermal laporan stok alert → commit `43e12a5`
+
+Commits Phase 2:
+- `1791ce3` — Task A: alert logic + DTO + 16 tests
+- `1fecb91` — Task B: dashboard badge + ObatPage filter chips
+- `43e12a5` — Task C: /stok-alert page + route + thermal receipt
 
 ### Phase 3 — F2-D: Jadwal + Reminder
 - [ ] Halaman `/jadwal-praktik` (Owner only)
