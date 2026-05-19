@@ -11,6 +11,7 @@ class DbTables {
   static const obatKeluarItem = 'obat_keluar_item';
   static const sinkronisasiStok = 'sinkronisasi_stok';
   static const stockMovements = 'stock_movements';
+  static const kasKeluar = 'kas_keluar';
 }
 
 class DbColumns {

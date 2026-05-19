@@ -49,6 +49,7 @@ class TransaksiModel {
     this.durasiHarian,
     required this.idAdmin,
     this.createdAt,
+    this.statusLunas = 'lunas',
   });
 
   final int idTransaksi;
@@ -61,6 +62,7 @@ class TransaksiModel {
   final int? durasiHarian;
   final int idAdmin;
   final DateTime? createdAt;
+  final String statusLunas; // 'lunas' | 'belum_lunas'
 
   factory TransaksiModel.fromMap(Map<String, dynamic> map) {
     return TransaksiModel(
@@ -76,6 +78,7 @@ class TransaksiModel {
       durasiHarian: parseNullableInt(map['durasi_harian']),
       idAdmin: parseInt(map['id_admin']),
       createdAt: parseNullableDate(map['created_at']),
+      statusLunas: parseString(map['status_lunas'], fallback: 'lunas'),
     );
   }
 
@@ -89,6 +92,7 @@ class TransaksiModel {
       'id_pasien': idPasien,
       'keterangan': keterangan,
       'id_admin': idAdmin,
+      'status_lunas': statusLunas,
     };
   }
 
@@ -103,6 +107,7 @@ class TransaksiModel {
       'keterangan': keterangan,
       'durasi_harian': durasiHarian,
       'id_admin': idAdmin,
+      'status_lunas': statusLunas,
     };
   }
 }

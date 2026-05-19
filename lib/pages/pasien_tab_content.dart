@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -191,8 +190,6 @@ class _PasienTabContentState extends State<PasienTabContent> {
                   onClear: _reload,
                 ),
               ),
-              const SizedBox(width: 10),
-              _AddPatientIconButton(onPressed: () => _openForm()),
             ],
           ),
         ),
@@ -218,7 +215,7 @@ class _PasienTabContentState extends State<PasienTabContent> {
               final items = snapshot.data ?? const <PasienModel>[];
               if (items.isEmpty) {
                 return AppEmptyView(
-                  icon: AppIcons.person,
+                  icon: AppSymbols.person,
                   title: _emptyTitle,
                   message: _emptyMessage,
                   color: cteal(context),
@@ -252,7 +249,7 @@ class _PasienTabContentState extends State<PasienTabContent> {
             child: SizedBox(
               width: double.infinity,
               child: GradientFAB(
-                icon: AppIcons.tambah,
+                icon: AppSymbols.tambah,
                 label: 'Tambah Pasien',
                 onPressed: () => _openForm(),
               ),
@@ -266,7 +263,7 @@ class _PasienTabContentState extends State<PasienTabContent> {
   String get _emptyTitle {
     switch (_activeFilter) {
       case _PasienFilter.total:
-        return 'Belum ada data pasien';
+        return 'Belum ada pasien';
       case _PasienFilter.jadwal:
         return 'Tidak ada pasien dijadwalkan';
       case _PasienFilter.hadir:
@@ -290,26 +287,26 @@ class _PasienTabContentState extends State<PasienTabContent> {
       child: Row(
         children: [
           _FilterChip(
-            label: 'Total Pasien',
-            icon: AppIcons.person,
+            label: 'Data Pasien',
+            icon: AppSymbols.person,
             isActive: _activeFilter == _PasienFilter.total,
-            color: cteal(context),
+            color: LightColors.obatBlue,
             onTap: () => _setFilter(_PasienFilter.total),
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: 'Jadwal Hari Ini',
-            icon: AppIcons.kalender,
+            icon: AppSymbols.kalender,
             isActive: _activeFilter == _PasienFilter.jadwal,
-            color: const Color(0xFF6366F1),
+            color: LightColors.warning,
             onTap: () => _setFilter(_PasienFilter.jadwal),
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: 'Hadir Hari Ini',
-            icon: AppIcons.pasienHadir,
+            icon: AppSymbols.pasienHadir,
             isActive: _activeFilter == _PasienFilter.hadir,
-            color: const Color(0xFF10B981),
+            color: LightColors.pink,
             onTap: () => _setFilter(_PasienFilter.hadir),
           ),
         ],
@@ -337,7 +334,7 @@ class _FilterChip extends StatelessWidget {
   });
 
   final String label;
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final bool isActive;
   final Color color;
   final VoidCallback onTap;
@@ -350,13 +347,10 @@ class _FilterChip extends StatelessWidget {
     final activeFg = Colors.white;
     final activeBorder = color;
 
-    final inactiveBg = isDark
-        ? DarkColors.surface
-        : color.withValues(alpha: 0.06);
-    final inactiveFg = isDark ? DarkColors.textSecondary : color;
-    final inactiveBorder = isDark
-        ? DarkColors.borderActive
-        : color.withValues(alpha: 0.35);
+    // Non-aktif: flat & netral — chip "mundur ke belakang", aktif yang menonjol
+    final inactiveBg = isDark ? DarkColors.surface : const Color(0xFFF1F5F9);
+    final inactiveFg = isDark ? DarkColors.textSecondary : const Color(0xFF475569);
+    final inactiveBorder = isDark ? DarkColors.borderActive : const Color(0xFFCBD5E1);
 
     return Expanded(
       child: GestureDetector(
@@ -375,11 +369,7 @@ class _FilterChip extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              HugeIcon(
-                icon: icon,
-                color: isActive ? activeFg : inactiveFg,
-                size: 14,
-              ),
+              Icon(icon, color: isActive ? activeFg : inactiveFg, size: 14),
               const SizedBox(width: 5),
               Flexible(
                 child: Text(
@@ -394,38 +384,6 @@ class _FilterChip extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AddPatientIconButton extends StatelessWidget {
-  const _AddPatientIconButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Tambah Pasien',
-      child: Material(
-        color: cteal(context),
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(14),
-          child: SizedBox(
-            width: 50,
-            height: 50,
-            child: Center(
-              child: HugeIcon(
-                icon: AppIcons.tambah,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
           ),
         ),
       ),
@@ -478,11 +436,7 @@ class _PasienCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
-                        child: HugeIcon(
-                          icon: AppIcons.person,
-                          color: cteal(context),
-                          size: 21,
-                        ),
+                        child: Icon(AppSymbols.person, color: cteal(context), size: 21),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -518,10 +472,7 @@ class _PasienCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     PopupMenuButton<_PasienListAction>(
                       tooltip: 'Aksi',
-                      icon: HugeIcon(
-                        icon: AppIcons.more,
-                        color: ctextSecondary(context),
-                      ),
+                      icon: Icon(AppSymbols.more, color: ctextSecondary(context)),
                       onSelected: onAction,
                       itemBuilder: (ctx) => const [
                         PopupMenuItem<_PasienListAction>(
@@ -550,14 +501,14 @@ class _PasienCard extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     _InfoChip(
-                      icon: AppIcons.person,
+                      icon: AppSymbols.person,
                       label: '${item.usia} tahun',
                     ),
                     _InfoChip(
-                      icon: AppIcons.peopleGroup,
+                      icon: AppSymbols.peopleGroup,
                       label: item.jenisKelaminLabel,
                     ),
-                    _InfoChip(icon: AppIcons.kalender, label: tanggalJanjian),
+                    _InfoChip(icon: AppSymbols.kalender, label: tanggalJanjian),
                   ],
                 ),
                 if (alamat != null && alamat.isNotEmpty) ...[
@@ -576,7 +527,7 @@ class _PasienCard extends StatelessWidget {
 class _InfoChip extends StatelessWidget {
   const _InfoChip({required this.icon, required this.label});
 
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String label;
 
   @override
@@ -592,7 +543,7 @@ class _InfoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          HugeIcon(icon: icon, size: 14, color: ctextMuted(context)),
+          Icon(icon, size: 14, color: ctextMuted(context)),
           const SizedBox(width: 5),
           Flexible(
             child: Text(
@@ -624,11 +575,7 @@ class _AddressLine extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 1),
-          child: HugeIcon(
-            icon: AppIcons.description,
-            size: 15,
-            color: ctextMuted(context),
-          ),
+          child: Icon(AppSymbols.description, size: 15, color: ctextMuted(context)),
         ),
         const SizedBox(width: 6),
         Expanded(

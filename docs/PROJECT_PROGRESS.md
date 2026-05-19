@@ -6,8 +6,8 @@
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
 - **Sedang mengerjakan:** F2 — Phase 1 (Material Symbols + Schema)
-- **Task berikutnya:** Task 4 Batch 4C — obat_keluar pages
-- **Terakhir dikerjakan:** 18 Mei 2026 (~18:00)
+- **Task berikutnya:** Task 10 — Final verification + commit + push
+- **Terakhir dikerjakan:** 19 Mei 2026 (~10:30)
 
 ---
 
@@ -45,35 +45,16 @@ Plan Phase 1: `docs/superpowers/plans/2026-05-18-f2-phase1-material-symbols-sche
 - [x] Task 4 Batch 4a: dashboard, login, login_layouts, app_error_view, app_empty_view, app_widgets.dart → commit `7ca282f` (beserta batch 4b, jadi batch 4a+4b selesai bersamaan)
 
 **Belum selesai:**
-- [ ] Task 4 Batch 4C: obat_keluar pages ← NEXT
-  - `lib/pages/obat_keluar_page.dart`
-  - `lib/pages/obat_keluar_detail_page.dart`
-  - `lib/pages/obat_keluar_form_page.dart`
-  - `lib/pages/obat_keluar/widgets/obat_keluar_item_row.dart`
-  - `lib/pages/obat_keluar_tanggal_form_page.dart`
-- [ ] Task 4 Batch 4D: pasien & kehadiran pages
-  - `lib/pages/pasien_detail_page.dart`
-  - `lib/pages/pasien_form_page.dart`
-  - `lib/pages/kehadiran_tab_content.dart`
-  - `lib/pages/kehadiran_detail_page.dart`
-  - `lib/pages/kehadiran_form_page.dart`
-- [ ] Task 4 Batch 4E: transaksi & laporan pages
-  - `lib/pages/laporan_page.dart`
-  - `lib/pages/kunjungan_form_page.dart`
-  - `lib/pages/sinkronisasi_stok_page.dart`
-  - `lib/pages/sinkronisasi_stok_form_page.dart`
-  - `lib/pages/sinkronisasi_stok/widgets/sinkronisasi_stok_panels.dart`
-  - `lib/pages/laporan/widgets/laporan_components.dart`
-- [ ] Task 4 Batch 4F: auth pages
-  - `lib/pages/forgot_password_page.dart`
-  - `lib/pages/reset_password_page.dart`
-- [ ] Task 4 — Grep verifikasi: semua `HugeIcon` / `import hugeicons` harus zero
-- [ ] Task 5: Deprecate app_icons.dart (tambah notice, jangan hapus)
-- [ ] Task 6: ALTER TABLE transaksi ADD status_lunas ⚠️ **WAJIB TAMPILKAN SQL → TUNGGU "LANJUT"**
-- [ ] Task 7: CREATE TABLE kas_keluar + RLS ⚠️ **WAJIB TAMPILKAN SQL → TUNGGU "LANJUT"**
-- [ ] Task 8: KasKeluar model + repository + tests
-- [ ] Task 9: TransaksiModel tambah status_lunas field
-- [ ] Task 10: Final verification (flutter analyze + flutter test) + push
+- [x] Task 4 Batch 4C: obat_keluar pages → 0 HugeIcon, sudah murni AppSymbols ✅
+- [x] Task 4 Batch 4D: pasien & kehadiran pages → 0 HugeIcon, sudah murni AppSymbols ✅
+- [x] Task 4 Batch 4E: transaksi & laporan pages → 0 HugeIcon, sudah murni AppSymbols ✅
+- [x] Task 4 Batch 4F: auth pages → 0 HugeIcon, sudah murni AppSymbols ✅
+- [x] Task 4 — Grep verifikasi: ✅ 0 HugeIcon usage (hanya di app_icons.dart legacy + comment) | 173/173 tests passed
+- [x] Task 6: ALTER TABLE transaksi ADD status_lunas ✅ (eksusi via MCP)
+- [x] Task 7: CREATE TABLE kas_keluar + RLS ✅ (eksusi via MCP)
+- [x] Task 8: KasKeluarModel + KasKeluarRepository + tests (5 test) ✅
+- [x] Task 9: TransaksiModel tambah status_lunas field ✅
+- [ ] Task 10: Final verification + push ← NEXT
 
 ### Phase 2 — F2-C: Stok Alert System
 - [ ] Badge merah/orange di menu Obat
