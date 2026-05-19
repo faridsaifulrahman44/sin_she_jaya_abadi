@@ -4,6 +4,7 @@ import 'package:klinik_mobile_app/data/models/obat_model.dart';
 const kDefaultStokMinimum = 5;
 
 /// Item alert untuk satu obat.
+/// Re-exported via stok_alert_logic.dart.
 class ObatAlertItem {
   const ObatAlertItem({
     required this.idObat,

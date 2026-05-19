@@ -18,11 +18,13 @@ Fokus ke **in-app indicator** + **cetak thermal laporan alert**. Bukan push noti
 
 ## 2. Data Model
 
-### StokAlertCategory (enum)
+### StokAlertCategory — REUSE StokStatus
 
-```dart
-enum StokAlertCategory { habis, menipis, aman }
-```
+`ObatModel` di `lib/data/models/obat_model.dart` sudah memiliki:
+- `enum StokStatus` dengan values: `aman`, `menipis`, `habis`
+- Method `StokStatus.fromStok(int stok, int minimum)` — sudah implement threshold logic
+
+**Reuse `StokStatus` — tidak buat enum baru.** Tidak perlu definisi di spec ini.
 
 ### StokAlertItem (DTO)
 
@@ -61,13 +63,15 @@ class StokAlertSummary {
 File: `lib/features/stok/stok_alert_logic.dart`
 
 ```dart
-StokAlertCategory categorizeObat(ObatModel obat, {int defaultMinimum = 5});
+StokStatus categorizeObat(ObatModel obat);
+// Uses obat.stokMinimum (non-nullable int in ObatModel).
+// Delegasi ke StokStatus.fromStok(obat.stokSaatIni, obat.stokMinimum).
 
 StokAlertSummary buildStokAlertSummary(List<ObatModel> obatList);
 
 List<ObatModel> filterByStokAlertCategory(
   List<ObatModel> obatList,
-  StokAlertCategory category,
+  StokStatus category,
 );
 ```
 
