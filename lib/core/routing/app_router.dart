@@ -5,6 +5,7 @@ import '../../pages/kehadiran_page.dart';
 import '../../pages/login_page.dart';
 import '../../pages/pasien_page.dart';
 import '../../pages/startup_page.dart';
+import '../../pages/stok_alert_page.dart';
 import '../../pages/transaksi_hub_page.dart';
 
 /// Progressive go_router migration scaffold.
@@ -49,6 +50,11 @@ class AppRouter {
           path: TransaksiHubPage.routeName,
           name: 'transaksi-hub',
           builder: (context, state) => const TransaksiHubPage(),
+        ),
+        GoRoute(
+          path: StokAlertPage.routeName,
+          name: 'stok-alert',
+          builder: (context, state) => const StokAlertPage(),
         ),
       ],
     );

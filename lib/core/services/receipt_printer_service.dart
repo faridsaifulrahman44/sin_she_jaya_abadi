@@ -6,6 +6,7 @@ import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
+import 'package:klinik_mobile_app/data/models/stok_alert_item.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
 
 class ReceiptPrinterDevice {
@@ -201,6 +202,60 @@ class ReceiptPrinterService {
       namaPasien: namaPasien,
       namaAdmin: namaAdmin,
     ).map((line) => line.text).join('\n');
+  }
+
+  /// Build thermal receipt text for stok alert summary.
+  /// Paper: 58mm thermal.
+  Future<String> buildStokAlertReceipt(StokAlertSummary summary) async {
+    final now = DateTime.now();
+    final tanggal = _clean(asMediumDate(now));
+    final jam = _formatTime(now) ?? '--:--';
+
+    final lines = <String>[];
+
+    lines.add(_centerLine('=== STOK ALERT ==='));
+    lines.add(_centerLine('Klinik Sin She Jaya Abadi'));
+    lines.add(_centerLine(tanggal));
+    lines.add('');
+
+    // HABIS section
+    if (summary.hasHabis) {
+      lines.add('HABIS (${summary.totalHabis}):');
+      for (final item in summary.habis) {
+        final name = _wrap(item.namaObat, _lineWidth);
+        for (final line in name) {
+          lines.add(line);
+        }
+        final stokLabel = item.stokSaatIni == 0 ? 'Stok: Habis' : 'Stok: ${item.stokSaatIni}';
+        lines.add('  $stokLabel | Min: ${item.stokMinimum}');
+      }
+      lines.add('');
+    }
+
+    // MENIPIS section
+    if (summary.hasMenipis) {
+      lines.add('MENIPIS (${summary.totalMenipis}):');
+      for (final item in summary.menipis) {
+        final name = _wrap(item.namaObat, _lineWidth);
+        for (final line in name) {
+          lines.add(line);
+        }
+        lines.add('  Stok: ${item.stokSaatIni} | Min: ${item.stokMinimum}');
+      }
+      lines.add('');
+    }
+
+    lines.add(_separator());
+    lines.add(_centerLine('$tanggal $jam'));
+
+    return lines.join('\n');
+  }
+
+  String _centerLine(String text) {
+    final clean = _clean(text);
+    if (clean.length >= _lineWidth) return _truncate(clean, _lineWidth);
+    final padLeft = ((_lineWidth - clean.length) / 2).floor();
+    return '${' ' * padLeft}$clean';
   }
 
   Future<bool> openPermissionSettings() => openAppSettings();

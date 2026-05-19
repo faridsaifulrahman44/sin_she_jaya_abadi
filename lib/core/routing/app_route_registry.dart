@@ -28,8 +28,16 @@ import '../../pages/reset_password_page.dart';
 import '../../pages/sinkronisasi_stok_form_page.dart';
 import '../../pages/sinkronisasi_stok_page.dart';
 import '../../pages/startup_page.dart';
+import '../../pages/stok_alert_page.dart';
 import '../../pages/transaksi_form_page.dart';
 import '../../pages/transaksi_hub_page.dart';
+
+/// Route name constants — one source of truth for route paths.
+abstract final class AppRouteRegistry {
+  AppRouteRegistry._();
+
+  static const String stokAlert = '/stok-alert';
+}
 
 Map<String, WidgetBuilder> buildLegacyRoutes() {
   return {
@@ -69,5 +77,6 @@ Map<String, WidgetBuilder> buildLegacyRoutes() {
     LaporanPage.routeName: (_) => const LaporanPage(),
     TransaksiHubPage.routeName: (_) => const TransaksiHubPage(),
     TransaksiFormPage.routeName: (_) => const TransaksiFormPage(),
+    StokAlertPage.routeName: (_) => const StokAlertPage(),
   };
 }
