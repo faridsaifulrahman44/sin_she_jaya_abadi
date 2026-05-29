@@ -5,311 +5,496 @@ Status: Draft — menunggu review user
 
 ---
 
-## 1. Reorganisasi Menu & Navigasi
+## Ringkasan Decision
 
-### 1.1 Bottom Navigation (tetap 5 tab)
+| No | Keputusan |
+|----|-----------|
+| Bottom nav | `[Dashboard] [Riwayat Transaksi] [Akun]` — 3 tab |
+| Dashboard | Home base dengan shortcut card ke semua fitur (Obat, Pasien, Transaksi, dll) |
+| Menu Obat & Pasien | Accessible dari Dashboard |
+| Menu Akuntansi | DIHAPUS seluruhnya |
+| Transaksi | Dipindah ke Dashboard (bukan bottom nav), dari Dashboard Owner klik menu "Transaksi" |
+| Riwayat Transaksi | Tab 1: Transaksi pasien (praktek & non-praktek). Tab 2: Riwayat restock & obat keluar |
+| Print Queue | Ada tabel `print_queue` di DB — mencegah tabrakan cetak |
+
+---
+
+## 1. Navigasi & Struktur Menu
+
+### 1.1 Bottom Navigation — 3 Tab
 
 ```
-[Dashboard] [Obat] [Pasien] [Transaksi] [Laporan]
+[Dashboard] [Riwayat Transaksi] [Akun]
 ```
 
-Tidak ada perubahan struktur 5 tab.
+- **Dashboard** → home base, shortcut card ke semua fitur
+- **Riwayat Transaksi** → tab transaksi & riwayat stok
+- **Akun** → profile, settings, logout, dark mode toggle
 
-### 1.2 Manajemen Stok → Tab di dalam halaman Obat
+### 1.2 Dashboard — Home Base dengan Shortcut Cards
 
-Halaman `Obat` (saat ini halaman daftar obat + filter chips) diubah jadi **halaman dengan tab strip**:
+Dashboard Owner (card biru di atas) + grid menu cards:
 
-**Tab urutan (kiri ke kanan):**
+```
+Card Biru Header:
+  - "Halo, SinShe" / "Halo, Owner"
+  - "SinShe Jaya Abadi"
+  - Jam real-time + tanggal (pojok kanan)
+  - Penjualan hari ini: Rp xxx.xxx
+  - Tombol dark mode + logout → di halaman Akun
 
-1. **Obat** — daftar kartu obat, filter chips (Habis/Menipis/Aman/Semua)
-2. **Obat Masuk** — riwayat & form input penambahan stok
-3. **Obat Keluar** — riwayat & form pengeluaran non-jual
-4. **Keterangan Stok Obat** — rename dari "Stok Alert"
-5. **Sinkronisasi** — koreksi/audit stok fisik
+Menu Grid Cards:
+  [💊 Obat]         [👥 Pasien]
+  [💳 Transaksi]    [📊 Laporan]  ← Owner only
+  [📦 Stok]         [📅 Jadwal]
+```
 
-> Semua tab tetap dalam satu halaman, diakses via `TabBar` horizontal di bawah app bar.
-
-**Rename:**
-- `stok_alert_page.dart` → merge ke dalam `obat_page.dart` sebagai tab
-- Route `/stok-alert` di-remove, Stok Alert hanya accessible lewat tab
+> Menu Obat, Pasien, Transaksi, Stok, Jadwal accessible dari Dashboard. Laporan hanya untuk Owner. Admin tidak melihat card Laporan.
 
 ### 1.3 Menu Akuntansi → DIHAPUS
 
-Seluruh menu Akuntansi dihapus dari navigasi dan struktur aplikasi. Tidak ada fitur yang dipindahkan.
+Seluruh menu Akuntansi dihapus. Tidak ada fitur yang dipindahkan.
 
 ---
 
-## 2. Login Page — Desain dari Project Existing
+## 2. Riwayat Transaksi — 2 Tab
 
-### 2.1 Sumber Referensi
+### 2.1 Tab 1: Transaksi
 
-Gunakan persis desain dari file screenshot:
-`mockup/screenshot/login_app.jpeg`
+Daftar transaksi pasien (praktek & non-praktek).
 
-Termasuk:
-- Logo SinShe besar di bagian atas
-- Warna dan layout sesuai screenshot
-- Form login (username/email + password + tombol masuk)
-- Tidak perlu merujuk ke desain login di `mockup/index.html`
-
-### 2.2 Implementasi
-
-- Halaman login (`login_page.dart`) dipertahankan desainnya sesuai `login_app.jpeg`
-- Logo yang digunakan: `logo_sinshe_login.jpeg` atau `logo_sinshe_versi_png.png`
-- Tambahkan logo di atas form, ukuran besar (120-160px)
-- Background sesuai screenshot
-
----
-
-## 3. Logo SinShe — Integrasi Aplikasi
-
-### 3.1 File Logo
-
-Sumber:
-- `mockup/screenshot/logo_sinshe.jpeg` — logo utama
-- `mockup/screenshot/logo_sinshe_login.jpeg` — versi login
-- `mockup/screenshot/logo_sinshe_versi_png.png` — versi PNG (prioritas tinggi, quality terbaik)
-
-### 3.2 Tempat Penerapan
-
-| Lokasi | File Logo | Notes |
-|--------|-----------|-------|
-| Halaman Login | `logo_sinshe_login.jpeg` / `.png` | Ukuran besar, centered |
-| Preview Cetak Struk | Hitam putih | Satu desain, lihat Section 4 |
-| Hasil Cetak Struk | Hitam putih | Satu desain, lihat Section 4 |
-| App Icon (APK) | `logo_sinshe_versi_png.png` | Di-convert ke format icon |
-| Splash Screen | `logo_sinshe_versi_png.png` | Saat app launch |
-| Dashboard Header (Owner) | Teks "SinShe Jaya Abadi" | Sudah ada, verified |
-
-### 3.3 Rename Global — "Klinik" → "SinShe Jaya Abadi"
-
-**Yang diubah** (semua teks user-facing, BUKAN nama folder project):
-
-- App display name / title → "SinShe Jaya Abadi"
-- Teks header/label "Klinik Sin She Jaya Abadi" → tetap atau ubah sesuai preferensi owner
-- Semua teks statis yang menyebut "Klinik" di UI
-- Nama app di `pubspec.yaml` / `android/app/build.gradle` → "SinShe Jaya Abadi"
-- App label di Android manifest → "SinShe Jaya Abadi"
-
-**Yang TIDAK berubah:**
-- Nama folder project: tetap `flutter_klinik_starter`
-- Nama package/directory structure internal
-- Nama variabel/kelas Dart yang pakai "klinik" (kecuali user-facing string)
-
----
-
-## 4. Struk Thermal Printing — Hitam Putih
-
-### 4.1 Desain Tunggal
-
-Satu desain struk yang digunakan untuk:
-- **Preview di screen** (halaman preview cetak)
-- **Hasil cetak fisik** (thermal printer)
-
-Tidak ada perbedaan warna — semua menggunakan **hitam putih saja**.
-
-### 4.2 Elemen Struk
-
-Header struk menggunakan **text/ASCII art** atau header teks sederhana, bukan logo berwarna.
-
-Format: Monospace font, border menggunakan karakter `=` `-` `|`.
-
-### 4.3 Warna Struk (CSS/style di kode)
-
-- Background: putih / transparan
-- Text: hitam
-- Border/separator: hitam solid atau dashed
-- Tidak ada warna biru, hijau, merah di struk
-
----
-
-## 5. Laporan Owner — Pendekatan A (Komprehensif)
-
-### 5.1 Role Access
-
-- **Owner** → bisa akses halaman Laporan dengan semua fitur
-- **Admin** → TIDAK punya akses halaman Laporan (bottom nav tidak tampilkan tab Laporan)
-
-### 5.2 Tab Utama
-
+Format per item:
 ```
-[Harian] [Bulanan] [Tahunan]
+[Icon] Nama Pasien / "Tanpa Pasien"
+Jenis: Praktek / Obat
+Tanggal & Waktu
+Nominal: Rp xxx.xxx
+Status: Completed / Pending Print
 ```
 
-### 5.3 Tab Harian
+Filter chips:
+- Semua
+- Praktek
+- Obat
+- Pending Print (Owner only — lihat transaksi yang belum dicetak)
 
-**Statistik Utama:**
-- Total transaksi hari ini (jumlah + nominal)
-- Perbandingan dengan kemarin: `↑ Rp X` atau `↓ Rp X` (warna hijau/merah)
-- Breakdown: Obat vs Praktek
+### 2.2 Tab 2: Riwayat Stok
 
-**Grafik:**
-- Grafik penjualan per jam (bar chart, 06:00 - 21:00)
+Daftar 2 kategori:
 
-**Daftar:**
-- Top 10 Obat Terjual hari ini (rank, nama, jumlah terjual, nominal)
+**A. Riwayat Restock (Obat Masuk)**
+- Tanggal, nama obat, etalase, jumlah masuk, nominal
 
-**Operasional:**
-- Obat masuk: X item, total nominal
-- Obat keluar (non-jual): X item
-- Pasien hadir: X orang
+**B. Riwayat Obat Keluar (Non-Jual)**
+- Tanggal, nama obat, etalase, jumlah keluar, alasan (rusak/kedaluwarsa/hilang)
 
-**Action:**
-- Tombol Export CSV
-- Tombol Cetak Thermal (hitam putih)
-
-### 5.4 Tab Bulanan
-
-**Statistik Utama:**
-- Total penjualan bulan ini (jumlah transaksi + nominal)
-- Rata-rata penjualan per hari
-- Perbandingan dengan bulan lalu: `↑/↓ Rp X`
-
-**Grafik:**
-- Grafik tren harian sepanjang bulan (bar chart per hari)
-
-**Daftar:**
-- Top 10 Obat Terjual bulan ini
-- Breakdown: Obat vs Praktek (%)
-
-**Operasional:**
-- Total obat masuk bulan ini
-- Total obat keluar (non-jual) bulan ini
-- Pasien hadir bulan ini: X orang
-
-**Action:**
-- Export CSV
-- Cetak Thermal
-
-### 5.5 Tab Tahunan
-
-**Statistik Utama:**
-- Total penjualan tahun ini
-- Perbandingan year-over-year (jika data tersedia)
-
-**Grafik:**
-- Grafik tren bulanan (12 bulan)
-
-**Daftar:**
-- Top 10 Obat Terjual sepanjang tahun
-
-**Ringkasan Stok:**
-- Total item obat di database
-- Jumlah obat dengan stok 0 (habis)
-- Jumlah obat dengan stok menipis
-
-**Action:**
-- Export CSV
-- Cetak Thermal
-
-### 5.6 Format Angka & Tanggal
-
-- Nominal: format Indonesia `Rp 1.250.000`
-- Tanggal: format `DD Month YYYY` (Indonesia: "25 Mei 2026")
-- Grafik: label sumbu X = tanggal/hari, sumbu Y = nominal
+Filter: Semua | Restock | Obat Keluar
 
 ---
 
-## 6. Etalase 3 — Alur & Akses
+## 3. Halaman Transaksi — Flow Lengkap
 
-### 6.1 Akses Per Role
+### 3.1 Akses
+
+- **Owner** → dari Dashboard → klik card "Transaksi"
+- **Admin** → dari Dashboard → klik card "Transaksi"
+
+### 3.2 Pilih Jenis Transaksi
+
+```
+[Jual Obat]          [Praktek]
+```
+
+- **Jual Obat** → hanya tampilkan obat dari **etalase 1 & 2**
+- **Praktek** → hanya tampilkan obat dari **etalase 3** (racikan), WAJIB pilih pasien
+
+> Validasi: Jika pilih "Jual Obat" tapi coba pilih obat etalase 3 → tolak dengan pesan: "Obat etalase 3 hanya untuk transaksi Praktek."
+
+### 3.3 Input Transaksi
+
+**Jika Jual Obat:**
+- Pilih obat dari eta 1 & 2
+- Tambah kuantitas
+- Harga otomatis dari `harga_jual` di DB
+- id_pasien = null (tidak wajib pilih pasien)
+- Metode bayar: Tunai / QRIS
+
+**Jika Praktek:**
+- Pilih pasien (WAJIB) — dari daftar pasien
+- Pilih obat racikan dari etalase 3 (bisa 1 atau lebih)
+- Input **biaya obat** (bisa beda-beda tiap transaksi, sesuai resep owner)
+- Input **biaya konsultasi** (opsional)
+- Metode bayar: Tunai / QRIS
+
+### 3.4 Simpan & Notifikasi
+
+Saat klik **"Selesai"**:
+
+```
+Data langsung SIMPAN ke database (transaksi + transaksi_item)
+├── id_pasien = null (jual obat) atau ID pasien (praktek)
+├── status = "pending_print" (Owner) / "completed" (Admin input sendiri)
+└── Generate print queue entry
+
+Owner input:
+└── Kirim PUSH NOTIFIKASI ke Admin
+    → Isi: "Ada struk baru dari [Nama Owner]. Klik untuk cetak."
+    → Saat admin klik → masuk halaman Preview Cetak Struk
+
+Admin input:
+└── Admin langsung bisa cetak sendiri (tanpa notifikasi ke Owner)
+```
+
+### 3.5 Print Queue
+
+Tabel `print_queue` di Supabase:
+
+| Kolom | Tipe | Keterangan |
+|-------|------|-----------|
+| id | uuid | PK |
+| transaksi_id | uuid | FK ke tabel transaksi |
+| created_by | uuid | FK ke admin (owner/admin yang input) |
+| created_at | timestamptz | Waktu di-queue |
+| status | text | `pending` / `printed` / `canceled` |
+| printed_by | uuid | FK ke admin yang cetak |
+| printed_at | timestamptz | Waktu cetak |
+
+**Flow Print Queue:**
+1. Transaksi baru masuk → create queue entry (status: `pending`)
+2. Admin/Owner ambil dari queue → tampilkan preview struk
+3. Klik cetak → status: `printed`, timestamp recorded
+4. Jika batal → status: `canceled`
+
+**Preventing tabrakan:**
+- Jika queue entry sudah diambil (sedang di-preview), entry lain tidak bisa diambil sampai timeout 5 menit atau di-release manual
+- Atau: First-come-first-served, admin harus cetak urutan
+
+### 3.6 Preview Cetak Struk
+
+Halaman preview struk:
+- Desain: **hitam putih** (satu desain untuk preview + hasil cetak)
+- Elemen: header text (bukan logo berwarna), nama klinik, tanggal, item, nominal, footer
+- Font: monospace
+- Tombol: "Cetak" → kirim ke thermal printer
+- Setelah cetak → status: `printed`
+
+---
+
+## 4. Role-Based Access — Ringkasan
+
+### Owner/SinShe
+
+| Fitur | Akses |
+|-------|-------|
+| Dashboard | ✅ Full (card biru + semua menu) |
+| Obat (eta 1, 2, 3) | ✅ Semua |
+| Pasien | ✅ Semua |
+| Transaksi | ✅ Input + Edit |
+| Print | ✅ Bisa cetak sendiri (rare) |
+| Laporan | ✅ Full |
+| Stok Management | ✅ Semua eta |
+| Akun | ✅ Profile, settings, logout |
+
+### Admin/Petugas
+
+| Fitur | Akses |
+|-------|-------|
+| Dashboard | ✅ Card terbatas (tanpa nominal/laporan) |
+| Obat (eta 1, 2) | ✅ Hanya eta 1 & 2 |
+| Obat (eta 3) | ❌ |
+| Pasien | ✅ Read-only |
+| Transaksi | ✅ Input non-praktek + lihat queue |
+| Print | ✅ Cetak struk dari queue |
+| Laporan | ❌ |
+| Stok Management | ✅ Hanya eta 1 & 2 |
+| Akun | ✅ Profile, settings, logout |
+
+---
+
+## 5. Etalase 3 — Alur & Akses
+
+### 5.1 Akses Per Role
 
 | Role | Etalase 1 | Etalase 2 | Etalase 3 |
 |------|-----------|-----------|-----------|
 | Owner/SinShe | ✅ | ✅ | ✅ |
 | Admin/Petugas | ✅ | ✅ | ❌ |
 
-### 6.2 Etalase 3 — Karakteristik
+### 5.2 Karakteristik Etalase 3
 
-- **Data:** Belum ada di database. Owner input manual: nama obat racikan, deskripsi, foto, stok, harga, satuan.
-- **Tampilan Menu Obat:** Tetap tampil sebagai **kartu obat individual** (sama kayak etalase 1 & 2) — jadi owner bisa lihat stok masing-masing racikan.
-- **Obat Masuk etalase 3:** Owner input manual (100% oleh owner).
-- **Obat Keluar etalase 3:** Owner input manual (100% oleh owner) — expenditure non-jual (rusak, expired, dll).
+- **Data:** Belum ada di database. Owner input manual: nama racikan, deskripsi, foto, stok, harga.
+- **Tampilan menu Obat:** Kartu obat individual (sama kayak eta 1 & 2)
+- **Obat Masuk:** 100% oleh Owner
+- **Obat Keluar:** 100% oleh Owner
 
-### 6.3 Alur Transaksi Berdasarkan Jenis Pasien
+### 5.3 Alur Transaksi
 
-**Pasien Praktek:**
-- Obat yang dipilih: **hanya dari etalase 3**
-- Bisa pilih obat satuan (satu racikan)
-- Bisa pilih multiple racikan
-- Bisa gabungkan beberapa obat etalase 3 dalam satu transaksi
-- Boleh juga masukkan biaya konsultasi/praktek
-
-**Pasien Non-Praktek (Konsultasi/Obat saja):**
-- Obat yang dipilih: **hanya dari etalase 1 & 2**
-- Tidak bisa pilih obat dari etalase 3
-- id_pasien: null (atau sesuai aturan transaksi Obat yang sudah ada)
-
-### 6.4 Validasi di Form Transaksi
-
-Saat user pilih jenis transaksi:
 ```
-[Obat] → tampilkan hanya etalase 1 & 2
-[Praktek] → tampilkan hanya etalase 3
+[Jual Obat] → hanya eta 1 & 2 → id_pasien = null
+[Praktek]   → hanya eta 3     → id_pasien WAJIB
 ```
 
-Validasi:
-- Jika jenis = "Obat" tapi user coba pilih obat etalase 3 → tolak dengan pesan: "Obat etalase 3 hanya untuk transaksi Praktek."
-- Jika jenis = "Praktek" tapi belum pilih pasien → tolak dengan pesan ramah (sesuai aturan existing: id_pasien WAJIB diisi).
+Validasi saat transaksi:
+- Jika "Jual Obat" tapi pilih obat eta 3 → tolak
+- Jika "Praktek" tapi belum pilih pasien → tolak dengan pesan ramah
 
 ---
 
-## 7. Pasien Non-Praktek — Tidak Dicatat
+## 6. Login Page
 
-- Pasien yang hanya beli obat (non-praktek) **tidak** perlu dicatat datanya di sistem
-- Tidak perlu input ke tabel `pasien`, `kehadiran_pasien`, `kunjungan_pasien`
-- Cukup transaksi aja (obat + nominal)
-- Ini sudah menjadi perilaku default sistem (id_pasien = null untuk transaksi Obat)
+### 6.1 Sumber Referensi
+
+Desain dari screenshot: `mockup/screenshot/login_app.jpeg`
+- Logo SinShe besar di atas
+- Warna dan layout sesuai screenshot
+- Form login (username/email + password + tombol masuk)
+
+### 6.2 File Logo
+
+Gunakan: `logo_sinshe_versi_png.png` atau `logo_sinshe_login.jpeg`
+Ukuran logo: 120-160px, centered di atas form
 
 ---
 
-## 8. Technical Notes
+## 7. Logo SinShe — Integrasi Aplikasi
 
-### 8.1 File yang大概率 berubah
+### 7.1 Tempat Penerapan
 
-- `lib/pages/obat_page.dart` — tambah TabBar + 5 tab
-- `lib/pages/login_page.dart` — update desain sesuai screenshot
-- `lib/core/routing/app_router.dart` — remove `/stok-alert` route
-- `lib/core/routing/app_route_registry.dart` — update route registry
-- `lib/pages/stok_alert_page.dart` — akan di-merge, cek apakah bisa dihapus atau jadi widget dalam TabView
-- `lib/core/services/receipt_printer_service.dart` — ubah warna struk ke hitam putih
-- `lib/features/laporan/` — overhaul halaman laporan (tab harian/bulanan/tahunan)
-- `lib/pages/dashboard_page.dart` — integrate logo SinShe di header
-- `pubspec.yaml` / Android config — rename app name
+| Lokasi | File | Notes |
+|--------|------|-------|
+| Halaman Login | `.png` / `.jpeg` | Logo besar centered |
+| Preview Cetak Struk | Teks hitam putih | Header text, bukan logo |
+| Hasil Cetak Struk | Teks hitam putih | Satu desain |
+| App Icon (APK) | `.png` | Di-convert ke icon format |
+| Splash Screen | `.png` | Saat launch |
+
+### 7.2 Rename Global
+
+- App display name → **"SinShe Jaya Abadi"**
+- Semua teks user-facing "Klinik" → "SinShe Jaya Abadi"
+- Nama folder project → **tetap** `flutter_klinik_starter`
+
+File yang perlu diubah:
+- `pubspec.yaml` — name + flutter.app.title
+- `android/app/build.gradle` — applicationId / app name
 - `android/app/src/main/AndroidManifest.xml` — app label
-- `android/app/src/main/res/` — app icon, splash screen
-
-### 8.2 File Logo
-
-Copy dari `mockup/screenshot/` ke `assets/logo/` atau `assets/images/`:
-- `logo_sinshe_versi_png.png`
-- `logo_sinshe_login.jpeg`
-
-### 8.3 Checklist sebelum implementasi
-
-- [ ] Konfirmasi: apakah `laporan_page.dart` accessible hanya untuk Owner?
-- [ ] Konfirmasi: apakah bottom nav untuk Admin tidak menampilkan tab "Laporan"?
-- [ ] Konfirmasi: apakah alur transaksi Obat/Praktek sudah benar dengan filter etalase?
-- [ ] Konfirmasi: apakah "Sinkronisasi" tab tetap di Manajemen Stok atau dipindahkan?
+- `android/app/src/main/res/values/strings.xml` — app name
+- Semua teks statis di kode Dart
 
 ---
 
-## 9. Ringkasan Perubahan
+## 8. Struk Thermal Printing — Hitam Putih
+
+### 8.1 Satu Desain
+
+Preview + hasil cetak fisik = sama, hitam putih.
+
+### 8.2 Elemen
+
+- Header: teks "SIN SHE JAYA ABADI" (bold, centered)
+- Tanggal & waktu
+- No. transaksi
+- Item list (nama, qty, harga)
+- Subtotal, pajak (jika ada), total
+- Metode bayar
+- Footer: "Terima Kasih"
+- Border: karakter `=` `-` `|` (ASCII)
+
+### 8.3 Font & Warna
+
+- Font: monospace (Courier / JetBrains Mono / built-in monospace)
+- Warna: hitam di background putih/transparan
+- Tidak ada warna RGB lain
+
+---
+
+## 9. Laporan Owner — Pendekatan A (Komprehensif)
+
+### 9.1 Role Access
+
+- **Owner** → akses penuh
+- **Admin** → TIDAK punya halaman Laporan
+
+### 9.2 Tab Utama
+
+```
+[Harian] [Bulanan] [Tahunan]
+```
+
+### 9.3 Tab Harian
+
+**Statistik:**
+- Total transaksi (jumlah + nominal)
+- Perbandingan kemarin: ↑/↓ Rp X (warna hijau/merah)
+- Breakdown: Obat vs Praktek
+
+**Grafik:**
+- Penjualan per jam (bar chart 06:00–21:00)
+
+**Daftar:**
+- Top 10 Obat Terjual (rank, nama, jumlah, nominal)
+
+**Operasional:**
+- Obat masuk: X item, nominal
+- Obat keluar: X item
+- Pasien hadir: X orang
+
+**Action:**
+- Export CSV
+- Cetak Thermal (hitam putih)
+
+### 9.4 Tab Bulanan
+
+**Statistik:**
+- Total penjualan + rata-rata/hari
+- Perbandingan bulan lalu: ↑/↓ Rp X
+
+**Grafik:**
+- Tren harian sepanjang bulan
+
+**Daftar:**
+- Top 10 Obat Terjual
+- Breakdown Obat vs Praktek (%)
+
+**Operasional:**
+- Total obat masuk & keluar bulan ini
+- Pasien hadir: X orang
+
+### 9.5 Tab Tahunan
+
+**Statistik:**
+- Total penjualan tahun ini
+
+**Grafik:**
+- Tren bulanan (12 bulan)
+
+**Daftar:**
+- Top 10 Obat Terjual sepanjang tahun
+
+**Ringkasan Stok:**
+- Total item di DB
+- Obat habis: X
+- Obat menipis: X
+
+### 9.6 Format
+
+- Nominal: `Rp 1.250.000`
+- Tanggal: `DD Month YYYY` (Indonesia)
+
+---
+
+## 10. Reorganisasi Manajemen Stok
+
+### 10.1 Halaman Obat → Tab Strip
+
+Halaman `Obat` diubah jadi tab strip di bawah app bar:
+
+```
+[Obat] [Obat Masuk] [Obat Keluar] [Keterangan Stok] [Sinkronisasi]
+```
+
+1. **Obat** — daftar kartu obat + filter chips (Habis/Menipis/Aman/Semua, eta 1/2/3)
+2. **Obat Masuk** — riwayat + form input restock
+3. **Obat Keluar** — riwayat + form pengeluaran non-jual (rusak, expired, hilang)
+4. **Keterangan Stok** — rename dari "Stok Alert", menampilkan obat habis & menipis
+5. **Sinkronisasi** — koreksi/audit stok fisik
+
+### 10.2 Tab "Obat Keluar"
+
+- Flow berbeda dari Transaksi (Transaksi = penjualan)
+- Obat Keluar = expenditure non-jual
+- Semua etalase (termasuk etalase 3, untuk Owner)
+
+### 10.3 Route Change
+
+- `/stok-alert` route di-remove
+- Stok Alert hanya accessible lewat tab "Keterangan Stok"
+
+---
+
+## 11. Pasien Non-Praktek — Tidak Dicatat
+
+- Pasien hanya beli obat (non-praktek) → **tidak** dicatat datanya
+- Tidak masuk ke tabel `pasien`, `kehadiran_pasien`, `kunjungan_pasien`
+- Cukup transaksi saja (id_pasien = null)
+- Sudah perilaku default sistem
+
+---
+
+## 12. File yang Berubah ( likelihood tinggi)
+
+```
+Navigasi & Routing:
+  lib/core/routing/app_router.dart          — hapus /stok-alert route
+  lib/core/routing/app_route_registry.dart   — update registry
+
+Dashboard:
+  lib/pages/dashboard_page.dart             — redesign jadi home base + shortcut cards
+
+Bottom Navigation:
+  lib/widgets/ (bottom_nav widget)          — ubah dari 5 tab jadi 3 tab
+
+Menu Utama:
+  lib/pages/login_page.dart                  — update desain sesuai screenshot + logo SinShe
+  lib/pages/obat_page.dart                  — tambah TabBar 5 tab
+  lib/pages/stok_alert_page.dart            — merge ke dalam obat_page.dart
+
+Transaksi:
+  lib/pages/transaksi_form_page.dart        — ubah flow + filter etalase
+  lib/pages/transaksi_hub_page.dart         — update
+  lib/pages/preview_cetak_page.dart         — ubah struk ke hitam putih
+
+Riwayat Transaksi:
+  lib/pages/riwayat_transaksi_page.dart      — TAB BARU (1: transaksi, 2: restock+keluar)
+  lib/pages/akun_page.dart                  — dark mode, logout, profile
+
+Laporan:
+  lib/features/laporan/                     — overhaul: harian/bulanan/tahunan + top 10
+  lib/pages/laporan_page.dart               — Owner only (cek role)
+
+Print Service:
+  lib/core/services/receipt_printer_service.dart — ubah struk ke hitam putih
+
+Assets:
+  assets/logo/logo_sinshe_versi_png.png     — copy dari mockup/screenshot/
+  assets/logo/logo_sinshe_login.jpeg
+
+Konfigurasi Android:
+  pubspec.yaml                             — app name → "SinShe Jaya Abadi"
+  android/app/build.gradle                  — app name
+  android/app/src/main/AndroidManifest.xml  — app label
+  android/app/src/main/res/values/strings.xml
+  android/app/src/main/res/mipmap-*/ic_launcher.png — app icon
+
+Database:
+  (opsional) tabel print_queue             — CREATE TABLE print_queue (...)
+```
+
+---
+
+## 13. Ringkasan Perubahan Final
 
 | No | Perubahan | Status |
 |----|-----------|--------|
-| 1 | Stok Alert → tab "Keterangan Stok Obat" di Manajemen Stok | ✅ |
-| 2 | Tab urutan: Obat Masuk → Obat Keluar → Keterangan Stok Obat → Sinkronisasi | ✅ |
-| 3 | Obat Keluar = expenditure non-jual, semua etalase | ✅ |
-| 4 | Login: desain dari `login_app.jpeg` + logo SinShe | ✅ |
-| 5 | Logo SinShe: login, preview struk, cetak struk, APK, splash | ✅ |
-| 6 | Struk: satu desain, hitam putih semua | ✅ |
-| 7 | App rename: "SinShe Jaya Abadi" | ✅ |
-| 8 | Rename global "klinik" → "SinShe Jaya Abadi" (user-facing) | ✅ |
-| 9 | Hapus menu Akuntansi seluruhnya | ✅ |
-| 10 | Laporan Owner: Pendekatan A (Harian/Bulanan/Tahunan komprehensif) | ✅ |
-| 11 | Admin: tidak punya halaman Laporan | ✅ |
-| 12 | Top 10 Obat | ✅ |
-| 13 | Etalase 3: hanya Owner akses, transact sebagai racikan | ✅ |
-| 14 | Pasien Praktek → etalase 3, Pasien Non-Praktek → etalase 1&2 | ✅ |
-| 15 | Pasien non-praktek tidak dicatat datanya | ✅ |
+| 1 | Bottom nav: `[Dashboard] [Riwayat Transaksi] [Akun]` | ✅ |
+| 2 | Dashboard: home base + shortcut cards ke semua fitur | ✅ |
+| 3 | Hapus menu Akuntansi seluruhnya | ✅ |
+| 4 | Transaksi: dipindah ke Dashboard | ✅ |
+| 5 | Riwayat Transaksi: Tab 1 (transaksi), Tab 2 (restock+obat keluar) | ✅ |
+| 6 | Print Queue: tabel `print_queue` di DB | ✅ |
+| 7 | Owner input Praktek → Notifikasi ke Admin → Admin cetak | ✅ |
+| 8 | Admin input non-praktek → Admin cetak sendiri | ✅ |
+| 9 | Owner bisa cetak sendiri (rare case) | ✅ |
+| 10 | Transaksi Obat → eta 1&2, Transaksi Praktek → eta 3 | ✅ |
+| 11 | Login: desain dari `login_app.jpeg` + logo SinShe | ✅ |
+| 12 | Logo SinShe: login, APK icon, splash screen | ✅ |
+| 13 | Struk: satu desain, hitam putih (preview + cetak) | ✅ |
+| 14 | Rename: "Klinik" → "SinShe Jaya Abadi" (user-facing) | ✅ |
+| 15 | App name: "SinShe Jaya Abadi" | ✅ |
+| 16 | Laporan Owner: Harian/Bulanan/Tahunan komprehensif, Top 10 | ✅ |
+| 17 | Admin: tidak punya halaman Laporan | ✅ |
+| 18 | Etalase 3: hanya Owner akses | ✅ |
+| 19 | Etalase 3: tampil sebagai kartu obat individual | ✅ |
+| 20 | Pasien non-praktek: tidak dicatat datanya | ✅ |
+| 21 | Manajemen Stok: tab Obat Masuk/Keluar/Keterangan Stok/Sinkronisasi | ✅ |
+| 22 | Rename "Stok Alert" → "Keterangan Stok Obat" | ✅ |
