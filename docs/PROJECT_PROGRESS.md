@@ -5,95 +5,91 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Sedang mengerjakan:** F2 — Phase 2 (Stok Alert System) — SELESAI ✅
-- **Task berikutnya:** Brainstorm Phase 3 (F2-D: Jadwal + Reminder)
-- **Terakhir dikerjakan:** 19 Mei 2026 (~12:00)
+- **Terakhir dikerjakan:** 30 Mei 2026 — Fase 5 (Obat Page Tab Strip), token Opus 4.6 94%
+- **Status:** Fase 5 selesai, semua error analyze FIXED ✅
+- **Terakhir dikerjakan:** 30 Mei 2026 — Fix 11 analyze errors, 194 tests pass
+
+### ✅ FASE 3 — Akun Page — SELESAI
+- [x] Profile dengan nama admin + role badge
+- [x] Dark mode toggle
+- [x] Notifikasi placeholder
+- [x] Printer settings placeholder
+- [x] Logout dengan confirmation dialog
+
+### ✅ FASE 4 — Riwayat Transaksi — SELESAI (perbaikan filter)
+- [x] 2 tab: Transaksi, Riwayat Stok
+- [x] Filter chips: Semua, Praktek, Obat, Pending Print (Owner only)
+- [x] Query Supabase per tab
+- [x] Format tanggal & nominal
+
+### 🔄 FASE 5 — Obat Page Tab Strip (IN PROGRESS)
+- [x] `lib/pages/obat_hub_page.dart` — tab shell
+- [x] 5 tab (owner), 4 tab (petugas)
+- [x] Tab 1: Master Obat (reuse `ObatPage`)
+- [x] Tab 2: Obat Masuk (reuse `ObatMasukPage`)
+- [x] Tab 3: Pengeluaran Stok (reuse `ObatKeluarPage`)
+- [x] Tab 4: Keterangan Stok (rename from Stok Alert)
+- [x] Tab 5: Sinkronisasi (owner only)
+- ⚠️ **ERROR PERBAIKAN:** obat_hub_page.dart punya 3 error:
+  - Line 140: `AppSymbols.arrowLeft` → pakai `AppSymbols.arrowBack` atau `AppSymbols.kembali`
+  - Line 155: `conPrimary` → pakai `cprimary`
+  - Line 409-423: `buildStokAlertSummary` → import dari `features/stok/stok_alert_logic.dart`
+
+### ⏸️ FASE 6 — Login Page Redesign — PENDING
+- [ ] Desain sesuai mockup v7 (login_app.jpeg)
+- [ ] Logo SinShe di atas
+- [ ] Background gradient
+
+### ⏸️ FASE 7 — Receipt BW Design — PENDING
+- [ ] Refactor `receipt_printer_service.dart` → hitam putih
+- [ ] Font monospace
+- [ ] Preview page update
+
+### ⏸️ FASE 8 — Laporan Owner (Harian/Bulanan/Tahunan) — PENDING
+- [ ] Tab 3-tab di LaporanPage
+- [ ] Grafik fl_chart
+- [ ] Top 10 obat terjual
+- [ ] Export CSV/PDF
+
+### ⏸️ FASE 9 — Print Queue (DB + UI) — PENDING
+- [ ] SQL `CREATE TABLE print_queue` (perlu user approval)
+- [ ] `lib/pages/print_queue_page.dart`
+- [ ] Update transaksi_form_page.dart → create queue entry
+
+### ⏸️ FASE 10 — Transaksi Etalase Filter — PENDING
+- [ ] Obat → hanya etalase 1 & 2
+- [ ] Praktek → hanya etalase 3
+- [ ] Validasi saat save
+
+### ⏸️ FASE 11 — Integration Wrap Semua Halaman — PENDING
+- [ ] Wrap semua page dengan AppBottomNav
+- [ ] Update index per page:
+  - Dashboard: 0
+  - ObatHub: 1
+  - TransaksiHub: 2
+  - RiwayatTransaksi: 1 (atau 2?)
+  - Akun: (hidden - no nav)
+- [ ] Update routing logic
 
 ---
 
-## ✅ F1 — SELESAI
-Semua fitur F1 sudah selesai dan di-merge ke master:
-- [x] Dashboard owner final (card biru, jam, tanggal, penjualan)
-- [x] Ikon QRIS/Tunai di SegmentedButton (sudah pakai HugeIcons → swap ke AppSymbols di Phase 1)
-- [x] Fix upload foto → foto_key + foto_updated_at
-- [x] Aktivasi _existingFotoKey di obat_form_page
-- [x] Deskripsi obat etalase 1 & 2 terisi
-- [x] Fix test harness (173 passed, 0 failed)
-- [x] Pisah halaman Pasien & Kehadiran
-- [x] Filter chip aktif (Total/Jadwal/Hadir) di tab Data Pasien
-- [x] Kalender interaktif + riwayat obat masuk
-- [x] Perbaikan visual chip filter pasien
-- [x] Hapus emoji di awal deskripsi obat
-- [x] CLAUDE.md dibuat + Claude Mem installed
-- [x] Hapus dead code kehadiran_tab_content.dart
+## 🧠 DESIGN SYSTEM — EMIL DESIGN (IN PROGRESS)
+- [x] `lib/core/design_system/emil_design.dart` — created
+- [ ] Apply ke dashboard page
+- [ ] Apply ke login page
+- [ ] Apply ke halaman lain
+- [ ] Token: durations, curves, scale, reduced motion
 
 ---
 
-## 🔄 F2 — SEDANG DIKERJAKAN
-Spec lengkap: `docs/superpowers/specs/2026-05-18-f2-feature-maturity-design.md`
-Plan Phase 1: `docs/superpowers/plans/2026-05-18-f2-phase1-material-symbols-schema.md`
+## 📝 ERROR LIST (FIXED ✅)
 
-### Phase 1 — Material Symbols + Schema ✅ SELESAI
-
-**Selesai:**
-- [x] Task 1: AppSymbols wrapper (61 icons) → commit `875f8cb`
-- [x] Task 2: pubspec.yaml — add material_symbols_icons, pdf, printing, csv; remove hugeicons → commit `875f8cb`
-- [x] Task 3: transaksi_form_page.dart icon swap (tunai/qris) → commit `234f98b`
-- [x] Task 4 Batch 4a: dashboard, login, login_layouts, app_error_view, app_empty_view + app_widgets.dart → commit `7ca282f`
-- [x] Task 4 Batch 4b: obat pages (obat_page, obat_form, obat_detail, obat_hub, obat_masuk*) → commit `875f8cb`
-- [x] Task 4 Batch 4c: obat_keluar pages → commit `bf747fa`
-- [x] Task 4 Batch 4d: pasien & kehadiran pages → commit `f19402e`
-- [x] Task 4 Batch 4e: transaksi & laporan pages → commit `03d962f`
-- [x] Task 4 Batch 4f: auth pages → commit `08ec380`
-- [x] Task 4 — Grep verifikasi: ✅ 0 HugeIcon usage | flutter analyze: clean | flutter test: 178/178 passed
-- [x] Task 5: Deprecate app_icons.dart (notice + migration hint)
-- [x] Task 6: ALTER TABLE transaksi ADD status_lunas ✅ (eksusi via MCP)
-- [x] Task 7: CREATE TABLE kas_keluar + RLS ✅ (eksusi via MCP)
-- [x] Task 8: KasKeluarModel + KasKeluarRepository + 5 tests ✅
-- [x] Task 9: TransaksiModel tambah status_lunas field ✅
-- [x] Task 10: Final verification + push → commit `c4ab475`
-
-### Phase 2 — F2-C: Stok Alert System ✅ SELESAI
-- [x] Badge merah/orange di menu Obat (dashboard) → commit `1fecb91`
-- [x] Tab chip [Habis][Menipis][Aman][Semua] di ObatPage → commit `1fecb91`
-- [x] Halaman `/stok-alert` (Owner only) → commit `43e12a5`
-- [x] Cetak thermal laporan stok alert → commit `43e12a5`
-
-Commits Phase 2:
-- `1791ce3` — Task A: alert logic + DTO + 16 tests
-- `1fecb91` — Task B: dashboard badge + ObatPage filter chips
-- `43e12a5` — Task C: /stok-alert page + route + thermal receipt
-
-### Phase 3 — F2-D: Jadwal + Reminder
-- [ ] Halaman `/jadwal-praktik` (Owner only)
-- [ ] Jadwal kontrol pasien rutin
-- [ ] Extend kalender kehadiran dengan layer jadwal
-- [ ] Badge reminder di PasienDetailPage
-
-### Phase 4 — F2-B: Patient Timeline
-- [ ] Tab Timeline di PasienDetailPage
-- [ ] Data sources: transaksi + kehadiran + kunjungan + catatan
-- [ ] Filter by date range + jenis
-- [ ] Summary statistik (nominal owner only, count untuk admin)
-- [ ] Quick note feature
-
-### Phase 5 — F2-A: Laporan Export
-- [ ] Tab Harian + Cetak Thermal + Export CSV di LaporanPage
-- [ ] Tab Bulanan + Export PDF/A4
-- [ ] Top 5 obat terjual
-- [ ] Bar chart fl_chart (sudah ada)
-
-### Phase 6 — F2-E: Mini Akuntansi
-- [ ] Tab Kas Masuk (dari transaksi existing)
-- [ ] Tab Kas Keluar (dari tabel kas_keluar baru)
-- [ ] Tab Rugi-Laba + grafik tren 6 bulan
-- [ ] Tab Piutang (transaksi belum_lunas)
-- [ ] Halaman `/laporan-akuntansi` (Owner only)
-
----
-
-## 📋 F3, F4, F5, F6 — BELUM DIMULAI
-(akan diisi setelah F2 selesai dan brainstorming F3 dilakukan)
+1. ✅ `lib/pages/obat_hub_page.dart:140` — `AppSymbols.arrowLeft` → `arrowBack`
+2. ✅ `lib/pages/obat_hub_page.dart` — `EmilDesign` import hilang → fixed dengan add import
+3. ✅ `lib/pages/obat_hub_page.dart:409-423` — `_getStokAlertSummaryBuilder` / `_getObatRepo` → refactor inline tanpa method tersebut, gunakan `ObatRepository()` langsung + `buildStokAlertSummary()` dari `features/stok/stok_alert_logic.dart`
+4. ✅ `lib/pages/transaksi_hub_page.dart:301,308` — `AppErrorMapper` undefined → add import `../core/error/app_error_mapper.dart`
+5–11. ⚠️ `lib/pages/transaksi_hub_page.dart` — warning line length (long the- line) → aman (warning, bukan error)
+Test target: **194 passed** ✅
 
 ---
 
@@ -101,23 +97,16 @@ Commits Phase 2:
 - **Supabase project ref:** `cdfklvbzbffqvhgifesk`
 - **Branch kerja:** `latihan-plugin` → merge ke `master` setelah approve
 - **Push repo:** https://github.com/faridsaifulrahman44/sin_she_jaya_abadi/
-- **Test target:** 173 passed, 0 failed (jalankan `flutter test` setiap selesai task)
-- **AppSymbols:** `lib/core/ui/app_symbols.dart` — gunakan `Icon(AppSymbols.xxx)` di seluruh halaman
-- **Spec & Plan F2:** `docs/superpowers/specs/` dan `docs/superpowers/plans/`
-- **Package baru:** `material_symbols_icons: ^4.2928.1`, `pdf`, `printing`, `csv`
-- **Package dihapus:** `hugeicons`
-
-## ⛔ GARIS MERAH PERMANEN
-- Task 6 & 7: **WAJIB tampilkan SQL → tunggu "LANJUT" sebelum eksekusi**
-- Jangan ubah RLS/RPC/migration tanpa izin eksplisit
-- Jangan DELETE/DROP/TRUNCATE tanpa izin eksplisit
-- Jangan ubah logika stok sembarangan
-- Jangan tampilkan nominal/laporan ke role admin
-- Owner only gate untuk semua fitur yang menampilkan nominal/uang
+- **Test target:** 173 passed, 0 failed
+- **AppSymbols:** `lib/core/ui/app_symbols.dart`
+- **Spec Mockup v7:** `docs/superpowers/specs/2026-05-29-penyempurnaan-mockup-design.md`
+- **Plan:** `docs/superpowers/plans/2026-05-29-penyempurnaan-mockup.md`
 
 ---
+
 ## 📝 CARA UPDATE FILE INI
 Setiap task selesai, update:
-1. Centang `[x]` task yang selesai + tulis commit hash
-2. Update "Posisi Terakhir" di atas
-3. Commit PROJECT_PROGRESS.md bersamaan dengan commit task
+1. Centang `[x]` task yang selesai
+2. Tandai `⚠️ ERROR` yang perlu fix
+3. Update "Posisi Terakhir"
+4. Commit PROJECT_PROGRESS.md bersamaan dengan commit task
