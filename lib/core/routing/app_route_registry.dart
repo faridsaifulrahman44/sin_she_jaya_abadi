@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../pages/akun_page.dart';
 import '../../pages/dashboard_page.dart';
 import '../../pages/forgot_password_page.dart';
 import '../../pages/kehadiran_detail_page.dart';
@@ -25,6 +26,7 @@ import '../../pages/pasien_detail_page.dart';
 import '../../pages/pasien_form_page.dart';
 import '../../pages/pasien_page.dart';
 import '../../pages/reset_password_page.dart';
+import '../../pages/riwayat_transaksi_page.dart';
 import '../../pages/sinkronisasi_stok_form_page.dart';
 import '../../pages/sinkronisasi_stok_page.dart';
 import '../../pages/startup_page.dart';
@@ -46,6 +48,8 @@ Map<String, WidgetBuilder> buildLegacyRoutes() {
     ForgotPasswordPage.routeName: (_) => const ForgotPasswordPage(),
     ResetPasswordPage.routeName: (_) => const ResetPasswordPage(),
     DashboardPage.routeName: (_) => const DashboardPage(),
+    AkunPage.routeName: (_) => const AkunPage(),
+    RiwayatTransaksiPage.routeName: (_) => const RiwayatTransaksiPage(),
     ObatPage.routeName: (_) => const ObatPage(),
     ObatHubPage.routeName: (_) => const ObatHubPage(),
     ObatDetailPage.routeName: (_) => const ObatDetailPage(),

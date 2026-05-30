@@ -14,6 +14,7 @@ import '../data/repositories/kehadiran_repository.dart';
 import '../data/repositories/obat_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
 import '../features/stok/stok_alert_logic.dart';
+import '../widgets/app_bottom_nav.dart';
 import 'laporan_page.dart';
 import 'login_page.dart';
 import 'obat_hub_page.dart';
@@ -729,7 +730,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Klinik Sin She Jaya Abadi',
+                              'SinShe Jaya Abadi',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: textOnPrimary.withValues(alpha: 0.72),
@@ -823,6 +824,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
       ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
   }
 
