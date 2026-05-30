@@ -1,7 +1,7 @@
 # Spec: Penyempurnaan Mockup & Aplikasi — SinShe Jaya Abadi
 
 Tanggal: 2026-05-29
-Status: Draft — menunggu review user
+Status: Active — berjalan
 
 ---
 
@@ -31,9 +31,9 @@ Status: Draft — menunggu review user
 - **Riwayat Transaksi** → tab transaksi & riwayat stok
 - **Akun** → profile, settings, logout, dark mode toggle
 
-### 1.2 Dashboard — Home Base dengan Shortcut Cards
+### 1.2 Dashboard — Home Base dengan Shortcut Cards + Quick Action
 
-Dashboard Owner (card biru di atas) + grid menu cards:
+Dashboard Owner (card biru di atas) + grid menu cards + quick action buttons:
 
 ```
 Card Biru Header:
@@ -45,11 +45,22 @@ Card Biru Header:
 
 Menu Grid Cards:
   [💊 Obat]         [👥 Pasien]
-  [💳 Transaksi]    [📊 Laporan]  ← Owner only
-  [📦 Stok]         [📅 Jadwal]
+  [📊 Laporan]     [📅 Jadwal]
+  [📦 Stok]
+
+⚡ QUICK ACTION (di bawah menu grid):
+  [💊 Jual Obat]    [🏥 Praktek]
+  (ETA 1 & 2)      (ETA 3)
+
+NOTIF BAR (di atas quick action):
+  "Struk Pending — X" → link ke halaman Print Queue
 ```
 
-> Menu Obat, Pasien, Transaksi, Stok, Jadwal accessible dari Dashboard. Laporan hanya untuk Owner. Admin tidak melihat card Laporan.
+> - Card "Transaksi" DIHAPUS dari menu grid. Transaksi diakses via Quick Action.
+> - Menu Obat, Pasien, Stok, Jadwal accessible dari Dashboard.
+> - Laporan hanya Owner. Admin tidak melihat card Laporan.
+> - Quick Action: "Jual Obat" → form transaksi jenis Obat (ETA 1&2). "Praktek" → form transaksi jenis Praktek (ETA 3).
+> - Notif bar "Struk Pending" hanya Owner: badge count transaksi dengan status `pending_print`.
 
 ### 1.3 Menu Akuntansi → DIHAPUS
 
@@ -96,8 +107,8 @@ Filter: Semua | Restock | Obat Keluar
 
 ### 3.1 Akses
 
-- **Owner** → dari Dashboard → klik card "Transaksi"
-- **Admin** → dari Dashboard → klik card "Transaksi"
+- **Owner** → dari Dashboard → klik Quick Action "Jual Obat" atau "Praktek"
+- **Admin** → dari Dashboard → klik Quick Action "Jual Obat"
 
 ### 3.2 Pilih Jenis Transaksi
 
@@ -121,10 +132,33 @@ Filter: Semua | Restock | Obat Keluar
 
 **Jika Praktek:**
 - Pilih pasien (WAJIB) — dari daftar pasien
-- Pilih obat racikan dari etalase 3 (bisa 1 atau lebih)
-- Input **biaya obat** (bisa beda-beda tiap transaksi, sesuai resep owner)
-- Input **biaya konsultasi** (opsional)
+- Owner/SinShe meresepkan obat racikan dari etalase 3
+- Owner/SinShe input biaya obat (bisa beda-beda tiap transaksi, sesuai resep)
+- Input **biaya konsultasi** (opsional, bisa 0)
 - Metode bayar: Tunai / QRIS
+
+### 3.3b Alur Pasien Praktek (di Luar Aplikasi)
+
+> **Catatan penting:** Langkah 1–2 dilakukan **di luar aplikasi** (langsung di klinik).
+
+```
+Tahap 1 — Pasien datang
+  └── Owner/SinShe terima pasien, tanya gejala
+
+Tahap 2 — Resep
+  └── Owner/SinShe tulis resep racikan di kertas nota
+       → Racikan: kombinasi obat etalase 3 (bisa satuan atau campuran)
+       → Owner/SinShe juga tentukan harga jual racikan per pasien
+
+Tahap 3 — Input di Aplikasi
+  └── Admin/petugas buka aplikasi → Form Transaksi
+       → Pilih jenis: "Praktek"
+       → Pilih pasien dari daftar
+       → Input item: racikan sesuai resep Owner
+       → Input biaya obat + biaya konsultasi
+       → Pilih metode bayar
+       → Simpan → print struk → struk diberikan ke pasien
+```
 
 ### 3.4 Simpan & Notifikasi
 
@@ -166,8 +200,8 @@ Tabel `print_queue` di Supabase:
 4. Jika batal → status: `canceled`
 
 **Preventing tabrakan:**
-- Jika queue entry sudah diambil (sedang di-preview), entry lain tidak bisa diambil sampai timeout 5 menit atau di-release manual
-- Atau: First-come-first-served, admin harus cetak urutan
+- Jika admin sudah klik "Preview" transaksi tertentu → `locked_by` = admin_id, `locked_at` = now
+- Entry lain tampil sebagai `locked` (oleh siapa) tapi client lain tidak bisa preview sampai di-release (timeout 5 menit atau manual release)
 
 ### 3.6 Preview Cetak Struk
 
@@ -244,15 +278,15 @@ Validasi saat transaksi:
 
 ### 6.1 Sumber Referensi
 
-Desain dari screenshot: `mockup/screenshot/login_app.jpeg`
-- Logo SinShe besar di atas
-- Warna dan layout sesuai screenshot
-- Form login (username/email + password + tombol masuk)
+Desain **100% sama persis** dari screenshot: `mockup/screenshot/login_app.jpeg`
+- Layout, warna, posisi elemen, spacing, typography — semua mengikuti screenshot
+- Satu perubahan: logo di bagian atas di-replace dengan **logo SinShe** (bukan logo yang ada di screenshot asli)
 
 ### 6.2 File Logo
 
 Gunakan: `logo_sinshe_versi_png.png` atau `logo_sinshe_login.jpeg`
-Ukuran logo: 120-160px, centered di atas form
+- Logo SinShe menggantikan logo default yang ada di screenshot
+- Ukuran dan positioning mengikuti layout asli screenshot
 
 ---
 
@@ -472,7 +506,123 @@ Database:
 
 ---
 
-## 13. Ringkasan Perubahan Final
+## 13. Emil Design — Motion & Polish
+
+### 13.1 Approach
+
+**Opsi C** — Buat design token + apply ke halaman baru.
+
+- Scope: **halaman baru yang dibuat / diedit besar**
+- Pages existing tidak perlu refactor
+- Pages yang diedit kecil-kecilan (fix bug, tweak spacing) juga tidak perlu
+
+### 13.2 Token Location
+
+File: `lib/core/design_system/emil_design.dart`
+
+Export semua duration, curve, dan scale values yang konsisten di seluruh app.
+
+### 13.3 Token Values
+
+```dart
+class EmilDesign {
+  // ── Durations ──
+  static const fast      = Duration(milliseconds: 150);
+  static const normal    = Duration(milliseconds: 300);
+  static const slow      = Duration(milliseconds: 500);
+
+  // ── Curves ──
+  static const enter     = Curves.easeOutCubic;
+  static const exit     = Curves.easeInCubic;
+  static const gesture  = Curves.easeOutCubic; // swipe/drag release
+  static const toggle    = Curves.easeInOutCubic;
+
+  // ── Scale ──
+  static const pressScale  = 0.97;   // button/icon tap
+  static const hoverScale = 1.04;   // card hover (web/desktop)
+
+  // ── Spring (if needed for drag) ──
+  // static final spring = SpringDescription(
+  //   mass: 1.0,
+  //   stiffness: 400,
+  //   damping: 24,
+  // );
+}
+```
+
+### 13.4 Usage
+
+```dart
+// Widget animate in
+AnimatedOpacity(
+  opacity: isVisible ? 1.0 : 0.0,
+  duration: EmilDesign.normal,
+  curve: EmilDesign.enter,
+  child: MyContent(),
+)
+
+// Button press
+GestureDetector(
+  onTapDown: (_) => setState(() => pressed = true),
+  onTapUp:   (_) => setState(() => pressed = false),
+  child: AnimatedScale(
+    scale: pressed ? EmilDesign.pressScale : 1.0,
+    duration: EmilDesign.fast,
+    child: MyButton(),
+  ),
+)
+
+// Page transition
+PageRouteBuilder(
+  transitionDuration: EmilDesign.normal,
+  pageBuilder: (_, __, ___) => NewPage(),
+  transitionsBuilder: (_, animation, __, child) {
+    return FadeTransition(opacity: animation, child: child);
+  },
+)
+```
+
+### 13.5 What TO Animate
+
+- Widget masuk/keluar halaman (fade + slide)
+- Card/modal muncul (scale + fade)
+- Snackbar/toast (slide dari bawah)
+- Pull-to-refresh indicator
+- Tab content switch
+
+### 13.6 What NOT TO Animate
+
+- Keyboard-initiated actions (keyboard muncul → jangan animasi)
+- Hardware back button press → page pop, tidak animate
+- Scroll physics (default Flutter scroll sudah smooth)
+- Loading spinner (putar saja)
+
+### 13.7 Reduced Motion
+
+Di-handle saat implementasi halaman baru, menggunakan `MediaQuery.of(context).disableAnimations` — kurangi duration ke 0 untuk user yang mengaktifkan preferensi ini.
+
+---
+
+## 14. Keputusan Diskusi 2026-05-29 Lanjutan
+
+### 14.1 Struk Thermal — Satu Desain Hitam Putih
+
+- **Keputusan: Satu desain hitam putih** — preview dan hasil cetak fisik sama
+- Tidak perlu dua versi (warna biru + BW)
+- File yang diubah: `receipt_printer_service.dart` (sudah ada) + `receipt_printer_service_bw.dart` (duplicate, dihapus atau merge)
+- Preview halaman `.dart` → gunakan widget hitam putih yang sama
+
+### 14.2 Logo SinShe — Keputusan Placeholder
+
+- Logo SinShe **belum siap** sebagai placeholder untuk preview/mockup
+- Timelines:
+  - Fase 1 (mendesain UI): gunakan **placeholder** (text "SIN SHE JAYA ABADI" di header)
+  - Fase 2 (logo siap): replace placeholder dengan asset logo `.png/.jpeg`
+- Workflow: design dulu, baru tempel logo
+
+---
+
+## 15. Ringkasan Perubahan Final
 
 | No | Perubahan | Status |
 |----|-----------|--------|
