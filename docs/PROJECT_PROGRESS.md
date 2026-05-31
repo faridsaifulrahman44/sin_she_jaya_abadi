@@ -5,7 +5,8 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 31 Mei 2026 — Fase 7 (Receipt BW Design) SELESAI ✅
+- **Terakhir dikerjakan:** 31 Mei 2026 — Fase 8 (Laporan 3-Tab + Export) SELESAI ✅
+- **Catatan sinkronisasi 2026-05-31 7:12 PM:** PROJECT_PROGRESS.md di-sync dengan real state dari git + disk. F9 task #7 "print_queue_page.dart" ditandai ✅ tapi file TIDAK ADA. AppBottomNav ada tapi belum diintegrasikan. Sinkronisasi dari claude-mem memory + git log.
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -47,16 +48,18 @@
 - [x] `stok_alert_page.dart` → `ReceiptPrinterServiceBW` untuk struk stok alert
 - [x] `ReceiptPrinterServiceBW` dipakai untuk semua receipt printing
 
-### ⏸️ FASE 8 — Laporan Owner (Harian/Bulanan/Tahunan) — PENDING
-- [ ] Tab 3-tab di LaporanPage
-- [ ] Grafik fl_chart
-- [ ] Top 10 obat terjual
-- [ ] Export CSV/PDF
+### ✅ FASE 8 — Laporan Owner (Harian/Bulanan/Tahunan) — SELESAI (2026-05-31)
+- [x] Tab 3-tab di LaporanPage (Harian / Bulanan / Tahunan)
+- [x] Grafik fl_chart per tab
+- [x] Top 10 obat terjual (TopObatItem + extension)
+- [x] Export CSV (CsvExporter) + PDF (PdfExporter)
+- [x] Commit: b9edfb2
 
-### ⏸️ FASE 9 — Print Queue (DB + UI) — PENDING
-- [ ] SQL `CREATE TABLE print_queue` (perlu user approval)
-- [ ] `lib/pages/print_queue_page.dart`
-- [ ] Update transaksi_form_page.dart → create queue entry
+### ✅ FASE 9 — Print Queue (DB + UI) — DALAM PROGRESS
+- [x] `print_queue_model.dart` — model created (file exists, 54 lines)
+- [ ] `print_queue_page.dart` — BELUM ADA (model exists, page not created)
+- [ ] SQL table `print_queue` — BELUM ADA di DB (pending user approval)
+- [ ] Wire print queue into TransaksiFormPage (pending — page not created)
 
 ### ⏸️ FASE 10 — Transaksi Etalase Filter — PENDING
 - [ ] Obat → hanya etalase 1 & 2
@@ -64,6 +67,7 @@
 - [ ] Validasi saat save
 
 ### ⏸️ FASE 11 — Integration Wrap Semua Halaman — PENDING
+- [ ] `app_bottom_nav.dart` sudah ada (45 lines) — BELUM diintegrasikan ke page manapun
 - [ ] Wrap semua page dengan AppBottomNav
 - [ ] Update index per page:
   - Dashboard: 0
