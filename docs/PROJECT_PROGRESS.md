@@ -5,9 +5,7 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 30 Mei 2026 — Fase 5 (Obat Page Tab Strip), token Opus 4.6 94%
-- **Status:** Fase 5 selesai, semua error analyze FIXED ✅
-- **Terakhir dikerjakan:** 30 Mei 2026 — Fix 11 analyze errors, 194 tests pass
+- **Terakhir dikerjakan:** 31 Mei 2026 — Fase 6 (Login Page Redesign) SELESAI ✅
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -22,7 +20,7 @@
 - [x] Query Supabase per tab
 - [x] Format tanggal & nominal
 
-### 🔄 FASE 5 — Obat Page Tab Strip (IN PROGRESS)
+### ✅ FASE 5 — Obat Page Tab Strip — SELESAI ✅
 - [x] `lib/pages/obat_hub_page.dart` — tab shell
 - [x] 5 tab (owner), 4 tab (petugas)
 - [x] Tab 1: Master Obat (reuse `ObatPage`)
@@ -30,15 +28,16 @@
 - [x] Tab 3: Pengeluaran Stok (reuse `ObatKeluarPage`)
 - [x] Tab 4: Keterangan Stok (rename from Stok Alert)
 - [x] Tab 5: Sinkronisasi (owner only)
-- ⚠️ **ERROR PERBAIKAN:** obat_hub_page.dart punya 3 error:
-  - Line 140: `AppSymbols.arrowLeft` → pakai `AppSymbols.arrowBack` atau `AppSymbols.kembali`
-  - Line 155: `conPrimary` → pakai `cprimary`
-  - Line 409-423: `buildStokAlertSummary` → import dari `features/stok/stok_alert_logic.dart`
+- [x] Fix: `AppSymbols.arrowLeft` → `arrowBack` ✅
+- [x] Fix: `conPrimary` → `cprimary` ✅
+- [x] Fix: `_getStokAlertSummaryBuilder` → inline dengan `ObatRepository()` ✅
 
-### ⏸️ FASE 6 — Login Page Redesign — PENDING
-- [ ] Desain sesuai mockup v7 (login_app.jpeg)
-- [ ] Logo SinShe di atas
-- [ ] Background gradient
+### ✅ FASE 6 — Login Page Redesign — SELESAI
+- [x] Desain sesuai mockup v7 (login_app.jpeg)
+- [x] Background gradient gelap (#0D1117 → #1A2332)
+- [x] White bottom sheet card (border-radius: 32px)
+- [x] Bordered inputs (#E2E8F0, focus teal #00897B)
+- [x] Teal button full-width (#00897B)
 
 ### ⏸️ FASE 7 — Receipt BW Design — PENDING
 - [ ] Refactor `receipt_printer_service.dart` → hitam putih
@@ -75,8 +74,8 @@
 
 ## 🧠 DESIGN SYSTEM — EMIL DESIGN (IN PROGRESS)
 - [x] `lib/core/design_system/emil_design.dart` — created
+- [x] Apply ke login page (F6 ✅)
 - [ ] Apply ke dashboard page
-- [ ] Apply ke login page
 - [ ] Apply ke halaman lain
 - [ ] Token: durations, curves, scale, reduced motion
 
