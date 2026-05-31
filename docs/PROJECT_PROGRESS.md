@@ -55,11 +55,14 @@
 - [x] Export CSV (CsvExporter) + PDF (PdfExporter)
 - [x] Commit: b9edfb2
 
-### ✅ FASE 9 — Print Queue (DB + UI) — DALAM PROGRESS
-- [x] `print_queue_model.dart` — model created (file exists, 54 lines)
-- [ ] `print_queue_page.dart` — BELUM ADA (model exists, page not created)
-- [ ] SQL table `print_queue` — BELUM ADA di DB (pending user approval)
-- [ ] Wire print queue into TransaksiFormPage (pending — page not created)
+### ✅ FASE 9 — Print Queue (DB + UI) — SELESAI (2026-05-31)
+- [x] `print_queue_model.dart` — model created
+- [x] `print_queue_repository.dart` — repository created
+- [x] `print_queue_page.dart` — page created (Owner-only, status badges, pull-to-refresh)
+- [x] Wire ke StrukPembayaranPage — insert log after successful print
+- [x] SQL table `print_queue` — sudah ada di DB (dari sesi sebelumnya)
+- [x] Route `/print-queue` — added to app_router + app_route_registry
+- [x] Commit: 694f820
 
 ### ⏸️ FASE 10 — Transaksi Etalase Filter — PENDING
 - [ ] Obat → hanya etalase 1 & 2
