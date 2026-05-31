@@ -12,6 +12,7 @@ class DbTables {
   static const sinkronisasiStok = 'sinkronisasi_stok';
   static const stockMovements = 'stock_movements';
   static const kasKeluar = 'kas_keluar';
+  static const printQueue = 'print_queue';
 }
 
 class DbColumns {
