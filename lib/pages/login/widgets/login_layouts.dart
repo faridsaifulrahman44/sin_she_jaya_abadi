@@ -30,122 +30,296 @@ class LoginMobileLayout extends StatelessWidget {
     final textSecondary = ctextSecondary(context);
     final textMuted = ctextMuted(context);
 
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 56),
-            const _LoginAppIcon(),
-            const SizedBox(height: 20),
-            _LoginAppTitle(
-              titleColor: textPrimary,
-              subtitleColor: textSecondary,
-            ),
-            const SizedBox(height: 40),
-            _LoginWelcomeText(
-              titleColor: textPrimary,
-              subtitleColor: textSecondary,
-            ),
-            const SizedBox(height: 24),
-            _LoginFieldLabel(label: 'Email'),
-            const SizedBox(height: 6),
-            _LoginTextField(
-              controller: emailController,
-              hint: 'username atau nama@email.com',
-              icon: AppLegacyIcons.mail,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-            ),
-            const SizedBox(height: 16),
-            _LoginFieldLabel(label: 'Password'),
-            const SizedBox(height: 6),
-            _LoginTextField(
-              controller: passwordController,
-              hint: 'Masukkan password',
-              icon: AppLegacyIcons.lock,
-              obscure: obscurePassword,
-              suffix: GestureDetector(
-                onTap: onTogglePassword,
-                child: Icon(
-                  obscurePassword
-                      ? AppLegacyIcons.visibilityOff
-                      : AppLegacyIcons.visibilityOn,
-                  color: textMuted,
-                  size: 20,
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          // ── Upper zone: gradient header with logo ──────────────────────────
+          Expanded(
+            flex: 55,
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0D1117), Color(0xFF1A2332)],
                 ),
               ),
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => onLogin(),
-            ),
-            const SizedBox(height: 32),
-            _LoginButton(
-              loading: loading,
-              onTap: onLogin,
-            ),
-            const SizedBox(height: 16),
-
-            // Lupa password
-            Center(
-              child: GestureDetector(
-                onTap: onForgotPassword,
-                child: Text(
-                  'Lupa password?',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: textPrimary.withValues(alpha: 0.70),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Info hubungi admin
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: textMuted.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: textMuted,
-                    size: 16,
+                  const SizedBox(height: 48),
+                  Image.asset(
+                    'assets/logo/logo_sinshe_login.png',
+                    height: 100,
+                    errorBuilder: (_, __, ___) => const SizedBox(height: 100),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Belum punya akun? Hubungi admin klinik untuk dibuatkan akun.',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: textMuted,
-                        fontWeight: FontWeight.w400,
-                        height: 1.4,
-                      ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'SinShe Jaya Abadi',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'System Manajemen Klinik Herbal',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withAlpha(127),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            const Spacer(),
-            Center(
-              child: Text(
-                '(c) 2026 Klinik App',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: textMuted,
-                  fontWeight: FontWeight.w500,
+          ),
+
+          // ── Lower zone: white form card ────────────────────────────────────
+          Expanded(
+            flex: 45,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(32),
+                  topRight: Radius.circular(32),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(31),
+                    blurRadius: 24,
+                    offset: const Offset(0, -8),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Welcome text
+                    Text(
+                      'Selamat Datang',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: textPrimary,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Masuk untuk melanjutkan',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Email label
+                    Text(
+                      'Email',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Email field — bordered style
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          hintText: 'username atau nama@email.com',
+                          hintStyle: TextStyle(color: textMuted, fontSize: 14),
+                          prefixIcon: Icon(AppLegacyIcons.mail, color: textMuted, size: 20),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF00897B), width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password label
+                    Text(
+                      'Password',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Password field — bordered style
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextField(
+                        controller: passwordController,
+                        obscureText: obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => onLogin(),
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan password',
+                          hintStyle: TextStyle(color: textMuted, fontSize: 14),
+                          prefixIcon: Icon(AppLegacyIcons.lock, color: textMuted, size: 20),
+                          suffixIcon: GestureDetector(
+                            onTap: onTogglePassword,
+                            child: Icon(
+                              obscurePassword ? AppLegacyIcons.visibilityOff : AppLegacyIcons.visibilityOn,
+                              color: textMuted,
+                              size: 20,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFF00897B), width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Login button — teal
+                    Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00897B),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00897B).withAlpha(77),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: loading ? null : onLogin,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Center(
+                            child: loading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(AppSymbols.login, color: Colors.white, size: 20),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Masuk',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Lupa password
+                    Center(
+                      child: GestureDetector(
+                        onTap: onForgotPassword,
+                        child: Text(
+                          'Lupa password?',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: textPrimary.withAlpha(179),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Info hubungi admin
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: textMuted.withAlpha(15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded, color: textMuted, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Belum punya akun? Hubungi admin klinik untuk dibuatkan akun.',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: textMuted,
+                                fontWeight: FontWeight.w400,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Copyright
+                    Center(
+                      child: Text(
+                        '© 2026 SinShe Jaya Abadi',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: textMuted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -318,7 +492,7 @@ class LoginDesktopLayout extends StatelessWidget {
                       const SizedBox(height: 16),
                       Center(
                         child: Text(
-                          '(c) 2026 Klinik App - All rights reserved',
+                          '(c) 2026 SinShe Jaya Abadi - All rights reserved',
                           style: TextStyle(
                             fontSize: 11,
                             color: textMuted,
@@ -364,7 +538,7 @@ class _DesktopBrandingSection extends StatelessWidget {
           _BrandingIconBadge(),
           SizedBox(height: 20),
           Text(
-            'Klinik App',
+            'SinShe Jaya Abadi',
             style: TextStyle(
               fontSize: 38,
               fontWeight: FontWeight.w800,
@@ -421,7 +595,7 @@ class _BrandingSubtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'System Manajemen Klinik',
+      'System Manajemen SinShe Jaya Abadi',
       style: TextStyle(
         fontSize: 15,
         color: Colors.white.withValues(alpha: 0.75),
@@ -490,73 +664,6 @@ class _FeaturePill extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _LoginAppIcon extends StatelessWidget {
-  const _LoginAppIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    final navyColor = cnavy(context);
-    return Center(
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          color: navyColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: navyColor.withValues(alpha: 0.25),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Icon(
-          AppLegacyIcons.klinik,
-          color: Colors.white,
-          size: 36,
-        ),
-      ),
-    );
-  }
-}
-
-class _LoginAppTitle extends StatelessWidget {
-  const _LoginAppTitle({
-    required this.titleColor,
-    required this.subtitleColor,
-  });
-
-  final Color titleColor;
-  final Color subtitleColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          'Klinik App',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: titleColor,
-            letterSpacing: -0.4,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'System Manajemen Klinik',
-          style: TextStyle(
-            fontSize: 13,
-            color: subtitleColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 }
