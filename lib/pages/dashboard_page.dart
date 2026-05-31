@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../app.dart';
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_legacy_icons.dart';
@@ -52,7 +53,7 @@ class DashboardSummaryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
         boxShadow: [
           BoxShadow(
@@ -64,7 +65,7 @@ class DashboardSummaryCard extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: loading
           ? _buildLoading()
           : Column(
