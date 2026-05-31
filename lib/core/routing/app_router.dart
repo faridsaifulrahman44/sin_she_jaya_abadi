@@ -4,6 +4,7 @@ import '../../pages/dashboard_page.dart';
 import '../../pages/kehadiran_page.dart';
 import '../../pages/login_page.dart';
 import '../../pages/pasien_page.dart';
+import '../../pages/print_queue_page.dart';
 import '../../pages/startup_page.dart';
 import '../../pages/stok_alert_page.dart';
 import '../../pages/transaksi_hub_page.dart';
@@ -55,6 +56,11 @@ class AppRouter {
           path: StokAlertPage.routeName,
           name: 'stok-alert',
           builder: (context, state) => const StokAlertPage(),
+        ),
+        GoRoute(
+          path: PrintQueuePage.routeName,
+          name: 'print-queue',
+          builder: (context, state) => const PrintQueuePage(),
         ),
       ],
     );

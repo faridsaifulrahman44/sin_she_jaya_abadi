@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:klinik_mobile_app/core/auth/admin_session.dart';
-import 'package:klinik_mobile_app/core/services/receipt_printer_service.dart';
-import 'package:klinik_mobile_app/core/theme/app_theme.dart';
-import 'package:klinik_mobile_app/core/utils/formatters.dart';
-import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
-import 'package:klinik_mobile_app/data/repositories/transaksi_repository.dart';
-import 'package:klinik_mobile_app/pages/transaksi/widgets/transaction_receipt_view.dart';
+import '../../core/auth/admin_session.dart';
+import '../../core/services/receipt_printer_service.dart';
+import '../../core/services/receipt_printer_types.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/formatters.dart';
+import '../../data/models/transaksi_model.dart';
+import '../../data/repositories/print_queue_repository.dart';
+import '../../data/repositories/transaksi_repository.dart';
+import 'widgets/transaction_receipt_view.dart';
 
 /// Halaman preview struk pembayaran.
 class StrukPembayaranPage extends StatefulWidget {
@@ -35,6 +37,7 @@ class StrukPembayaranPage extends StatefulWidget {
 class _StrukPembayaranPageState extends State<StrukPembayaranPage> {
   final _repository = TransaksiRepository();
   final _printerService = ReceiptPrinterService();
+  final _printQueueRepo = PrintQueueRepository();
   TransaksiModel? _transaksi;
   List<TransaksiItemModel> _items = [];
   bool _loading = true;
@@ -299,6 +302,15 @@ class _StrukPembayaranPageState extends State<StrukPembayaranPage> {
             backgroundColor: csuccess(context),
           ),
         );
+      }
+
+      // Log to print queue
+      try {
+        await _printQueueRepo.enqueue(
+          idTransaksi: transaksi.idTransaksi,
+        );
+      } catch (_) {
+        // Gagal log print queue tidak boleh block flow
       }
     } on ReceiptPrinterException catch (e) {
       if (mounted) {

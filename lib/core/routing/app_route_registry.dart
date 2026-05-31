@@ -25,6 +25,7 @@ import '../../pages/obat_page.dart';
 import '../../pages/pasien_detail_page.dart';
 import '../../pages/pasien_form_page.dart';
 import '../../pages/pasien_page.dart';
+import '../../pages/print_queue_page.dart';
 import '../../pages/reset_password_page.dart';
 import '../../pages/riwayat_transaksi_page.dart';
 import '../../pages/sinkronisasi_stok_form_page.dart';
@@ -81,6 +82,7 @@ Map<String, WidgetBuilder> buildLegacyRoutes() {
     LaporanPage.routeName: (_) => const LaporanPage(),
     TransaksiHubPage.routeName: (_) => const TransaksiHubPage(),
     TransaksiFormPage.routeName: (_) => const TransaksiFormPage(),
+    PrintQueuePage.routeName: (_) => const PrintQueuePage(),
     StokAlertPage.routeName: (_) => const StokAlertPage(),
   };
 }

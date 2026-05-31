@@ -17,16 +17,13 @@ class PrintQueueRepository {
   /// Insert a new print job into the queue.
   ///
   /// [idTransaksi]  — ID transaksi yang akan dicetak.
-  /// [createdBy]    — ID admin yang memicu print.
   /// [notes]        — Catatan opsional, mis. reason for retry.
   Future<void> enqueue({
     required int idTransaksi,
-    required int createdBy,
     String? notes,
   }) async {
     await _client.from(DbTables.printQueue).insert({
       'id_transaksi': idTransaksi,
-      'created_by': createdBy,
       if (notes != null) 'notes': notes,
     });
   }
