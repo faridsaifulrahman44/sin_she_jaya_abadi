@@ -5,7 +5,7 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 31 Mei 2026 — Fase 6 (Login Page Redesign) SELESAI ✅
+- **Terakhir dikerjakan:** 31 Mei 2026 — Fase 7 (Receipt BW Design) SELESAI ✅
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -39,10 +39,12 @@
 - [x] Bordered inputs (#E2E8F0, focus teal #00897B)
 - [x] Teal button full-width (#00897B)
 
-### ⏸️ FASE 7 — Receipt BW Design — PENDING
-- [ ] Refactor `receipt_printer_service.dart` → hitam putih
-- [ ] Font monospace
-- [ ] Preview page update
+### ✅ FASE 7 — Receipt BW Design — SELESAI
+- [x] Hapus `image` package + `buildReceiptBytesWithLogo` dari `receipt_printer_service.dart`
+- [x] `buildReceiptBytes` tetap — plain text thermal receipt, no logo
+- [x] `ReceiptPrinterService` tetap hitam-putih (B&W) — logo methods dihapus
+- [x] `stok_alert_page.dart` → `ReceiptPrinterServiceBW` untuk struk stok alert
+- [x] `ReceiptPrinterServiceBW` dipakai untuk semua receipt printing
 
 ### ⏸️ FASE 8 — Laporan Owner (Harian/Bulanan/Tahunan) — PENDING
 - [ ] Tab 3-tab di LaporanPage

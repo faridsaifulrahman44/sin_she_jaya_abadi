@@ -1,46 +1,13 @@
-import 'dart:async';
-
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:klinik_mobile_app/core/utils/formatters.dart';
-import 'package:klinik_mobile_app/data/models/stok_alert_item.dart';
-import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
+import '../utils/formatters.dart';
+import '../../data/models/stok_alert_item.dart';
+import '../../data/models/transaksi_model.dart';
 
-class ReceiptPrinterDevice {
-  const ReceiptPrinterDevice({
-    required this.name,
-    required this.macAddress,
-  });
-
-  final String name;
-  final String macAddress;
-
-  factory ReceiptPrinterDevice.fromBluetoothInfo(BluetoothInfo info) {
-    return ReceiptPrinterDevice(
-      name: info.name.trim().isEmpty ? 'Printer Bluetooth' : info.name.trim(),
-      macAddress: info.macAdress.trim(),
-    );
-  }
-
-  bool hasSameAddress(ReceiptPrinterDevice other) =>
-      macAddress.toLowerCase() == other.macAddress.toLowerCase();
-}
-
-class ReceiptPrinterException implements Exception {
-  const ReceiptPrinterException(
-    this.message, {
-    this.canOpenSettings = false,
-  });
-
-  final String message;
-  final bool canOpenSettings;
-
-  @override
-  String toString() => message;
-}
+import 'receipt_printer_types.dart' show ReceiptPrinterDevice, ReceiptPrinterException;
 
 class ReceiptPrinterService {
   static const int _lineWidth = 32;
@@ -56,7 +23,10 @@ class ReceiptPrinterService {
       );
       return devices
           .where((device) => device.macAdress.trim().isNotEmpty)
-          .map(ReceiptPrinterDevice.fromBluetoothInfo)
+          .map((device) => ReceiptPrinterDevice(
+                name: device.name.trim().isNotEmpty ? device.name.trim() : 'Printer',
+                macAddress: device.macAdress.trim(),
+              ))
           .toList();
     } catch (e) {
       throw ReceiptPrinterException(
@@ -214,7 +184,7 @@ class ReceiptPrinterService {
     final lines = <String>[];
 
     lines.add(_centerLine('=== STOK ALERT ==='));
-    lines.add(_centerLine('Klinik Sin She Jaya Abadi'));
+    lines.add(_centerLine('SinShe Jaya Abadi'));
     lines.add(_centerLine(tanggal));
     lines.add('');
 
@@ -465,6 +435,7 @@ class ReceiptPrinterService {
     final minute = value.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
+
 }
 
 class _ReceiptLine {

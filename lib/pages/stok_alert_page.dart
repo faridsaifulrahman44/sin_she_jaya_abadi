@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/error/app_error_mapper.dart';
-import '../core/services/receipt_printer_service.dart';
+import '../core/services/receipt_printer_service_bw.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
@@ -104,7 +104,7 @@ class _StokAlertPageState extends State<StokAlertPage> {
 
     try {
       final receiptText =
-          await ReceiptPrinterService().buildStokAlertReceipt(_summary!);
+          await ReceiptPrinterServiceBW().buildStokAlertReceiptBW(_summary!);
       if (!mounted) return;
       showModernSnackBar(
         context,
@@ -170,7 +170,7 @@ class _StokAlertPageState extends State<StokAlertPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Klinik Sin She Jaya Abadi',
+                              'SinShe Jaya Abadi',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: textOnPrimary.withValues(alpha: 0.72),
