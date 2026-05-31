@@ -38,6 +38,7 @@
 - [x] White bottom sheet card (border-radius: 32px)
 - [x] Bordered inputs (#E2E8F0, focus teal #00897B)
 - [x] Teal button full-width (#00897B)
+- [x] Commit: d44191b
 
 ### ✅ FASE 7 — Receipt BW Design — SELESAI
 - [x] Hapus `image` package + `buildReceiptBytesWithLogo` dari `receipt_printer_service.dart`
