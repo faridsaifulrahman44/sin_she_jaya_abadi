@@ -69,6 +69,28 @@ class ObatRepository extends BaseRepository {
   Future<List<ObatModel>> getLowStock({int limit = 10}) =>
       getStokMenipis(limit: limit);
 
+  /// Ambil obat yang DISPLAY saja (etalase 1 & 2 = Obat tab, etalase 3 = Praktek tab).
+  /// Parameter [etalases] = null berarti tampilkan semua.
+  /// Digunakan di TransaksiFormPage untuk memfilter berdasarkan tab aktif.
+  Future<List<ObatModel>> getObatsByEtalase({List<Etalase>? etalases}) {
+    return guard(() async {
+      final response = await _client
+          .from('obat')
+          .select()
+          .order('nama_obat', ascending: true);
+
+      final allObat = List<Map<String, dynamic>>.from(response)
+          .map(ObatModel.fromMap)
+          .toList();
+
+      if (etalases == null || etalases.isEmpty) {
+        return allObat;
+      }
+
+      return allObat.where((o) => etalases.contains(o.etalase)).toList();
+    });
+  }
+
   /// Meminta DB menghitung ulang stok untuk 1 obat.
   ///
   /// Source of truth stok ada di SQL function:

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:klinik_mobile_app/core/theme/app_theme.dart';
-import 'package:klinik_mobile_app/core/utils/formatters.dart';
-import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../data/models/transaksi_model.dart';
 
 /// Widget reusable untuk menampilkan struk pembayaran.
 class TransactionReceiptView extends StatelessWidget {
@@ -67,6 +67,14 @@ class TransactionReceiptView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Logo klinik — tampil di preview dan hasil cetak
+        Image(
+          image: const AssetImage('assets/logo/logo_sinshe.png'),
+          height: 64,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 8),
         Text(
           'Sin She Jaya Abadi',
           style: TextStyle(

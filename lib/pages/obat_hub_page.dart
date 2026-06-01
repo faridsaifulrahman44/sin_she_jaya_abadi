@@ -54,14 +54,6 @@ class _ObatHubPageState extends State<ObatHubPage>
     });
   }
 
-  void _goToKeteranganStok() {
-    if (!mounted || !_isOwner) return;
-    final targetIndex = 3; // "Keterangan Stok" is index 3 for owner
-    if (_tabController.length > targetIndex) {
-      _tabController.animateTo(targetIndex);
-    }
-  }
-
   @override
   void dispose() {
     _tabController.dispose();
@@ -248,69 +240,20 @@ class _KeteranganStokEmbedded extends StatefulWidget {
 class _KeteranganStokEmbeddedState extends State<_KeteranganStokEmbedded> {
   bool _loading = true;
   bool _isOwner = false;
-  String? _errorMessage;
-
-  // Inline the stok alert logic
-  bool _summaryLoaded = false;
-  Map<String, dynamic>? _summaryData;
 
   @override
   void initState() {
     super.initState();
-    _checkAndLoad();
+    _checkOwner();
   }
 
-  Future<void> _checkAndLoad() async {
+  Future<void> _checkOwner() async {
     final isOwner = await AdminSession.isOwner();
     if (!mounted) return;
-    setState(() => _isOwner = isOwner);
-    if (isOwner) {
-      await _loadStokAlert();
-    } else {
-      setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _loadStokAlert() async {
-    setState(() => _loading = true);
-    try {
-      final repo = ObatRepository();
-      final obatList = await repo.getObat();
-      final summary = buildStokAlertSummary(obatList);
-      if (!mounted) return;
-      setState(() {
-        _summaryData = {
-          'habis': summary.habis
-              .map((e) => {
-                    'nama': e.namaObat,
-                    'etalase': e.etalaseLabel,
-                    'stok': e.stokSaatIni,
-                  })
-              .toList(),
-          'menipis': summary.menipis
-              .map((e) => {
-                    'nama': e.namaObat,
-                    'etalase': e.etalaseLabel,
-                    'stok': e.stokSaatIni,
-                  })
-              .toList(),
-          'aman': summary.aman
-              .map((e) => {
-                    'nama': e.namaObat,
-                    'etalase': e.etalaseLabel,
-                    'stok': e.stokSaatIni,
-                  })
-              .toList(),
-        };
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = e.toString();
-        _loading = false;
-      });
-    }
+    setState(() {
+      _isOwner = isOwner;
+      _loading = false;
+    });
   }
 
   @override

@@ -16,7 +16,7 @@ class KlinikApp extends StatelessWidget {
       builder: (context, _) {
         final mode = ThemeServiceInstance.notifier.mode;
         return MaterialApp(
-          title: 'Klinik App',
+          title: 'SinShe Jaya Abadi',
           debugShowCheckedModeBanner: false,
           locale: const Locale('id', 'ID'),
           supportedLocales: const [

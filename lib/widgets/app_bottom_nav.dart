@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 /// Bottom navigation shell — 3 tab: Home, Obat, Transaksi.
 /// Digunakan di semua halaman utama sebagai pengganti drawer/tab lama.
@@ -15,13 +14,13 @@ class AppBottomNav extends StatelessWidget {
       onDestinationSelected: (index) {
         switch (index) {
           case 0:
-            context.go('/dashboard');
+            Navigator.pushReplacementNamed(context, '/dashboard');
             break;
           case 1:
-            context.go('/obat-hub');
+            Navigator.pushReplacementNamed(context, '/obat-hub');
             break;
           case 2:
-            context.go('/transaksi-hub');
+            Navigator.pushReplacementNamed(context, '/transaksi-hub');
             break;
         }
       },
