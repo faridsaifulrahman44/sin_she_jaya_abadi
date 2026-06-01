@@ -6,8 +6,10 @@ import '../../core/utils/formatters.dart';
 import '../../features/transaksi/dto/create_transaction_payload_dto.dart';
 import '../models/obat_model.dart';
 import '../models/pasien_model.dart';
+import '../models/top_obat_item.dart';
 import '../models/transaksi_model.dart';
 import 'base_repository.dart';
+import 'obat_repository.dart';
 
 class TransaksiRepository extends BaseRepository {
   TransaksiRepository({SupabaseClient? client}) : _client = client ?? SB.client;
@@ -314,4 +316,138 @@ class TransaksiRepository extends BaseRepository {
     final end = start.add(const Duration(days: 1));
     return getCountTransaksiByRange(start, end);
   }
+
+  /// Ambil top N obat yang paling banyak terjual dalam [days] hari terakhir.
+  ///
+  /// READ-ONLY — aman tanpa izin DB tambahan.
+  /// Hanya menghitung item dari transaksi yang completed (tanggal <= hari ini)
+  /// dan exclude transaksi Praktek (yang tidak punya id_obat).
+  ///
+  /// Return list diurutkan descending by [TopObatItem.jumlahTerjual].
+  /// Jika [obatLookup] diberikan, dipakai untuk resolve foto key/url.
+  Future<List<TopObatItem>> getTopObatByPeriod({
+    int days = 7,
+    int limit = 5,
+    List<ObatModel>? obatLookup,
+  }) async {
+    final allItems = await getAllTransaksiItems();
+    if (allItems.isEmpty) return const [];
+
+    final cutoff = DateTime.now().subtract(Duration(days: days));
+    final allTx = await getAllTransaksi();
+    final txById = {for (final t in allTx) t.idTransaksi: t};
+
+    // Index obat by id — supplied or fetched
+    final Map<int, ObatModel> obatById;
+    if (obatLookup != null) {
+      obatById = {for (final o in obatLookup) o.idObat: o};
+    } else {
+      // Lazy fetch via raw query — ringan karena tabel obat kecil
+      final obatRepo = ObatRepository(client: _client);
+      final listObat = await obatRepo.getObat();
+      obatById = {for (final o in listObat) o.idObat: o};
+    }
+
+    final grouped = <int, _TopObatAccumulator>{};
+    for (final item in allItems) {
+      final tx = txById[item.idObat == 0 ? 0 : item.idTransaksi];
+      if (tx == null) continue;
+      if (tx.tanggal.isBefore(cutoff)) continue;
+      if (item.jumlah <= 0) continue;
+
+      final existing = grouped[item.idObat];
+      if (existing != null) {
+        grouped[item.idObat] = _TopObatAccumulator(
+          namaObat: existing.namaObat,
+          fotoKey: existing.fotoKey,
+          fotoUpdatedAt: existing.fotoUpdatedAt,
+          fotoUrl: existing.fotoUrl,
+          jumlahTerjual: existing.jumlahTerjual + item.jumlah,
+          totalNominal: existing.totalNominal + item.subtotal,
+        );
+      } else {
+        final obat = obatById[item.idObat];
+        grouped[item.idObat] = _TopObatAccumulator(
+          namaObat: item.namaObat ?? obat?.namaObat ?? 'Obat #${item.idObat}',
+          fotoKey: obat?.fotoKey,
+          fotoUpdatedAt: obat?.fotoUpdatedAt,
+          fotoUrl: obat?.fotoUrl,
+          jumlahTerjual: item.jumlah,
+          totalNominal: item.subtotal,
+        );
+      }
+    }
+
+    final sorted = grouped.values.toList()
+      ..sort((a, b) => b.jumlahTerjual.compareTo(a.jumlahTerjual));
+
+    return sorted.take(limit).toList().asMap().entries.map((entry) {
+      final idx = entry.key;
+      final item = entry.value;
+      final rankType = idx == 0
+          ? 'gold'
+          : idx == 1
+              ? 'silver'
+              : idx == 2
+                  ? 'bronze'
+                  : 'plain';
+      return TopObatItem(
+        rank: idx + 1,
+        namaObat: item.namaObat,
+        jumlahTerjual: item.jumlahTerjual,
+        totalNominal: item.totalNominal,
+        rankType: rankType,
+        // Foto context — dipakai TopObatTile untuk render thumbnail
+        fotoKey: item.fotoKey,
+        fotoUpdatedAt: item.fotoUpdatedAt,
+        fotoUrl: item.fotoUrl,
+      );
+    }).toList();
+  }
+
+  /// Ambil total penjualan per hari untuk [days] hari terakhir.
+  /// READ-ONLY. Return map keyed by DateTime (midnight), value = total nominal.
+  /// Hari tanpa transaksi tetap ada di map dengan value 0.
+  Future<Map<DateTime, double>> getDailySalesByRange(int days) async {
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day)
+        .subtract(Duration(days: days - 1));
+    final end = DateTime(today.year, today.month, today.day)
+        .add(const Duration(days: 1));
+
+    final allTx = await getAllTransaksi();
+    final result = <DateTime, double>{};
+
+    // Seed semua hari dengan 0
+    for (int i = 0; i < days; i++) {
+      final d = start.add(Duration(days: i));
+      result[DateTime(d.year, d.month, d.day)] = 0.0;
+    }
+
+    for (final t in allTx) {
+      if (t.tanggal.isBefore(start) || !t.tanggal.isBefore(end)) continue;
+      final key = DateTime(t.tanggal.year, t.tanggal.month, t.tanggal.day);
+      result[key] = (result[key] ?? 0) + t.total;
+    }
+
+    return result;
+  }
+}
+
+/// Internal accumulator untuk getTopObatByPeriod — tidak di-expose.
+class _TopObatAccumulator {
+  _TopObatAccumulator({
+    required this.namaObat,
+    this.fotoKey,
+    this.fotoUpdatedAt,
+    this.fotoUrl,
+    required this.jumlahTerjual,
+    required this.totalNominal,
+  });
+  final String namaObat;
+  final String? fotoKey;
+  final DateTime? fotoUpdatedAt;
+  final String? fotoUrl;
+  final int jumlahTerjual;
+  final double totalNominal;
 }

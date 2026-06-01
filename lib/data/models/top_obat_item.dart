@@ -8,6 +8,9 @@ class TopObatItem {
     required this.jumlahTerjual,
     required this.totalNominal,
     required this.rankType,
+    this.fotoKey,
+    this.fotoUpdatedAt,
+    this.fotoUrl,
   });
 
   final int rank;
@@ -15,6 +18,12 @@ class TopObatItem {
   final int jumlahTerjual;
   final double totalNominal;
   final String rankType; // gold | silver | bronze | plain
+
+  /// Optional foto context — dipakai oleh TopObatTile untuk render thumbnail
+  /// via ObatFotoResolver.
+  final String? fotoKey;
+  final DateTime? fotoUpdatedAt;
+  final String? fotoUrl;
 
   String get formattedNominal => 'Rp${(totalNominal / 1000).toStringAsFixed(1)}rb';
 }
