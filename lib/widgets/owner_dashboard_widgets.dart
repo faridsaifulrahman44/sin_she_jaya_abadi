@@ -13,7 +13,6 @@ import '../data/models/obat_model.dart';
 import '../data/models/top_obat_item.dart';
 import '../data/repositories/obat_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
-import '../features/stok/stok_alert_logic.dart';
 
 // ============================================================================
 // F12.2 — Owner Dashboard Enhancement Widgets
@@ -36,14 +35,12 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
     required this.title,
     this.subtitle,
-    this.trailing,
     this.icon,
     this.iconColor,
   });
 
   final String title;
   final String? subtitle;
-  final Widget? trailing;
   final IconData? icon;
   final Color? iconColor;
 
@@ -98,7 +95,6 @@ class _SectionHeader extends StatelessWidget {
             ],
           ),
         ),
-        if (trailing != null) trailing!,
       ],
     );
   }
@@ -107,18 +103,9 @@ class _SectionHeader extends StatelessWidget {
 // ─── Shared: Card surface ──────────────────────────────────────────────────
 
 class _BentoCard extends StatelessWidget {
-  const _BentoCard({
-    required this.child,
-    this.padding = const EdgeInsets.fromLTRB(
-      AppSpacing.lg,
-      AppSpacing.lg,
-      AppSpacing.lg,
-      AppSpacing.lg,
-    ),
-  });
+  const _BentoCard({required this.child});
 
   final Widget child;
-  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +131,7 @@ class _BentoCard extends StatelessWidget {
           ),
         ],
       ),
-      padding: padding,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: child,
     );
   }

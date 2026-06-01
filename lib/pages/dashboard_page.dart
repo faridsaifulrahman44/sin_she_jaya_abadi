@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -12,13 +11,12 @@ import '../core/theme/app_theme.dart';
 import '../core/ui/app_legacy_icons.dart';
 import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
-import '../core/utils/obat_foto_resolver.dart';
-import '../data/models/obat_model.dart';
 import '../data/repositories/kehadiran_repository.dart';
 import '../data/repositories/obat_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
 import '../features/stok/stok_alert_logic.dart';
 import '../widgets/app_bottom_nav.dart';
+import '../widgets/owner_dashboard_widgets.dart';
 import 'laporan_page.dart';
 import 'login_page.dart';
 import 'obat_hub_page.dart';
@@ -587,17 +585,19 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  List<QuickActionItem> _buildQuickActions(BuildContext context, AdminRole role) {
-    final actions = <QuickActionItem>[
-      QuickActionItem(
+  List<QuickActionData> _buildQuickActions(BuildContext context, AdminRole role) {
+    final actions = <QuickActionData>[
+      QuickActionData(
+        title: 'Tambah Obat',
+        subtitle: 'Master & stok',
         icon: AppSymbols.pills,
-        label: 'Tambah Obat',
         color: cprimary(context),
         onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
       ),
-      QuickActionItem(
+      QuickActionData(
+        title: 'Input Transaksi',
+        subtitle: role.isOwner ? 'Obat & Praktek' : 'Transaksi baru',
         icon: AppSymbols.receipt,
-        label: 'Input Transaksi',
         color: cteal(context),
         onTap: () => Navigator.pushNamed(
           context,
@@ -607,19 +607,21 @@ class _DashboardPageState extends State<DashboardPage> {
     ];
     if (role.isOwner) {
       actions.add(
-        QuickActionItem(
+        QuickActionData(
+          title: 'Lihat Laporan',
+          subtitle: 'Harian / Bulanan / Tahunan',
           icon: AppSymbols.laporan,
-          label: 'Lihat Laporan',
           color: cindigo(context),
           onTap: () => Navigator.pushNamed(context, LaporanPage.routeName),
         ),
       );
       actions.add(
-        QuickActionItem(
+        QuickActionData(
+          title: 'Sinkronisasi Stok',
+          subtitle: 'Audit & koreksi',
           icon: AppSymbols.refresh,
-          label: 'Sinkronisasi Stok',
           color: cobatAmber(context),
-          onTap: () => Navigator.pushNamed(context, '/sinkronisasi-stok'),
+          onTap: () => Navigator.pushNamed(context, SinkronisasiStokPage.routeName),
         ),
       );
     }
@@ -774,13 +776,36 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'SinShe Jaya Abadi',
+                              'Klinik Sin She Jaya Abadi',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: textOnPrimary.withValues(alpha: 0.72),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                            if (role.isOwner) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Laporan Hari Ini:  ',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: textOnPrimary.withValues(alpha: 0.65),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Penjualan : ${_loadingOwner ? '...' : rupiah(_omzetHariIni)}',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      color: textOnPrimary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -1141,928 +1166,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// ============================================================================
-// SALES CHART CARD — 7-day line chart (owner only)
-// ============================================================================
-class _SalesDataPoint {
-  const _SalesDataPoint(this.dayLabel, this.total);
-  final String dayLabel;
-  final double total;
-}
-
-class _SalesChartCard extends StatefulWidget {
-  const _SalesChartCard({super.key});
-
-  @override
-  State<_SalesChartCard> createState() => _SalesChartCardState();
-}
-
-class _SalesChartCardState extends State<_SalesChartCard> {
-  late Future<List<_SalesDataPoint>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<List<_SalesDataPoint>> _load() async {
-    final repo = TransaksiRepository();
-    final raw = await repo.getDailySalesLast7Days();
-    // Build 7-day window ending today
-    final today = DateTime.now();
-    final List<_SalesDataPoint> result = [];
-    for (int i = 6; i >= 0; i--) {
-      final d = DateTime(today.year, today.month, today.day).subtract(Duration(days: i));
-      final key = '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-      final value = raw[key] ?? 0.0;
-      result.add(_SalesDataPoint(_dayLabel(d), value));
-    }
-    return result;
-  }
-
-  String _dayLabel(DateTime d) {
-    const names = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    return '${names[d.weekday % 7]} ${d.day}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final borderColor = isDark ? DarkColors.borderActive : LightColors.divider;
-    final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
-    final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
-    final accent = cprimary(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.trending_up_rounded, color: accent, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Penjualan 7 Hari',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 160,
-            child: FutureBuilder<List<_SalesDataPoint>>(
-              future: _future,
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.4,
-                        color: accent,
-                      ),
-                    ),
-                  );
-                }
-                if (snap.hasError) {
-                  return Center(
-                    child: Text(
-                      'Gagal memuat chart',
-                      style: TextStyle(fontSize: 12, color: textSecondary),
-                    ),
-                  );
-                }
-                final data = snap.data ?? const [];
-                return _buildChart(context, data, accent, textPrimary, textSecondary, isDark);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChart(
-    BuildContext context,
-    List<_SalesDataPoint> data,
-    Color accent,
-    Color textPrimary,
-    Color textSecondary,
-    bool isDark,
-  ) {
-    if (data.isEmpty) {
-      return Center(
-        child: Text('Belum ada data', style: TextStyle(fontSize: 12, color: textSecondary)),
-      );
-    }
-    final maxY = data.map((d) => d.total).fold<double>(0, (a, b) => a > b ? a : b);
-    final chartMaxY = maxY == 0 ? 100000.0 : maxY * 1.2;
-    final spots = <FlSpot>[
-      for (int i = 0; i < data.length; i++) FlSpot(i.toDouble(), data[i].total),
-    ];
-    final gridColor = isDark
-        ? DarkColors.borderActive.withValues(alpha: 0.35)
-        : Colors.black.withValues(alpha: 0.06);
-    return LineChart(
-      LineChartData(
-        minY: 0,
-        maxY: chartMaxY,
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          getDrawingHorizontalLine: (_) => FlLine(color: gridColor, strokeWidth: 1),
-          horizontalInterval: chartMaxY / 3,
-        ),
-        titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 38,
-              interval: chartMaxY / 3,
-              getTitlesWidget: (value, meta) {
-                if (value == 0) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Text(
-                    _shortRupiah(value),
-                    style: TextStyle(fontSize: 9, color: textSecondary),
-                  ),
-                );
-              },
-            ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 22,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                final i = value.toInt();
-                if (i < 0 || i >= data.length) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    data[i].dayLabel,
-                    style: TextStyle(fontSize: 9, color: textSecondary),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => isDark
-                ? DarkColors.surfaceHigh
-                : Colors.white.withValues(alpha: 0.96),
-            tooltipRoundedRadius: 8,
-            getTooltipItems: (spots) {
-              return spots.map((spot) {
-                final idx = spot.x.toInt();
-                final label = idx >= 0 && idx < data.length ? data[idx].dayLabel : '';
-                return LineTooltipItem(
-                  '$label\n${rupiah(spot.y)}',
-                  TextStyle(
-                    color: textPrimary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                );
-              }).toList();
-            },
-          ),
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            curveSmoothness: 0.28,
-            color: accent,
-            barWidth: 2.5,
-            isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 3,
-                  color: accent,
-                  strokeColor: isDark ? DarkColors.card : Colors.white,
-                  strokeWidth: 1.5,
-                );
-              },
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  accent.withValues(alpha: 0.28),
-                  accent.withValues(alpha: 0.0),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _shortRupiah(double v) {
-    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}jt';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}rb';
-    return v.toStringAsFixed(0);
-  }
-}
-
-// ============================================================================
-// STOK KRITIS LIST — owner only
-// ============================================================================
-class _StokKritisCard extends StatefulWidget {
-  const _StokKritisCard({super.key});
-
-  @override
-  State<_StokKritisCard> createState() => _StokKritisCardState();
-}
-
-class _StokKritisCardState extends State<_StokKritisCard> {
-  late Future<List<ObatModel>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<List<ObatModel>> _load() async {
-    final repo = ObatRepository();
-    return repo.getStokMenipis(limit: 5);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final borderColor = isDark ? DarkColors.borderActive : LightColors.divider;
-    final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
-    final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
-    final accent = cdanger(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: accent, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Stok Kritis',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          FutureBuilder<List<ObatModel>>(
-            future: _future,
-            builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: accent,
-                      ),
-                    ),
-                  ),
-                );
-              }
-              if (snap.hasError) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Gagal memuat stok',
-                    style: TextStyle(fontSize: 12, color: textSecondary),
-                  ),
-                );
-              }
-              final data = snap.data ?? const <ObatModel>[];
-              if (data.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle_outline, color: csuccess(context), size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Tidak ada stok kritis',
-                        style: TextStyle(fontSize: 12.5, color: textSecondary),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (int i = 0; i < data.length; i++) ...[
-                    if (i > 0)
-                      Divider(
-                        height: 1,
-                        color: borderColor.withValues(alpha: 0.35),
-                      ),
-                    _StokKritisRow(obat: data[i]),
-                  ],
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StokKritisRow extends StatelessWidget {
-  const _StokKritisRow({required this.obat});
-  final ObatModel obat;
-
-  Color _statusColor(BuildContext context) {
-    if (obat.stok <= 0) return cdanger(context);
-    if (obat.stok <= (obat.stokMinimum / 2).ceil()) return cdanger(context);
-    return cwarning(context);
-  }
-
-  String _statusLabel() {
-    if (obat.stok <= 0) return 'Habis';
-    return 'Menipis';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
-    final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
-    final statusColor = _statusColor(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.medication_outlined,
-                color: statusColor,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  obat.nama,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Stok ${obat.stok}  ·  Min ${obat.stokMinimum}',
-                  style: TextStyle(fontSize: 11, color: textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: statusColor,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              _statusLabel(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// TOP 5 OBAT — owner only
-// ============================================================================
-class _TopObatCard extends StatefulWidget {
-  const _TopObatCard({super.key});
-
-  @override
-  State<_TopObatCard> createState() => _TopObatCardState();
-}
-
-class _TopObatCardState extends State<_TopObatCard> {
-  late Future<List<TopObatItem>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<List<TopObatItem>> _load() async {
-    final repo = TransaksiRepository();
-    return repo.getTopObatByPeriod(days: 7, limit: 5);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final borderColor = isDark ? DarkColors.borderActive : LightColors.divider;
-    final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
-    final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
-    final accent = cobatAmber(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.star_rounded, color: accent, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Top 5 Obat · 7 Hari',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          FutureBuilder<List<TopObatItem>>(
-            future: _future,
-            builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: accent,
-                      ),
-                    ),
-                  ),
-                );
-              }
-              if (snap.hasError) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    'Gagal memuat data',
-                    style: TextStyle(fontSize: 12, color: textSecondary),
-                  ),
-                );
-              }
-              final data = snap.data ?? const <TopObatItem>[];
-              if (data.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    'Belum ada penjualan minggu ini',
-                    style: TextStyle(fontSize: 12.5, color: textSecondary),
-                  ),
-                );
-              }
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (int i = 0; i < data.length; i++) ...[
-                    if (i > 0)
-                      Divider(
-                        height: 1,
-                        color: borderColor.withValues(alpha: 0.35),
-                      ),
-                    _TopObatRow(item: data[i], rank: i + 1),
-                  ],
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopObatRow extends StatelessWidget {
-  const _TopObatRow({required this.item, required this.rank});
-  final TopObatItem item;
-  final int rank;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
-    final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
-    final accent = cobatAmber(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          // Rank badge
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Center(
-              child: Text(
-                '$rank',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: accent,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Foto
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              width: 36,
-              height: 36,
-              child: _ObatThumb(fotoKey: item.fotoKey),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  item.nama,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${item.totalQty} terjual',
-                  style: TextStyle(fontSize: 11, color: textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            rupiah(item.totalNominal),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: textPrimary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ObatThumb extends StatelessWidget {
-  const _ObatThumb({required this.fotoKey});
-  final String? fotoKey;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final placeholderBg = isDark
-        ? DarkColors.surfaceHigh
-        : const Color(0xFFE2E8F0);
-    if (fotoKey == null || fotoKey!.isEmpty) {
-      return Container(
-        color: placeholderBg,
-        child: Icon(
-          Icons.medication_outlined,
-          size: 18,
-          color: isDark ? DarkColors.textSecondary : const Color(0xFF94A3B8),
-        ),
-      );
-    }
-    final url = ObatFotoResolver.resolveStorageUrl(fotoKey!);
-    if (url == null) {
-      return Container(
-        color: placeholderBg,
-        child: Icon(
-          Icons.medication_outlined,
-          size: 18,
-          color: isDark ? DarkColors.textSecondary : const Color(0xFF94A3B8),
-        ),
-      );
-    }
-    return Image.network(
-      url,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: placeholderBg,
-        child: Icon(
-          Icons.medication_outlined,
-          size: 18,
-          color: isDark ? DarkColors.textSecondary : const Color(0xFF94A3B8),
-        ),
-      ),
-      loadingBuilder: (context, child, progress) {
-        if (progress == null) return child;
-        return Container(color: placeholderBg);
-      },
-    );
-  }
-}
-
-// ============================================================================
-// QUICK ACTION CARD — tactile 2x2 grid (owner only)
-// ============================================================================
-class _QuickActionCard extends StatefulWidget {
-  const _QuickActionCard({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  State<_QuickActionCard> createState() => _QuickActionCardState();
-}
-
-class _QuickActionCardState extends State<_QuickActionCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 110),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-    );
-    _scale = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  void _pressDown() => _ctrl.forward();
-  void _pressUp() => _ctrl.reverse();
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final borderColor = isDark ? DarkColors.borderActive : LightColors.divider;
-
-    return GestureDetector(
-      onTapDown: (_) => _pressDown(),
-      onTapUp: (_) => _pressUp(),
-      onTapCancel: _pressUp,
-      onTap: widget.onTap,
-      child: ScaleTransition(
-        scale: _scale,
-        child: Container(
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: widget.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Icon(widget.icon, color: widget.color, size: 20),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
-                    height: 1.25,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActionGrid extends StatelessWidget {
-  const _QuickActionGrid({required this.role});
-  final AdminRole role;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
-
-    final actions = <Widget>[
-      _QuickActionCard(
-        label: 'Tambah Obat',
-        icon: Icons.add_box_outlined,
-        color: cprimary(context),
-        onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
-      ),
-      _QuickActionCard(
-        label: 'Input Transaksi',
-        icon: Icons.receipt_long_outlined,
-        color: cteal(context),
-        onTap: () => Navigator.pushNamed(context, TransaksiFormPage.routeName),
-      ),
-    ];
-
-    if (role.isOwner) {
-      actions.addAll([
-        _QuickActionCard(
-          label: 'Lihat Laporan',
-          icon: Icons.analytics_outlined,
-          color: cindigo(context),
-          onTap: () => Navigator.pushNamed(context, LaporanPage.routeName),
-        ),
-        _QuickActionCard(
-          label: 'Sinkronisasi Stok',
-          icon: Icons.sync_outlined,
-          color: cobatAmber(context),
-          onTap: () => Navigator.pushNamed(context, SinkronisasiStokPage.routeName),
-        ),
-      ]);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Aksi Cepat',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: textPrimary,
-          ),
-        ),
-        const SizedBox(height: 10),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 2.6,
-          children: actions,
-        ),
-      ],
-    );
-  }
-}
+// NOTE: Owner-only widget implementations (SalesChart7dCard, StokKritisCard,
+// TopObat7dCard, QuickActionGrid) live in:
+//   lib/widgets/owner_dashboard_widgets.dart
+// They are imported and instantiated from the build() method of DashboardPage.
