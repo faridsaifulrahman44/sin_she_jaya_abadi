@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
@@ -203,7 +204,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
           if (snapshot.hasError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Text(
                   AppErrorMapper.toMessage(
                     snapshot.error!,
@@ -226,7 +227,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
