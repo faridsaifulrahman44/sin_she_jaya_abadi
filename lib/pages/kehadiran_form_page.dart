@@ -12,6 +12,7 @@ import '../data/models/kehadiran_model.dart';
 import '../data/models/pasien_model.dart';
 import '../data/repositories/kehadiran_repository.dart';
 import '../data/repositories/pasien_repository.dart';
+import '../core/design_system/app_tokens.dart';
 import '../widgets/page_header.dart';
 
 class KehadiranFormPage extends StatefulWidget {
@@ -116,7 +117,7 @@ class _KehadiranFormPageState extends State<KehadiranFormPage> {
     return Scaffold(
       appBar: AppBar(),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
