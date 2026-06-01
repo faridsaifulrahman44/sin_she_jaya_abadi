@@ -224,7 +224,7 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: ModernSearchBar(
                   controller: _searchController,
                   hintText: 'Cari tanggal atau alasan...',
@@ -285,7 +285,7 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
                             onRefresh: _reload,
                             color: cteal(context),
                             child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(AppSpacing.lg),
                               itemCount: items.length,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 10),
@@ -322,7 +322,7 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
 
   Widget _buildLoading() {
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: 5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const SkeletonListCard(),
@@ -352,7 +352,7 @@ class _SinkronisasiStokCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: ccardBg(context),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -365,7 +365,7 @@ class _SinkronisasiStokCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -374,7 +374,7 @@ class _SinkronisasiStokCard extends StatelessWidget {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: cteal(context).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(
                     AppSymbols.refresh,
@@ -447,7 +447,7 @@ class _SinkronisasiStokCard extends StatelessWidget {
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: selisihColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Text(
                         selisihLabel,
