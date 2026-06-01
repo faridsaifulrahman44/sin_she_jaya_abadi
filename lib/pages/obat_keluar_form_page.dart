@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
@@ -244,7 +245,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
             obatList: obatList,
           );
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
@@ -359,10 +360,10 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
 
                   if (_entries.isEmpty)
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
                         color: ccardBg(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Text(
                         'Tekan "Tambah Item" untuk menambah obat.',
@@ -415,7 +416,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: cwarning(context).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       border: Border.all(
                         color: cwarning(context).withValues(alpha: 0.3),
                       ),
