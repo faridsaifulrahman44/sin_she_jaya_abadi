@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
@@ -57,7 +58,7 @@ class _ObatKeluarTanggalFormPageState extends State<ObatKeluarTanggalFormPage> {
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Form(
           key: _formKey,
           child: Column(
