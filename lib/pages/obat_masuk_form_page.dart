@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
@@ -152,7 +153,7 @@ class _ObatMasukFormPageState extends State<ObatMasukFormPage> {
           if (snapshot.hasError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Text(AppErrorMapper.toMessage(
                   snapshot.error!,
                   snapshot.stackTrace,
@@ -172,7 +173,7 @@ class _ObatMasukFormPageState extends State<ObatMasukFormPage> {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
