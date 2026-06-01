@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/services/receipt_printer_service_bw.dart';
 import '../core/theme/app_theme.dart';
@@ -249,7 +250,7 @@ class _StokAlertPageState extends State<StokAlertPage> {
   Widget _buildError() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -307,7 +308,7 @@ class _StokAlertPageState extends State<StokAlertPage> {
     final summary = _summary!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -352,7 +353,7 @@ class _StokAlertPageState extends State<StokAlertPage> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
@@ -373,7 +374,7 @@ class _StokAlertPageState extends State<StokAlertPage> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           child: Text(
             '$count',
@@ -407,7 +408,7 @@ class _StokAlertSummaryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
         boxShadow: [
           BoxShadow(
@@ -419,7 +420,7 @@ class _StokAlertSummaryCard extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
           Expanded(
@@ -542,7 +543,7 @@ class _ObatAlertCard extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               item.stokSaatIni == 0 ? AppSymbols.error : AppSymbols.warning,
