@@ -1,6 +1,8 @@
 import 'package:csv/csv.dart';
+import '../../data/models/sinkronisasi_stok_model.dart';
 import '../../data/models/transaksi_model.dart';
 import '../../features/laporan/laporan_summary.dart';
+import 'formatters.dart';
 
 /// Exports laporan data to CSV format.
 class CsvExporter {
@@ -84,6 +86,50 @@ class CsvExporter {
           count.toString(),
           nominalObat.toStringAsFixed(0),
           nominalPraktek.toStringAsFixed(0),
+        ];
+      }),
+    ];
+    return const ListToCsvConverter().convert(rows);
+  }
+
+  /// F12.4 — Export sinkronisasi_stok audit log to CSV.
+  /// [obatNameById] / [adminNameById] are optional lookup maps for human-readable
+  /// names; falls back to the raw id when missing.
+  static String exportSinkronisasiAuditLog(
+    List<SinkronisasiStokModel> items, {
+    Map<int, String>? obatNameById,
+    Map<int, String>? adminNameById,
+  }) {
+    String resolveName(int id, Map<int, String>? map) {
+      final v = map?[id];
+      if (v == null || v.isEmpty) return '#$id';
+      return v;
+    }
+
+    final rows = <List<dynamic>>[
+      [
+        'Tanggal',
+        'Obat',
+        'Stok Sistem',
+        'Stok Fisik',
+        'Selisih',
+        'Status',
+        'Alasan',
+        'Admin',
+      ],
+      ...items.map((e) {
+        final status = e.isBalanced
+            ? 'Sesuai'
+            : (e.isOverStock ? 'Lebih ${e.selisih}' : 'Kurang ${e.selisih.abs()}');
+        return [
+          asDate(e.tanggalOpname),
+          resolveName(e.idObat, obatNameById),
+          e.stokSistem,
+          e.stokFisik,
+          e.selisih,
+          status,
+          e.alasanPenyesuaian ?? '',
+          resolveName(e.idAdmin, adminNameById),
         ];
       }),
     ];

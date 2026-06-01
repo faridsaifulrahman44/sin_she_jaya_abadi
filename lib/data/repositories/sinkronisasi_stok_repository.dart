@@ -39,6 +39,23 @@ class SinkronisasiStokRepository extends BaseRepository {
     });
   }
 
+  /// F12.4 — fetch only the most recent N opname entries for the audit log widget.
+  /// Lightweight read; does not modify state.
+  Future<List<SinkronisasiStokModel>> getRecentSinkronisasiStok({int limit = 8}) {
+    return guard(() async {
+      final response = await _client
+          .from(tableName)
+          .select()
+          .order('tanggal_opname', ascending: false)
+          .order('id_opname', ascending: false)
+          .limit(limit);
+
+      return List<Map<String, dynamic>>.from(response)
+          .map(SinkronisasiStokModel.fromMap)
+          .toList();
+    });
+  }
+
   Future<List<SinkronisasiStokModel>> getSinkronisasiStokByRange(
     DateTime startDate,
     DateTime endDate,

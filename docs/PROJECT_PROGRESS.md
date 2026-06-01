@@ -5,8 +5,8 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 1 Juni 2026 10:25 AM — F9 + F10 + F11 selesai paralel
-- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated di TransaksiHubPage, currentIndex konsisten 0/1/2) ✅. 194 tests passed.
+- **Terakhir dikerjakan:** 1 Juni 2026 11:25 AM — F12.4 Sinkronisasi Stok Enhancement selesai
+- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated di TransaksiHubPage, currentIndex konsisten 0/1/2) ✅. F12.4 (audit log widget + 3-tier diff + CSV export, owner-only) ✅. 207 tests passed.
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -80,6 +80,28 @@
 - [x] `riwayat_transaksi_page.dart` — `AppBottomNav(currentIndex: 2)` (bagian domain Transaksi)
 - [x] Konvensi currentIndex konsisten: Dashboard=0, Obat=1, Transaksi=2
 - [x] Akun tetap hidden (tidak ada bottom nav)
+
+### ✅ FASE 12.3 — Foto Obat Upload Flow — SERVICE LAYER SELESAI (2026-06-01)
+- [x] `lib/core/services/foto_obat_upload_service.dart` — created (compress, upload, path-build)
+- [x] `lib/data/repositories/obat_repository.dart` — `updateFotoKey()` method added (slim, hanya foto_key + foto_updated_at)
+- [x] `lib/pages/obat_form_page.dart` — refactored: pakai service, hapus duplicate compression/path-build code
+- [x] Path normalization: `etalase1` → `etalase-1` (sinkron dengan DB rows existing)
+- [x] Lazy Supabase client init di service — test bisa jalan tanpa `Supabase.instance` di-init
+- [x] Tests: 13 passed (path build, slugify, validation)
+- [ ] **PENDING — HARD GATE**: Verifikasi end-to-end (Storage upload + DB UPDATE) menunggu konfirmasi user
+  - Target test: id_obat=92 (Sanjin Tablets) atau id_obat=93 — semua sudah punya `foto_key` lama, akan overwrite via upsert
+
+### ✅ FASE 12.4 — Sinkronisasi Stok Enhancement — SELESAI (2026-06-01)
+- [x] `lib/data/repositories/sinkronisasi_stok_repository.dart` — `getRecentSinkronisasiStok(limit)` method (read-only, 6-8 entri terakhir)
+- [x] `lib/core/utils/csv_exporter.dart` — `exportSinkronisasiAuditLog()` method (Tanggal, Obat, Sistem, Fisik, Selisih, Status, Alasan, Admin)
+- [x] `lib/pages/sinkronisasi_stok/widgets/sinkronisasi_audit_log_card.dart` — widget baru (owner-only): 6 entri opname terakhir dengan nama obat + admin
+- [x] `lib/pages/sinkronisasi_stok_page.dart` — owner-only audit log card di bawah search bar; AppBar action CSV export (owner-only)
+- [x] Visual diff 3-tier: 0 (secondary) / ±1-2 (warning amber) / >2 (positive green untuk lebih, danger red untuk kurang)
+- [x] Main list card: tampilkan `nama_obat` (resolved via lazy `ObatRepository.getObat()` lookup) — fallback ke "Obat #ID" bila gagal
+- [x] `AppColors.warning/positive` + `AppSpacing/AppRadius/AppTextStyles` design tokens dipakai
+- [x] AdminSession.isOwner() gating — admin/petugas tidak melihat audit log & export action
+- [x] Tests: 207 passed (tidak ada regression)
+- [x] flutter analyze: 0 new issues (pre-existing dashboard/owner_dashboard warnings tidak terkait)
 
 ---
 
