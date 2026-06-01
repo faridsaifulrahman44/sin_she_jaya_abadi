@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 import '../data/models/print_queue_model.dart';
 import '../data/repositories/print_queue_repository.dart';
@@ -116,7 +117,7 @@ class _PrintQueuePageState extends State<PrintQueuePage> {
   Widget _buildError(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -185,7 +186,7 @@ class _QueueCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: ccardBg(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -195,7 +196,7 @@ class _QueueCard extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -320,7 +321,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Text(
         status.label,
