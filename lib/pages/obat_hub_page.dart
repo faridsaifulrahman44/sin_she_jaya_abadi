@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/design_system/emil_design.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
@@ -123,7 +124,7 @@ class _ObatHubPageState extends State<ObatHubPage>
                           child: AnimatedContainer(
                             duration: duration,
                             curve: EmilDesign.toggle,
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(AppSpacing.sm),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
@@ -158,7 +159,7 @@ class _ObatHubPageState extends State<ObatHubPage>
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOutCubic,
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(AppSpacing.sm),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
@@ -280,10 +281,10 @@ class _KeteranganStokEmbeddedState extends State<_KeteranganStokEmbedded> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: cwarning(context).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child: Icon(
                 AppSymbols.lock,
@@ -455,16 +456,16 @@ class _StokAlertBodyState extends State<_StokAlertBody> {
     final aman = summary['aman'] as List? ?? [];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Summary card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
                   color: borderColor.withValues(alpha: 0.5), width: 1),
               boxShadow: [
@@ -558,7 +559,7 @@ class _StokAlertBodyState extends State<_StokAlertBody> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           child: Text(
             '$count',
@@ -641,7 +642,7 @@ class _ObatAlertCard extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               stok == 0 ? AppSymbols.error : AppSymbols.warning,
