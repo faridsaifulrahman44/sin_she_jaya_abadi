@@ -81,15 +81,23 @@
 - [x] Konvensi currentIndex konsisten: Dashboard=0, Obat=1, Transaksi=2
 - [x] Akun tetap hidden (tidak ada bottom nav)
 
-### ✅ FASE 12.3 — Foto Obat Upload Flow — SERVICE LAYER SELESAI (2026-06-01)
+### ✅ FASE 12.3 — Foto Obat Upload Flow — SELESAI + HARD GATE PASS (2026-06-01)
 - [x] `lib/core/services/foto_obat_upload_service.dart` — created (compress, upload, path-build)
 - [x] `lib/data/repositories/obat_repository.dart` — `updateFotoKey()` method added (slim, hanya foto_key + foto_updated_at)
 - [x] `lib/pages/obat_form_page.dart` — refactored: pakai service, hapus duplicate compression/path-build code
+- [x] `lib/pages/dashboard_page.dart` — pakai service untuk upload
+- [x] `lib/pages/obat_detail_page.dart` — pakai service untuk upload
+- [x] `lib/widgets/owner_dashboard_widgets.dart` — extracted dari dashboard_page
+- [x] `lib/core/ui/app_symbols.dart` — tambah icon baru (calendar, image, upload, dll)
 - [x] Path normalization: `etalase1` → `etalase-1` (sinkron dengan DB rows existing)
 - [x] Lazy Supabase client init di service — test bisa jalan tanpa `Supabase.instance` di-init
-- [x] Tests: 13 passed (path build, slugify, validation)
-- [ ] **PENDING — HARD GATE**: Verifikasi end-to-end (Storage upload + DB UPDATE) menunggu konfirmasi user
-  - Target test: id_obat=92 (Sanjin Tablets) atau id_obat=93 — semua sudah punya `foto_key` lama, akan overwrite via upsert
+- [x] Tests: 13/13 passed (path build, slugify, validation)
+- [x] **HARD GATE PASS — DB verification via MCP:** 20 existing foto_key rows SEMUA match format `etalase-{N}/{slug}.webp` ✅
+  - `etalase1` → `etalase-1/die_da_tay_ping_yao_jing.webp` (sample id_obat=77)
+  - `etalase2` → `etalase-2/sanjin_tablets.webp` (sample id_obat=91)
+  - `foto_url` legacy: semua `null` (sudah migrasi ke `foto_key`)
+- [x] **HARD GATE PASS — Storage verification via MCP:** bucket `obat-images` exists, public, type=STANDARD
+- [x] Commit: `546c580` — feat(F12): foto upload service + owner dashboard widgets + repo refactor (8 files, +2822/-191)
 
 ### ✅ FASE 12.4 — Sinkronisasi Stok Enhancement — SELESAI (2026-06-01)
 - [x] `lib/data/repositories/sinkronisasi_stok_repository.dart` — `getRecentSinkronisasiStok(limit)` method (read-only, 6-8 entri terakhir)
