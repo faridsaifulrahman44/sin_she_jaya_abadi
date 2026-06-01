@@ -9,10 +9,13 @@ import 'package:klinik_mobile_app/core/theme/app_theme.dart';
 import 'package:klinik_mobile_app/core/ui/app_symbols.dart';
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
 import 'package:klinik_mobile_app/core/utils/parsers.dart';
+import 'package:klinik_mobile_app/data/models/obat_etalase.dart';
 import 'package:klinik_mobile_app/data/models/obat_model.dart';
 import 'package:klinik_mobile_app/data/models/pasien_model.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
+import 'package:klinik_mobile_app/data/repositories/obat_repository.dart';
 import 'package:klinik_mobile_app/data/repositories/pasien_repository.dart';
+import 'package:klinik_mobile_app/data/repositories/print_queue_repository.dart';
 import 'package:klinik_mobile_app/data/repositories/transaksi_repository.dart';
 import 'package:klinik_mobile_app/features/transaksi/usecases/create_transaction_usecase.dart';
 import 'package:klinik_mobile_app/pages/transaksi/struk_pembayaran_page.dart';
@@ -32,7 +35,13 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
   late TabController _tabController;
   final _repository = TransaksiRepository();
   final _pasienRepository = PasienRepository();
+  final _obatRepository = ObatRepository();
+  final _printQueueRepository = PrintQueueRepository();
   final _createTransactionUseCase = CreateTransactionUseCase();
+
+  // Filter etalase per tab (F10)
+  static const _obatTabEtalases = [Etalase.etalase1, Etalase.etalase2];
+  static const _praktekTabEtalases = [Etalase.etalase3];
 
   // Common state
   bool _loading = false;
@@ -55,7 +64,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChanged);
-    _loadInitialData();
+    _loadAvailableObats(allowedEtalases: _obatTabEtalases);
   }
 
   void _handleTabChanged() {
@@ -64,12 +73,60 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
       return;
     }
 
+    // Jika ada item di cart, minta konfirmasi sebelum switch tab.
+    if (_selectedObats.isNotEmpty) {
+      _confirmCartClearBeforeTabSwitch(nextIndex);
+      return;
+    }
+
+    _applyTabSwitch(nextIndex);
+  }
+
+  Future<void> _confirmCartClearBeforeTabSwitch(int nextIndex) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ganti Tab?'),
+        content: const Text(
+          'Cart akan dikosongkan jika Anda mengganti tab. Lanjutkan?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Ganti Tab'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      // Kembalikan tab controller ke posisi sebelumnya.
+      _tabController.index = _activeTabIndex;
+      return;
+    }
+
+    if (!mounted) return;
+    _applyTabSwitch(nextIndex);
+  }
+
+  void _applyTabSwitch(int nextIndex) {
     setState(() {
       _activeTabIndex = nextIndex;
       if (nextIndex == 0) {
         _clearSelectedPasien();
       }
+      // Kosongkan cart setiap ganti tab.
+      _selectedObats.clear();
     });
+
+    final allowedEtalases = nextIndex == 0
+        ? _obatTabEtalases
+        : _praktekTabEtalases;
+    _loadAvailableObats(allowedEtalases: allowedEtalases);
   }
 
   void _clearSelectedPasien() {
@@ -77,11 +134,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
     _selectedPasien = null;
   }
 
-  Future<void> _loadInitialData() async {
+  Future<void> _loadAvailableObats({List<Etalase>? allowedEtalases}) async {
     try {
       setState(() => _loading = true);
 
-      final obats = await _repository.getObatReadyStock();
+      // F10: pakai filter etalase jika diberikan, fallback ke getObatReadyStock.
+      final obats = allowedEtalases != null
+          ? await _obatRepository.getObatsByEtalase(etalases: allowedEtalases)
+          : await _repository.getObatReadyStock();
 
       if (mounted) {
         setState(() {
@@ -130,7 +190,28 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         _showError('Jumlah obat harus lebih dari 0');
         return;
       }
+      // F10: validasi etalase — semua item harus dari etalase yang diizinkan
+      // untuk tab aktif (Obat = 1&2, Praktek = 3).
+      final allowedEtalases = _obatTabEtalases;
+      final offenders = _selectedObats
+          .where((o) => !allowedEtalases.contains(o.obat.etalase))
+          .map((o) => o.obat.namaObat)
+          .toList();
+      if (offenders.isNotEmpty) {
+        _showError(
+          'Item berikut bukan dari Etalase 1/2: ${offenders.join(', ')}',
+        );
+        return;
+      }
     } else {
+      // Tab Praktek — tidak boleh ada item obat (hanya transaksi nominal).
+      if (_selectedObats.isNotEmpty) {
+        _showError(
+          'Transaksi Praktek tidak boleh memiliki item obat. '
+          'Kosongkan cart terlebih dahulu.',
+        );
+        return;
+      }
       if (_selectedPasienId == null) {
         _showError('Pilih pasien terlebih dahulu untuk transaksi praktek.');
         return;
@@ -189,6 +270,16 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         items: items,
         idAdmin: idAdmin,
       );
+
+      // F9: enqueue print job (best-effort, jangan block simpan jika gagal)
+      try {
+        await _printQueueRepository.enqueue(
+          idTransaksi: savedTransaksi.idTransaksi,
+        );
+      } catch (e) {
+        // ignore: avoid_print
+        debugPrint('Print queue enqueue failed (non-fatal): $e');
+      }
 
       if (mounted) {
         final selectedNamaPasien =
@@ -297,6 +388,25 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // F10: Filter indicator
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              Icon(Icons.filter_list, size: 16, color: ctextSecondary(context)),
+              const SizedBox(width: 4),
+              Text(
+                _activeTabIndex == 0
+                    ? 'Menampilkan: Etalase 1 & 2'
+                    : 'Menampilkan: Etalase 3',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: ctextSecondary(context),
+                ),
+              ),
+            ],
+          ),
+        ),
         // Selected items
         if (_selectedObats.isNotEmpty) ...[
           Text(

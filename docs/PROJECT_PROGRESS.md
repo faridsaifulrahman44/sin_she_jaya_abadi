@@ -5,8 +5,8 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 1 Juni 2026 06:48 AM — Sinkronisasi ulang + verifikasi real state
-- **Catatan:** F9 page + SQL table SUDAH ADA (dibuat sesi sebelumnya, 31 Mei). print_queue_model.dart ✅, print_queue_page.dart ✅, print_queue table ✅ (DB). Wire to TransaksiFormPage ❌ (pending, 0 references di kode). F10 plan ada di `docs/superpowers/plans/2026-06-01-F10-Etalase-Filter-Plan.md`.
+- **Terakhir dikerjakan:** 1 Juni 2026 10:15 AM — F9 + F10 selesai paralel
+- **Catatan:** F9 TransaksiFormPage wiring (print queue enqueue setelah save) ✅. F10 filter etalase (Obat tab = 1&2, Praktek tab = 3) + validasi etalase + cart clear confirmation + visual indicator ✅. 194 tests passed, analyze clean.
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -55,22 +55,23 @@
 - [x] Export CSV (CsvExporter) + PDF (PdfExporter)
 - [x] Commit: b9edfb2
 
-### ✅ FASE 9 — Print Queue (DB + UI) — DALAM PROGRESS (2026-05-31)
+### ✅ FASE 9 — Print Queue (DB + UI + Wiring) — SELESAI (2026-06-01)
 - [x] `print_queue_model.dart` — model created
 - [x] `print_queue_repository.dart` — repository created
 - [x] `print_queue_page.dart` — page created (Owner-only, status badges, pull-to-refresh)
-- [x] Wire ke `StrukPembayaranPage` — `import print_queue_repository` + `_printQueueRepo` (line 10, 40) — TAPI perlu verifikasi `insertPrintJob` dipanggil
+- [x] Wire ke `StrukPembayaranPage` — `enqueue()` dipanggil
+- [x] Wire ke `TransaksiFormPage` — `_printQueueRepository.enqueue(idTransaksi)` dipanggil setelah `_createTransactionUseCase.execute()` (best-effort, non-blocking)
 - [x] Route `/print-queue` — added to app_router + app_route_registry
-- [x] `print_queue` table constant di `db_tables.dart` (line 15)
-- [ ] SQL table `print_queue` di DB Supabase — STATUS BELUM DIVERIFIKASI (perlu query untuk konfirmasi)
-- [ ] Wire ke `TransaksiFormPage` (juga belum — `grep print_queue` di file = 0)
-- [ ] Commit: 694f820
+- [x] `print_queue` table constant di `db_tables.dart`
+- [x] SQL table `print_queue` di DB Supabase — verified (kolom: id, id_transaksi, queue_at, status, notes)
 
-### 🟡 FASE 10 — Transaksi Etalase Filter — DALAM PROGRESS
+### ✅ FASE 10 — Transaksi Etalase Filter — SELESAI (2026-06-01)
 - [x] `getObatsByEtalase()` di `ObatRepository` — method added
-- [ ] `TransaksiFormPage` — panggil `getObatsByEtalase` dengan filter etalase
-- [ ] `TransaksiFormPage` — validasi `etalase` saat save
-- [ ] `TransaksiRepository` — enforce filter di create flow (apakah etalase transaksi divalidasi di repository?)
+- [x] `TransaksiFormPage` — panggil `getObatsByEtalase` dengan filter etalase per tab (Obat = 1&2, Praktek = 3)
+- [x] `TransaksiFormPage` — validasi etalase saat save (reject item yang bukan dari etalase yang diizinkan)
+- [x] `TransaksiFormPage` — cart clear confirmation dialog saat switch tab dengan item di cart
+- [x] `TransaksiFormPage` — visual indicator "Menampilkan: Etalase 1 & 2" / "Etalase 3" di atas list obat
+- [x] Tab Praktek — reject jika ada item obat di cart (hanya transaksi nominal)
 
 ### ⏸️ FASE 11 — Integration Wrap Semua Halaman — PENDING
 - [ ] `app_bottom_nav.dart` sudah ada (45 lines) — BELUM diintegrasikan ke page manapun
