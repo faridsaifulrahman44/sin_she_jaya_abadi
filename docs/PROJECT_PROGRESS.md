@@ -4,9 +4,10 @@
 ---
 
 ## 📍 POSISI TERAKHIR
-- **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 1 Juni 2026 12:35 PM — F12.5 Design Token Migration selesai (45/74 file, raw values di file besar remaining)
-- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated), F12.1 (foto upload + dashboard widgets), F12.4 (sinkronisasi audit log + CSV), F12.5 (design tokens) ✅. 207 tests passed, 0 analyze issues. Sisa: 29 file dengan raw values (termasuk dashboard 1172 baris + laporan pages) — F12.6 follow-up.
+- **Branch aktif:** `latihan-plugin` (ahead of master: 103 commits, 354 files, +60,262 / -3,368)
+- **Terakhir dikerjakan:** 1 Juni 2026 — F12.5 Design Token Migration selesai (45/74 file, raw values di file besar remaining)
+- **Next action:** Squash-merge PR `latihan-plugin` → `master` (PR 1-commit). Sisa: F12.6 token refactor di 29 file besar (dashboard, laporan, owner).
+- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated), F12.1 (foto upload + dashboard widgets), F12.4 (sinkronisasi audit log + CSV), F12.5 (design tokens) ✅. 207 tests passed, 0 analyze issues.
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -143,7 +144,7 @@ Test target: **194 passed** ✅
 
 ## ⚙️ INFO TEKNIS PERMANEN
 - **Supabase project ref:** `cdfklvbzbffqvhgifesk`
-- **Branch kerja:** `latihan-plugin` → merge ke `master` setelah approve
+- **Branch kerja:** `latihan-plugin` (ahead of master: 103 commits) → squash-merge ke `master` via PR
 - **Push repo:** https://github.com/faridsaifulrahman44/sin_she_jaya_abadi/
 - **Test target:** 194 passed, 0 failed (sesi 2026-05-31 6:10 PM)
 - **AppSymbols:** `lib/core/ui/app_symbols.dart`
