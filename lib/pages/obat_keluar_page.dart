@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
@@ -236,7 +237,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
 
         // ── FAB ────────────────────────────────────────────────────
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: SizedBox(
             width: double.infinity,
             child: _BlueFAB(
@@ -253,7 +254,7 @@ class _ObatKeluarPageState extends State<ObatKeluarPage> {
 
   Widget _buildLoading() {
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: 5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const SkeletonListCard(),
@@ -281,7 +282,7 @@ class _BlueFAB extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: accentColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
             color: accentColor.withValues(alpha: 0.35),
@@ -294,7 +295,7 @@ class _BlueFAB extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Row(
