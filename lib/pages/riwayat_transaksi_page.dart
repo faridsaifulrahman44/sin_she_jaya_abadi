@@ -64,7 +64,7 @@ class _RiwayatTransaksiPageState extends State<RiwayatTransaksiPage>
               ],
             ),
           ),
-          const AppBottomNav(currentIndex: 1),
+          const AppBottomNav(currentIndex: 2),
         ],
       ),
     );

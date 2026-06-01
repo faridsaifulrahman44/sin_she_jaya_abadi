@@ -5,8 +5,8 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 1 Juni 2026 10:15 AM — F9 + F10 selesai paralel
-- **Catatan:** F9 TransaksiFormPage wiring (print queue enqueue setelah save) ✅. F10 filter etalase (Obat tab = 1&2, Praktek tab = 3) + validasi etalase + cart clear confirmation + visual indicator ✅. 194 tests passed, analyze clean.
+- **Terakhir dikerjakan:** 1 Juni 2026 10:25 AM — F9 + F10 + F11 selesai paralel
+- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated di TransaksiHubPage, currentIndex konsisten 0/1/2) ✅. 194 tests passed.
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -73,16 +73,13 @@
 - [x] `TransaksiFormPage` — visual indicator "Menampilkan: Etalase 1 & 2" / "Etalase 3" di atas list obat
 - [x] Tab Praktek — reject jika ada item obat di cart (hanya transaksi nominal)
 
-### ⏸️ FASE 11 — Integration Wrap Semua Halaman — PENDING
-- [ ] `app_bottom_nav.dart` sudah ada (45 lines) — BELUM diintegrasikan ke page manapun
-- [ ] Wrap semua page dengan AppBottomNav
-- [ ] Update index per page:
-  - Dashboard: 0
-  - ObatHub: 1
-  - TransaksiHub: 2
-  - RiwayatTransaksi: 1 (atau 2?)
-  - Akun: (hidden - no nav)
-- [ ] Update routing logic
+### ✅ FASE 11 — AppBottomNav Integration — SELESAI (2026-06-01)
+- [x] `dashboard_page.dart` — `AppBottomNav(currentIndex: 0)` (Home)
+- [x] `obat_hub_page.dart` — `AppBottomNav(currentIndex: 1)` (Obat)
+- [x] `transaksi_hub_page.dart` — `AppBottomNav(currentIndex: 2)` (Transaksi) [tambah import + bottomNavigationBar]
+- [x] `riwayat_transaksi_page.dart` — `AppBottomNav(currentIndex: 2)` (bagian domain Transaksi)
+- [x] Konvensi currentIndex konsisten: Dashboard=0, Obat=1, Transaksi=2
+- [x] Akun tetap hidden (tidak ada bottom nav)
 
 ---
 
