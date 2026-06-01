@@ -94,7 +94,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: ccardBg(context),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(color: cdivider(context)),
               ),
               child: Column(
@@ -129,7 +129,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
             Container(
               decoration: BoxDecoration(
                 color: ccardBg(context),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -170,7 +170,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
               Container(
                 decoration: BoxDecoration(
                   color: ccardBg(context),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -227,7 +227,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: ctextMuted(context).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
                     color: ctextMuted(context).withValues(alpha: 0.15),
                   ),
@@ -257,7 +257,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
             Container(
               decoration: BoxDecoration(
                 color: ccardBg(context),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
