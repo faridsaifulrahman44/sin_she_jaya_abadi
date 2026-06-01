@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/auth/admin_session.dart';
+import '../../core/design_system/app_tokens.dart';
 import '../../core/services/receipt_printer_service.dart';
 import '../../core/services/receipt_printer_types.dart';
 import '../../core/theme/app_theme.dart';
@@ -178,7 +179,7 @@ class _StrukPembayaranPageState extends State<StrukPembayaranPage> {
         transaksi.jenisTransaksi == JenisTransaksi.obatReadyStock;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         children: [
           // Receipt widget
@@ -429,10 +430,10 @@ Metode: ${t.metodeBayar?.label ?? '-'}
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: ctextMuted(context).withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
