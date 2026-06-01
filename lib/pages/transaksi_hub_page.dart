@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/feedback/app_feedback.dart';
 import '../core/error/app_error_mapper.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/transaksi_model.dart';
@@ -332,7 +333,7 @@ class _TransaksiHubPageState extends ConsumerState<TransaksiHubPage> {
   Widget _buildStaffAddOnly() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -933,7 +934,7 @@ class CompactFilterChip extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
@@ -941,7 +942,7 @@ class CompactFilterChip extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 44),
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             color: selected
                 ? activeColor.withValues(alpha: 0.16)
                 : ccardBg(context),
@@ -1133,7 +1134,7 @@ class _MetaChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: tone.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1177,7 +1178,7 @@ class EmptyTransactionState extends StatelessWidget {
             height: 58,
             decoration: BoxDecoration(
               color: cteal(context).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: Icon(icon, color: cteal(context), size: 28),
           ),
