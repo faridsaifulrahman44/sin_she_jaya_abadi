@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
@@ -155,7 +156,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                   color: cteal(context),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -205,7 +206,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
 
   Widget _buildLoading() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: const [
         SkeletonListCard(),
         SizedBox(height: 10),
@@ -224,7 +225,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: cteal(context),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +236,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Icon(
                   AppSymbols.person,
@@ -305,7 +306,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: (color ?? Colors.white).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Text(
         label,
@@ -374,7 +375,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
     required Color accentColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: ccardBg(context),
         borderRadius: BorderRadius.circular(14),
@@ -388,7 +389,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(icon, color: accentColor, size: 14),
               ),
@@ -551,7 +552,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: csurface(context),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.full),
         border: Border.all(color: cdivider(context)),
       ),
       child: Text(
@@ -573,7 +574,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Text(
         label,
@@ -641,10 +642,10 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
     final badgeColor = isHadir ? csuccess(context) : cdanger(context);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: cscaffoldBg(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: cdivider(context)),
       ),
       child: Row(
@@ -654,7 +655,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: badgeColor.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppRadius.full),
             ),
             child: Text(
               isHadir ? 'Hadir' : 'Tidak Hadir',
@@ -749,10 +750,10 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
     final metode = item.metodeBayar?.label ?? '-';
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: cscaffoldBg(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: cdivider(context)),
       ),
       child: Row(
@@ -884,12 +885,12 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
   Widget _buildKunjunganItem(KunjunganModel item) {
     return InkWell(
       onTap: _isOwner ? () => _navigateToEditKunjungan(item) : null,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: cscaffoldBg(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: cdivider(context)),
         ),
         child: Column(
@@ -977,7 +978,7 @@ class _PasienDetailPageState extends State<PasienDetailPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: ccardBg(context),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
