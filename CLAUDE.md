@@ -4,6 +4,10 @@
 
 ---
 
+⚠️ **ATURAN INISIALISASI:** Setiap kali memulai sesi baru, kamu WAJIB membaca file `docs/PROJECT_PROGRESS.md` terlebih dahulu secara otomatis untuk mengetahui status terakhir dan task apa yang harus kamu kerjakan sekarang tanpa menunggu instruksi tambahan.
+
+---
+
 ## 🏥 KONTEKS PROYEK
 
 Aplikasi mobile Flutter untuk operasional klinik/obat herbal **Klinik Sin She Jaya Abadi**.
@@ -113,27 +117,6 @@ Bucket: obat-images
 ├── etalase-1/   → 13 obat (sudah ada foto)
 ├── etalase-2/   → 12 obat (perlu foto)
 └── etalase-3/   → kosong
-```
-
-### BUG AKTIF — Upload Foto (BELUM DIPERBAIKI)
-
-`obat_repository.dart` → `uploadFotoObat()` masih:
-- Menyimpan ke path `obat/{idObat}/{timestamp}.{ext}` — **SALAH**, seharusnya `etalase-X/nama_obat.webp`
-- Menulis ke kolom `foto_url` — **SALAH**, seharusnya tulis ke `foto_key` DAN `foto_updated_at`
-
-Saat memperbaiki ini, gunakan etalase dari `ObatModel.etalase` untuk menentukan subfolder.
-Jangan hapus fallback `foto_url` — masih dipakai untuk data lama.
-
-Query untuk cek mismatch foto_key vs Storage:
-```sql
-SELECT o.id_obat, o.nama_obat, o.etalase, o.foto_key
-FROM public.obat o
-WHERE o.foto_key IS NOT NULL
-  AND NOT EXISTS (
-    SELECT 1 FROM storage.objects s
-    WHERE s.bucket_id = 'obat-images' AND s.name = o.foto_key
-  )
-ORDER BY o.etalase, o.nama_obat;
 ```
 
 ---
@@ -271,15 +254,6 @@ Setiap kali selesai mengerjakan task, laporkan:
 ```
 
 ---
-
-## 🚦 PRIORITAS SAAT INI (urutan pengerjaan)
-
-1. **Finalisasi dashboard owner** — card biru dengan jam, tanggal, penjualan hari ini, tombol dark mode + logout
-2. **Ikon QRIS/Tunai** — tambah ikon di SegmentedButton metode pembayaran
-3. **Fix upload foto → `foto_key`** — perbaiki `uploadFotoObat()` agar tulis ke `foto_key` + `foto_updated_at` dengan path `etalase-X/nama.ext`
-4. **Deskripsi obat etalase 1 & 2** — sinkronisasi data deskripsi di DB
-5. **Fix test harness** — mock `Supabase.instance` di test environment
-6. **Polishing UI global** — setelah fitur inti stabil
 
 ---
 
