@@ -49,14 +49,14 @@ class _ObatMasukTanggalFormPageState extends State<ObatMasukTanggalFormPage> {
         foregroundColor: conPrimary(context),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const PageHeader('Pilih Tanggal'),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
               const Text(
                 'Tanggal Masuk',
                 style: TextStyle(fontWeight: FontWeight.w600),
@@ -71,7 +71,7 @@ class _ObatMasukTanggalFormPageState extends State<ObatMasukTanggalFormPage> {
                   child: Text(asDate(_selectedDate)),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
               SizedBox(
                 height: 44,
                 child: ElevatedButton(

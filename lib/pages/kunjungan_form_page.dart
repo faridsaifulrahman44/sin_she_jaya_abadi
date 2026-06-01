@@ -36,7 +36,7 @@ class _OwnerGate extends StatelessWidget {
                     color: cdanger(context),
                     size: 56,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     'Akses ditolak',
                     style: TextStyle(
@@ -45,7 +45,7 @@ class _OwnerGate extends StatelessWidget {
                       color: ctextPrimary(context),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
@@ -57,7 +57,7 @@ class _OwnerGate extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Kembali'),
@@ -267,7 +267,7 @@ class _KunjunganFormPageState extends State<KunjunganFormPage> {
                   value: asMediumDate(_tanggalKunjungan),
                   onTap: _pickTanggalKunjungan,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 _buildSectionLabel('Keluhan Singkat'),
                 const SizedBox(height: 6),
                 _buildTextField(
@@ -275,7 +275,7 @@ class _KunjunganFormPageState extends State<KunjunganFormPage> {
                   hint: 'Contoh: Flu, Batuk, Sakit kepala',
                   maxLines: 2,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 _buildSectionLabel('Catatan Hasil'),
                 const SizedBox(height: 6),
                 _buildTextField(
@@ -283,7 +283,7 @@ class _KunjunganFormPageState extends State<KunjunganFormPage> {
                   hint: 'Hasil pemeriksaan, tindakan yang dilakukan...',
                   maxLines: 3,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 _buildSectionLabel('Tindak Lanjut'),
                 const SizedBox(height: 6),
                 _buildTextField(
@@ -291,9 +291,9 @@ class _KunjunganFormPageState extends State<KunjunganFormPage> {
                   hint: 'Saran, obat, atau rencana lanjutan...',
                   maxLines: 2,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 _buildSectionLabel('Tanggal Kontrol Berikutnya'),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Opsional',
                   style: TextStyle(
@@ -391,7 +391,7 @@ class _KunjunganFormPageState extends State<KunjunganFormPage> {
           ),
         ),
         if (hasValue) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           IconButton(
             onPressed: _clearKontrol,
             icon: Icon(Icons.clear, color: cdanger(context)),

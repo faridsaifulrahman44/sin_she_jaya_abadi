@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/auth/auth_email_helper.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_legacy_icons.dart';
@@ -90,8 +91,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.symmetric(
-                horizontal: isWide ? 0 : 24,
-                vertical: 16,
+                horizontal: isWide ? 0 : AppSpacing.xxl,
+                vertical: AppSpacing.lg,
               ),
               child: Center(
                 child: Container(
@@ -124,7 +125,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSpacing.xxl),
                       ],
                       if (_submitted) ...[
                         _SuccessState(
@@ -150,7 +151,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             size: 30,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppSpacing.xl),
 
                         // Title
                         Text(
@@ -162,7 +163,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             letterSpacing: -0.3,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           'Masukkan alamat email yang terdaftar. '
                           'Kami akan mengirim tautan untuk mereset password.',

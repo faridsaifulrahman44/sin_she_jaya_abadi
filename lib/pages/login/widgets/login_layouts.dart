@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design_system/app_tokens.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/ui/app_legacy_icons.dart';
 import '../../../core/ui/app_symbols.dart';
@@ -99,7 +100,7 @@ class LoginMobileLayout extends StatelessWidget {
               ),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(28, 28, 28, 32),
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, AppSpacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -160,7 +161,7 @@ class LoginMobileLayout extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
 
                     // Password label
                     Text(
@@ -207,7 +208,7 @@ class LoginMobileLayout extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     // Login button — teal
                     Container(
@@ -257,7 +258,7 @@ class LoginMobileLayout extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
 
                     // Lupa password
                     Center(
@@ -406,9 +407,9 @@ class LoginDesktopLayout extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.xxl),
                       _LoginFieldLabel(label: 'Email'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       _LoginTextField(
                         controller: emailController,
                         hint: 'username atau nama@email.com',
@@ -416,9 +417,9 @@ class LoginDesktopLayout extends StatelessWidget {
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppSpacing.xl),
                       _LoginFieldLabel(label: 'Password'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       _LoginTextField(
                         controller: passwordController,
                         hint: 'Masukkan password',
@@ -437,7 +438,7 @@ class LoginDesktopLayout extends StatelessWidget {
                         textInputAction: TextInputAction.done,
                         onSubmitted: (_) => onLogin(),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.xxl),
                       _LoginButton(
                         loading: loading,
                         onTap: onLogin,
@@ -458,7 +459,7 @@ class LoginDesktopLayout extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // Info hubungi admin
                       Container(
@@ -489,7 +490,7 @@ class LoginDesktopLayout extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       Center(
                         child: Text(
                           '(c) 2026 SinShe Jaya Abadi - All rights reserved',
@@ -636,7 +637,7 @@ class _FeaturePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(100),
