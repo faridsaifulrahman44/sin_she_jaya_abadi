@@ -281,4 +281,10 @@ class AppSymbols {
 
   /// Check circle
   static const IconData checkCircle = Symbols.check_circle_rounded;
+
+  /// Inbox / empty state
+  static const IconData inbox = Symbols.inbox_rounded;
+
+  /// Bolt / lightning — aksi cepat
+  static const IconData bolt = Symbols.bolt_rounded;
 }

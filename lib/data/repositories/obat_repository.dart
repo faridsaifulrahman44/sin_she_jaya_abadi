@@ -419,6 +419,31 @@ class ObatRepository extends BaseRepository {
     });
   }
 
+  /// Update hanya kolom `foto_key` + `foto_updated_at` untuk 1 row obat.
+  ///
+  /// Dipakai oleh [FotoObatUploadService] setelah upload Storage sukses.
+  /// Tidak menyentuh kolom lain — minimal update untuk cache busting.
+  Future<ObatModel> updateFotoKey({
+    required int idObat,
+    required String fotoKey,
+  }) {
+    return guard(() async {
+      if (idObat <= 0) {
+        throw const ValidationException('Data obat tidak valid.');
+      }
+      final response = await _client
+          .from('obat')
+          .update({
+            'foto_key': fotoKey,
+            'foto_updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id_obat', idObat)
+          .select()
+          .single();
+      return ObatModel.fromMap(Map<String, dynamic>.from(response));
+    });
+  }
+
   /// Hapus foto produk obat.
   Future<void> deleteFotoObat(
     int idObat, {

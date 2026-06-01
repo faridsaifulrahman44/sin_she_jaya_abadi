@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
@@ -52,7 +53,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -90,7 +91,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
             ],
 
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: ccardBg(context),
                 borderRadius: BorderRadius.circular(16),
