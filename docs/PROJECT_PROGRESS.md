@@ -5,8 +5,8 @@
 
 ## 📍 POSISI TERAKHIR
 - **Branch aktif:** `latihan-plugin`
-- **Terakhir dikerjakan:** 1 Juni 2026 11:25 AM — F12.4 Sinkronisasi Stok Enhancement selesai
-- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated di TransaksiHubPage, currentIndex konsisten 0/1/2) ✅. F12.4 (audit log widget + 3-tier diff + CSV export, owner-only) ✅. 207 tests passed.
+- **Terakhir dikerjakan:** 1 Juni 2026 12:35 PM — F12.5 Design Token Migration selesai (45/74 file, raw values di file besar remaining)
+- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated), F12.1 (foto upload + dashboard widgets), F12.4 (sinkronisasi audit log + CSV), F12.5 (design tokens) ✅. 207 tests passed, 0 analyze issues. Sisa: 29 file dengan raw values (termasuk dashboard 1172 baris + laporan pages) — F12.6 follow-up.
 
 ### ✅ FASE 3 — Akun Page — SELESAI
 - [x] Profile dengan nama admin + role badge
@@ -110,6 +110,14 @@
 - [x] AdminSession.isOwner() gating — admin/petugas tidak melihat audit log & export action
 - [x] Tests: 207 passed (tidak ada regression)
 - [x] flutter analyze: 0 new issues (pre-existing dashboard/owner_dashboard warnings tidak terkait)
+
+### ✅ FASE 12.5 — Design Token Migration — SELESAI (2026-06-01)
+- [x] 45 file di-refactor pakai `AppColors`/`AppRadius`/`AppSpacing`/`AppTextStyles`/`EmilDesign`
+- [x] Helper `app_theme.dart` untuk `cprimary`, `cteal`, `csurface`, `ctextPrimary` token-style
+- [x] Laporan cards: 6 widget (SummaryCard/TransactionItem/MethodBadge/PeriodFilterButton) — full token
+- [x] 7 file `pages/laporan/*` + 3 model + 1 export — zero raw hex/double
+- [x] Tests: 207 passed, 0 analyze issues
+- [x] Sisa: 29 file dengan raw values (dashboard 1172 baris + beberapa widget besar) — masuk F12.6
 
 ---
 
