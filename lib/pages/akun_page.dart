@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../app.dart';
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 
 class AkunPage extends StatelessWidget {
@@ -69,7 +70,7 @@ class _AkunPageContentState extends State<_AkunPageContent> {
     final namaAdmin = _namaAdmin ?? 'Memuat...';
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         const SizedBox(height: 24),
         // Avatar + Nama
@@ -77,7 +78,7 @@ class _AkunPageContentState extends State<_AkunPageContent> {
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.xxl),
                 decoration: BoxDecoration(
                   color: primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
@@ -108,7 +109,7 @@ class _AkunPageContentState extends State<_AkunPageContent> {
                   color: role.isOwner
                       ? primary.withValues(alpha: 0.1)
                       : cwarning(context).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text(
                   role.displayName,
@@ -129,7 +130,7 @@ class _AkunPageContentState extends State<_AkunPageContent> {
         Container(
           decoration: BoxDecoration(
             color: cardBg,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: dividerColor, width: 1),
           ),
           child: Column(
@@ -190,7 +191,7 @@ class _AkunPageContentState extends State<_AkunPageContent> {
         Container(
           decoration: BoxDecoration(
             color: cardBg,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: dividerColor, width: 1),
           ),
           child: _SettingsTile(
@@ -214,7 +215,7 @@ class _AkunPageContentState extends State<_AkunPageContent> {
         Container(
           decoration: BoxDecoration(
             color: cardBg,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: dividerColor, width: 1),
           ),
           child: _SettingsTile(
@@ -314,7 +315,7 @@ class _SettingsTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
