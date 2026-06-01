@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design_system/app_tokens.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/ui/app_symbols.dart';
 import '../../../core/utils/formatters.dart';
@@ -77,10 +78,10 @@ class _ObatKeluarItemRowState extends State<ObatKeluarItemRow> {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: ccardBg(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: cdivider(context), width: 1),
       ),
       child: Column(
