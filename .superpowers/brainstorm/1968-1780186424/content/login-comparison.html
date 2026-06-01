@@ -1,0 +1,126 @@
+<h2>Login Page — Desain Saat Ini vs Target Mockup v7</h2>
+<p class="subtitle">Kiri: saat ini (centered column, navy icon badge) · Kanan: target mockup v7 (gradient bg + bottom sheet form)</p>
+
+<div class="split">
+  <!-- CURRENT DESIGN -->
+  <div class="mockup">
+    <div class="mockup-header">Saat Ini — login_layouts.dart</div>
+    <div class="mockup-body" style="background:#F8FAFC;min-height:500px;display:flex;flex-direction:column;align-items:center;padding:24px">
+      <div style="width:100%;max-width:360px">
+        <!-- Status bar -->
+        <div style="height:44px;background:#1E40AF;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;font-size:12px;font-weight:700;color:white">
+          <span>9:41</span><span>📶 🔋</span>
+        </div>
+        <!-- Content -->
+        <div style="background:#F8FAFC;flex:1;padding:24px;display:flex;flex-direction:column;align-items:center">
+          <!-- App icon badge -->
+          <div style="width:72px;height:72px;background:#1E40AF;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-top:24px;box-shadow:0 8px 24px rgba(30,64,175,0.25)">
+            <div style="color:white;font-size:36px">🏥</div>
+          </div>
+          <!-- Title -->
+          <div style="text-align:center;margin-top:20px">
+            <div style="font-size:24px;font-weight:800;color:#1E293B;letter-spacing:-0.4">SinShe Jaya Abadi</div>
+            <div style="font-size:13px;color:#64748B;font-weight:500;margin-top:4px">System Manajemen SinShe Jaya Abadi</div>
+          </div>
+          <!-- Welcome -->
+          <div style="margin-top:32px;width:100%">
+            <div style="font-size:20px;font-weight:800;color:#1E293B">Selamat Datang</div>
+            <div style="font-size:13px;color:#64748B;font-weight:500;margin-top:4px">Masuk untuk melanjutkan</div>
+          </div>
+          <!-- Email field -->
+          <div style="width:100%;margin-top:24px">
+            <div style="font-size:13px;font-weight:600;color:#1E293B;margin-bottom:6px">Email</div>
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+              <div style="color:#94A3B8;font-size:18px">📧</div>
+              <div style="color:#94A3B8;font-size:14px">username atau nama@email.com</div>
+            </div>
+          </div>
+          <!-- Password field -->
+          <div style="width:100%;margin-top:16px">
+            <div style="font-size:13px;font-weight:600;color:#1E293B;margin-bottom:6px">Password</div>
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="color:#94A3B8;font-size:18px">🔒</div>
+                <div style="color:#94A3B8;font-size:14px">Masukkan password</div>
+              </div>
+              <div style="color:#94A3B8;font-size:16px">👁️‍🗨️</div>
+            </div>
+          </div>
+          <!-- Button -->
+          <div style="width:100%;margin-top:32px;height:52px;background:#0D47A1;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(13,71,161,0.3)">
+            <div style="color:white;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px">
+              <div style="font-size:20px">🔑</div> Masuk
+            </div>
+          </div>
+          <!-- Footer -->
+          <div style="margin-top:16px;text-align:center">
+            <div style="font-size:13px;color:#64748B;font-weight:600">Lupa password?</div>
+          </div>
+          <div style="margin-top:12px;padding:12px;background:#F1F5F9;border-radius:10px;width:100%">
+            <div style="font-size:11.5px;color:#94A3B8">ℹ️ Belum punya akun? Hubungi admin klinik untuk dibuatkan akun.</div>
+          </div>
+          <div style="margin-top:20px;font-size:11px;color:#94A3B8;font-weight:500">© 2026 SinShe Jaya Abadi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOCKUP V7 TARGET -->
+  <div class="mockup">
+    <div class="mockup-header">Target — Mockup v7 (login_app)</div>
+    <div class="mockup-body" style="background:#0D1117;min-height:500px;display:flex;flex-direction:column">
+      <!-- Status bar -->
+      <div style="height:44px;background:transparent;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5)">
+        <span>9:41</span><span>📶 🔋</span>
+      </div>
+      <!-- Logo section -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:8px;background:linear-gradient(160deg,#0D1117 0%,#1A2332 100%)">
+        <!-- Logo image placeholder -->
+        <div style="width:100px;height:100px;background:linear-gradient(135deg,#1E40AF,#1565C0);border-radius:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(30,64,175,0.4);margin-bottom:4px">
+          <div style="color:white;font-size:48px">🏥</div>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:white;text-align:center">SinShe Jaya Abadi</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);text-align:center;margin-top:2px">System Manajemen Klinik Herbal</div>
+      </div>
+      <!-- Form card (white sheet) -->
+      <div style="background:white;border-radius:32px 32px 0 0;padding:28px;display:flex;flex-direction:column;gap:16px;flex-shrink:0">
+        <div style="font-size:13px;font-weight:600;color:#64748B;margin-bottom:4px">Email</div>
+        <div style="border:1.5px solid #E2E8F0;border-radius:10px;padding:14px 16px;font-size:14px;color:#94A3B8">username atau nama@email.com</div>
+        <div style="font-size:13px;font-weight:600;color:#64748B;margin-bottom:4px">Password</div>
+        <div style="border:1.5px solid #E2E8F0;border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:14px;color:#94A3B8">Masukkan password</div>
+          <div style="color:#94A3B8;font-size:16px">👁️‍🗨️</div>
+        </div>
+        <div style="background:#00897B;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(0,137,123,0.3)">
+          <div style="color:white;font-size:15px;font-weight:700">🔑 Masuk</div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:#94A3B8;margin-top:4px">© 2026 SinShe Jaya Abadi</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top:24px">Perbedaan Utama</h3>
+<div class="pros-cons" style="margin-top:12px">
+  <div class="pros">
+    <h4>Yang berubah ✅</h4>
+    <ul>
+      <li>Background: solid light → gradient gelap (#0D1117 → #1A2332)</li>
+      <li>Layout: full-column centered → gradient header + white bottom sheet</li>
+      <li>Logo: dari icon badge → logo gambar SinShe (PNG)</li>
+      <li>Brand text di atas form, form di white card</li>
+      <li>Warna aksen: biru (#0D47A1) → teal (#00897B)</li>
+      <li>Rounded top card: 32px (distinctive, modern)</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Yang tetap sama</h4>
+    <ul>
+      <li>Field email + password tetap</li>
+      <li>Toggle visibility password tetap</li>
+      <li>Link "Lupa password?" tetap</li>
+      <li>Info "Hubungi admin" tetap</li>
+      <li>Copyright footer tetap</li>
+    </ul>
+  </div>
+</div>
