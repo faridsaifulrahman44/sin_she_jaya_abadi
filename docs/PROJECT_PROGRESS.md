@@ -55,19 +55,22 @@
 - [x] Export CSV (CsvExporter) + PDF (PdfExporter)
 - [x] Commit: b9edfb2
 
-### ✅ FASE 9 — Print Queue (DB + UI) — SELESAI (2026-05-31)
+### ✅ FASE 9 — Print Queue (DB + UI) — DALAM PROGRESS (2026-05-31)
 - [x] `print_queue_model.dart` — model created
 - [x] `print_queue_repository.dart` — repository created
 - [x] `print_queue_page.dart` — page created (Owner-only, status badges, pull-to-refresh)
-- [x] Wire ke StrukPembayaranPage — insert log after successful print
-- [x] SQL table `print_queue` — sudah ada di DB (dari sesi sebelumnya)
+- [x] Wire ke `StrukPembayaranPage` — `import print_queue_repository` + `_printQueueRepo` (line 10, 40) — TAPI perlu verifikasi `insertPrintJob` dipanggil
 - [x] Route `/print-queue` — added to app_router + app_route_registry
-- [x] Commit: 694f820
+- [x] `print_queue` table constant di `db_tables.dart` (line 15)
+- [ ] SQL table `print_queue` di DB Supabase — STATUS BELUM DIVERIFIKASI (perlu query untuk konfirmasi)
+- [ ] Wire ke `TransaksiFormPage` (juga belum — `grep print_queue` di file = 0)
+- [ ] Commit: 694f820
 
-### ⏸️ FASE 10 — Transaksi Etalase Filter — PENDING
-- [ ] Obat → hanya etalase 1 & 2
-- [ ] Praktek → hanya etalase 3
-- [ ] Validasi saat save
+### 🟡 FASE 10 — Transaksi Etalase Filter — DALAM PROGRESS
+- [x] `getObatsByEtalase()` di `ObatRepository` — method added
+- [ ] `TransaksiFormPage` — panggil `getObatsByEtalase` dengan filter etalase
+- [ ] `TransaksiFormPage` — validasi `etalase` saat save
+- [ ] `TransaksiRepository` — enforce filter di create flow (apakah etalase transaksi divalidasi di repository?)
 
 ### ⏸️ FASE 11 — Integration Wrap Semua Halaman — PENDING
 - [ ] `app_bottom_nav.dart` sudah ada (45 lines) — BELUM diintegrasikan ke page manapun
