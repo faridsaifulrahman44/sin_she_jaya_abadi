@@ -14,18 +14,27 @@ class PrintQueueRepository {
 
   final SupabaseClient _client;
 
-  /// Insert a new print job into the queue.
+  /// Insert a new print job into the queue and return the inserted row.
   ///
   /// [idTransaksi]  — ID transaksi yang akan dicetak.
   /// [notes]        — Catatan opsional, mis. reason for retry.
-  Future<void> enqueue({
+  ///
+  /// Returns the [PrintQueueModel] for the newly inserted row, including the
+  /// generated `id` and default `status` (pending). Caller can use this id
+  /// to call [updateStatus] setelah hasil cetak diketahui.
+  Future<PrintQueueModel> enqueue({
     required int idTransaksi,
     String? notes,
   }) async {
-    await _client.from(DbTables.printQueue).insert({
-      'id_transaksi': idTransaksi,
-      if (notes != null) 'notes': notes,
-    });
+    final inserted = await _client
+        .from(DbTables.printQueue)
+        .insert({
+          'id_transaksi': idTransaksi,
+          if (notes != null) 'notes': notes,
+        })
+        .select()
+        .single();
+    return PrintQueueModel.fromJson(inserted);
   }
 
   /// Select all queue rows, joined with transaksi, ordered newest first.

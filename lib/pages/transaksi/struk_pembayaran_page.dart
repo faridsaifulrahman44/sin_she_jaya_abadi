@@ -17,6 +17,7 @@ class StrukPembayaranPage extends StatefulWidget {
   const StrukPembayaranPage({
     super.key,
     required this.idTransaksi,
+    this.printQueueId,
     this.initialTransaksi,
     this.initialItems = const [],
     this.initialNamaPasien,
@@ -24,6 +25,11 @@ class StrukPembayaranPage extends StatefulWidget {
   });
 
   final int idTransaksi;
+  /// ID baris [print_queue] yang sudah di-enqueue di TransaksiFormPage.
+  /// Setelah cetak sukses/gagal, halaman ini memanggil
+  /// [PrintQueueRepository.updateStatus] untuk ID ini — sehingga TIDAK
+  /// ada enqueue ganda di halaman ini.
+  final int? printQueueId;
   final TransaksiModel? initialTransaksi;
   final List<TransaksiItemModel> initialItems;
   final String? initialNamaPasien;
@@ -305,19 +311,45 @@ class _StrukPembayaranPageState extends State<StrukPembayaranPage> {
         );
       }
 
-      // Log to print queue
-      try {
-        await _printQueueRepo.enqueue(
-          idTransaksi: transaksi.idTransaksi,
-        );
-      } catch (_) {
-        // Gagal log print queue tidak boleh block flow
+      // Update status queue yang sudah di-enqueue di TransaksiFormPage.
+      // TIDAK enqueue ulang di sini (memperbaiki bug double-enqueue).
+      if (widget.printQueueId != null) {
+        try {
+          await _printQueueRepo.updateStatus(
+            id: widget.printQueueId!,
+            status: 'printed',
+          );
+        } catch (_) {
+          // Gagal update status tidak boleh block flow
+        }
       }
     } on ReceiptPrinterException catch (e) {
+      if (widget.printQueueId != null) {
+        try {
+          await _printQueueRepo.updateStatus(
+            id: widget.printQueueId!,
+            status: 'failed',
+            notes: e.toString(),
+          );
+        } catch (_) {
+          // Gagal update status tidak boleh block flow
+        }
+      }
       if (mounted) {
         await _showPrinterErrorDialog(e, receiptText);
       }
     } catch (e) {
+      if (widget.printQueueId != null) {
+        try {
+          await _printQueueRepo.updateStatus(
+            id: widget.printQueueId!,
+            status: 'failed',
+            notes: e.toString(),
+          );
+        } catch (_) {
+          // Gagal update status tidak boleh block flow
+        }
+      }
       if (mounted) {
         await _showPrinterErrorDialog(
           ReceiptPrinterException('Gagal mencetak struk: $e'),

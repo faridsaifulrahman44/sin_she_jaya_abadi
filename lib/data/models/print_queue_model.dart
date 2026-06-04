@@ -51,4 +51,34 @@ class PrintQueueModel {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')} '
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
+
+  /// Parse dari row Supabase `print_queue` (dengan optional join ke `transaksi`).
+  /// Field null/undefined aman: numeric/date di-tryParse, status di-fallback ke pending.
+  factory PrintQueueModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic v) {
+      if (v == null) return DateTime.now();
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString()) ?? DateTime.now();
+    }
+
+    double? parseDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString());
+    }
+
+    return PrintQueueModel(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      idTransaksi: (json['id_transaksi'] as num?)?.toInt() ?? 0,
+      queueAt: parseDate(json['queue_at']),
+      status: PrintQueueStatus.fromString(json['status'] as String?),
+      notes: json['notes'] as String?,
+      // Optional join fields
+      totalTransaksi: parseDouble(json['total_transaksi']),
+      tanggalTransaksi: json['tanggal_transaksi'] != null
+          ? DateTime.tryParse(json['tanggal_transaksi'].toString())
+          : null,
+      metodeBayarLabel: json['metode_bayar'] as String?,
+    );
+  }
 }
