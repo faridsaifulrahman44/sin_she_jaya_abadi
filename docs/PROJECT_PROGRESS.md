@@ -129,6 +129,15 @@
 - [ ] Apply ke halaman lain
 - [ ] Token: durations, curves, scale, reduced motion
 
+### 🎨 External Design Reference (Stitch)
+- **Active project:** `4910840135092048917` — *Duplicate of Jaya Abadi Premium Redesign* (isRemixed)
+- **Original:** `453074346827444289` — *Jaya Abadi Premium Redesign*
+- **Theme:** Teal primary `#008080`, Plus Jakarta Sans, light mode, MOBILE
+- **Tokens (Stitch):** spacing `xs/sm/md/lg/xl/xxl` = 4/8/12/16/20/24px, radius `sm/md/lg/xl/full` = 8/12/16/20/999
+- **Screens:** 37 instances aktif (35 screen + 2 design system asset, terverifikasi via `mcp__stitch__get_project` 2026-06-04 09:26 GMT+7) / 16 (original). Lihat `design.md` section 6 untuk transkrip lengkap.
+- **Catatan:** Token 32/40/48 di `app_tokens.dart` Flutter bukan berasal dari project Stitch ini (Stitch hanya punya sampai 24px); kemungkinan tambahan lokal
+- **Status:** Belum ada fase implementasi F2 Features (C/F/A/B/D/E) — entry ini hanya catatan reference, bukan task tracker
+
 ---
 
 ## 📝 ERROR LIST (FIXED ✅)
