@@ -12,6 +12,7 @@ import 'package:klinik_mobile_app/core/utils/parsers.dart';
 import 'package:klinik_mobile_app/data/models/obat_etalase.dart';
 import 'package:klinik_mobile_app/data/models/obat_model.dart';
 import 'package:klinik_mobile_app/data/models/pasien_model.dart';
+import 'package:klinik_mobile_app/data/models/print_queue_model.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
 import 'package:klinik_mobile_app/data/repositories/obat_repository.dart';
 import 'package:klinik_mobile_app/data/repositories/pasien_repository.dart';
@@ -271,9 +272,13 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         idAdmin: idAdmin,
       );
 
-      // F9: enqueue print job (best-effort, jangan block simpan jika gagal)
+      // F9: enqueue print job (best-effort, jangan block simpan jika gagal).
+      // Tangkap PrintQueueModel agar ID queue bisa dioper ke StrukPembayaranPage
+      // untuk update status (printed/failed) setelah proses cetak selesai —
+      // sehingga TIDAK terjadi double-enqueue di Struk page.
+      PrintQueueModel? printQueue;
       try {
-        await _printQueueRepository.enqueue(
+        printQueue = await _printQueueRepository.enqueue(
           idTransaksi: savedTransaksi.idTransaksi,
         );
       } catch (e) {
@@ -322,6 +327,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           MaterialPageRoute(
             builder: (_) => StrukPembayaranPage(
               idTransaksi: savedTransaksi.idTransaksi,
+              printQueueId: printQueue?.id,
               initialTransaksi: savedTransaksi,
               initialItems: receiptItems,
               initialNamaPasien: selectedNamaPasien,
