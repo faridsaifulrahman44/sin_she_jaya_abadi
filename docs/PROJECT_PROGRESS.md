@@ -1,170 +1,104 @@
 # 🏥 Sin She Jaya Abadi — Master Progress Tracker
-# Baca file ini PERTAMA setiap kali memulai sesi baru
 
----
+## Tujuan file ini
+File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang sedang dikerjakan, dan langkah berikutnya.
 
-## 📍 POSISI TERAKHIR
-- **Branch aktif:** `latihan-plugin` (ahead of master: 103 commits, 354 files, +60,262 / -3,368)
-- **Terakhir dikerjakan:** 1 Juni 2026 — F12.5 Design Token Migration selesai (45/74 file, raw values di file besar remaining)
-- **Next action:** Squash-merge PR `latihan-plugin` → `master` (PR 1-commit). Sisa: F12.6 token refactor di 29 file besar (dashboard, laporan, owner).
-- **Catatan:** F9 (print queue wiring), F10 (etalase filter + validasi), F11 (AppBottomNav integrated), F12.1 (foto upload + dashboard widgets), F12.4 (sinkronisasi audit log + CSV), F12.5 (design tokens) ✅. 207 tests passed, 0 analyze issues.
+## Posisi terakhir
+- **Branch aktif:** `latihan-plugin`
+- **Terakhir dikerjakan:** 1 Juni 2026 — F12.5 Design Token Migration selesai
+- **Next action:** squash-merge PR `latihan-plugin` → `master`, lalu lanjut F12.6 token refactor di file besar yang tersisa
+- **Catatan singkat:** F9, F10, F11, F12.1, F12.4, F12.5 sudah selesai; test terakhir stabil saat itu
+- **Aset Stitch:** `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` (eksternal, di luar repo). Stitch MCP nonaktif per 2026-06-06.
+- **Standar skill visual/UX:** setiap eksekusi besar yang涉及 visual/UX WAJIB konsultasi skill `impeccable` (P0/P1/P2) dan `ui-ux-pro-max` (style/palette/token). Aturan tercatat permanen di `CLAUDE.md`.
 
-### ✅ FASE 3 — Akun Page — SELESAI
-- [x] Profile dengan nama admin + role badge
-- [x] Dark mode toggle
-- [x] Notifikasi placeholder
-- [x] Printer settings placeholder
-- [x] Logout dengan confirmation dialog
+## Ringkasan fase selesai
+### Fase 3 — Akun Page
+- Profile dengan nama admin + role badge
+- Dark mode toggle
+- Notifikasi placeholder
+- Printer settings placeholder
+- Logout dengan confirmation dialog
 
-### ✅ FASE 4 — Riwayat Transaksi — SELESAI (perbaikan filter)
-- [x] 2 tab: Transaksi, Riwayat Stok
-- [x] Filter chips: Semua, Praktek, Obat, Pending Print (Owner only)
-- [x] Query Supabase per tab
-- [x] Format tanggal & nominal
+### Fase 4 — Riwayat Transaksi
+- 2 tab: Transaksi, Riwayat Stok
+- Filter chips: Semua, Praktek, Obat, Pending Print (owner only)
+- Query Supabase per tab
+- Format tanggal dan nominal
 
-### ✅ FASE 5 — Obat Page Tab Strip — SELESAI ✅
-- [x] `lib/pages/obat_hub_page.dart` — tab shell
-- [x] 5 tab (owner), 4 tab (petugas)
-- [x] Tab 1: Master Obat (reuse `ObatPage`)
-- [x] Tab 2: Obat Masuk (reuse `ObatMasukPage`)
-- [x] Tab 3: Pengeluaran Stok (reuse `ObatKeluarPage`)
-- [x] Tab 4: Keterangan Stok (rename from Stok Alert)
-- [x] Tab 5: Sinkronisasi (owner only)
-- [x] Fix: `AppSymbols.arrowLeft` → `arrowBack` ✅
-- [x] Fix: `conPrimary` → `cprimary` ✅
-- [x] Fix: `_getStokAlertSummaryBuilder` → inline dengan `ObatRepository()` ✅
+### Fase 5 — Obat Page Tab Strip
+- Tab shell untuk hub obat
+- 5 tab owner, 4 tab petugas
+- Tab Master Obat, Obat Masuk, Pengeluaran Stok, Keterangan Stok, Sinkronisasi
+- Perbaikan icon dan helper yang sempat salah referensi
 
-### ✅ FASE 6 — Login Page Redesign — SELESAI
-- [x] Desain sesuai mockup v7 (login_app.jpeg)
-- [x] Background gradient gelap (#0D1117 → #1A2332)
-- [x] White bottom sheet card (border-radius: 32px)
-- [x] Bordered inputs (#E2E8F0, focus teal #00897B)
-- [x] Teal button full-width (#00897B)
-- [x] Commit: d44191b
+### Fase 6 — Login Page Redesign
+- Desain login sesuai mockup final
+- Background gradient gelap
+- Bottom sheet card putih
+- Input bordered
+- Tombol teal
 
-### ✅ FASE 7 — Receipt BW Design — SELESAI
-- [x] Hapus `image` package + `buildReceiptBytesWithLogo` dari `receipt_printer_service.dart`
-- [x] `buildReceiptBytes` tetap — plain text thermal receipt, no logo
-- [x] `ReceiptPrinterService` tetap hitam-putih (B&W) — logo methods dihapus
-- [x] `stok_alert_page.dart` → `ReceiptPrinterServiceBW` untuk struk stok alert
-- [x] `ReceiptPrinterServiceBW` dipakai untuk semua receipt printing
+### Fase 7 — Receipt BW Design
+- Receipt printer tetap B&W
+- Logo methods dihapus
+- Struk stok alert memakai service yang sama
 
-### ✅ FASE 8 — Laporan Owner (Harian/Bulanan/Tahunan) — SELESAI (2026-05-31)
-- [x] Tab 3-tab di LaporanPage (Harian / Bulanan / Tahunan)
-- [x] Grafik fl_chart per tab
-- [x] Top 10 obat terjual (TopObatItem + extension)
-- [x] Export CSV (CsvExporter) + PDF (PdfExporter)
-- [x] Commit: b9edfb2
+### Fase 8 — Laporan Owner
+- Tab harian / bulanan / tahunan
+- Grafik
+- Top 10 obat terjual
+- Export CSV dan PDF
 
-### ✅ FASE 9 — Print Queue (DB + UI + Wiring) — SELESAI (2026-06-01)
-- [x] `print_queue_model.dart` — model created
-- [x] `print_queue_repository.dart` — repository created
-- [x] `print_queue_page.dart` — page created (Owner-only, status badges, pull-to-refresh)
-- [x] Wire ke `StrukPembayaranPage` — `enqueue()` dipanggil
-- [x] Wire ke `TransaksiFormPage` — `_printQueueRepository.enqueue(idTransaksi)` dipanggil setelah `_createTransactionUseCase.execute()` (best-effort, non-blocking)
-- [x] Route `/print-queue` — added to app_router + app_route_registry
-- [x] `print_queue` table constant di `db_tables.dart`
-- [x] SQL table `print_queue` di DB Supabase — verified (kolom: id, id_transaksi, queue_at, status, notes)
+### Fase 9 — Print Queue
+- Model, repository, page
+- Wiring dari transaksi ke print queue
+- Route print queue
+- Tabel print queue sudah diverifikasi
 
-### ✅ FASE 10 — Transaksi Etalase Filter — SELESAI (2026-06-01)
-- [x] `getObatsByEtalase()` di `ObatRepository` — method added
-- [x] `TransaksiFormPage` — panggil `getObatsByEtalase` dengan filter etalase per tab (Obat = 1&2, Praktek = 3)
-- [x] `TransaksiFormPage` — validasi etalase saat save (reject item yang bukan dari etalase yang diizinkan)
-- [x] `TransaksiFormPage` — cart clear confirmation dialog saat switch tab dengan item di cart
-- [x] `TransaksiFormPage` — visual indicator "Menampilkan: Etalase 1 & 2" / "Etalase 3" di atas list obat
-- [x] Tab Praktek — reject jika ada item obat di cart (hanya transaksi nominal)
+### Fase 10 — Transaksi Etalase Filter
+- Filter etalase di transaksi
+- Validasi etalase saat save
+- Konfirmasi saat ganti tab dengan cart terisi
+- Indikator etalase aktif
 
-### ✅ FASE 11 — AppBottomNav Integration — SELESAI (2026-06-01)
-- [x] `dashboard_page.dart` — `AppBottomNav(currentIndex: 0)` (Home)
-- [x] `obat_hub_page.dart` — `AppBottomNav(currentIndex: 1)` (Obat)
-- [x] `transaksi_hub_page.dart` — `AppBottomNav(currentIndex: 2)` (Transaksi) [tambah import + bottomNavigationBar]
-- [x] `riwayat_transaksi_page.dart` — `AppBottomNav(currentIndex: 2)` (bagian domain Transaksi)
-- [x] Konvensi currentIndex konsisten: Dashboard=0, Obat=1, Transaksi=2
-- [x] Akun tetap hidden (tidak ada bottom nav)
+### Fase 11 — AppBottomNav Integration
+- Dashboard, Obat, Transaksi konsisten memakai bottom nav
+- Riwayat transaksi mengikuti domain transaksi
+- Akun tetap hidden
 
-### ✅ FASE 12.3 — Foto Obat Upload Flow — SELESAI + HARD GATE PASS (2026-06-01)
-- [x] `lib/core/services/foto_obat_upload_service.dart` — created (compress, upload, path-build)
-- [x] `lib/data/repositories/obat_repository.dart` — `updateFotoKey()` method added (slim, hanya foto_key + foto_updated_at)
-- [x] `lib/pages/obat_form_page.dart` — refactored: pakai service, hapus duplicate compression/path-build code
-- [x] `lib/pages/dashboard_page.dart` — pakai service untuk upload
-- [x] `lib/pages/obat_detail_page.dart` — pakai service untuk upload
-- [x] `lib/widgets/owner_dashboard_widgets.dart` — extracted dari dashboard_page
-- [x] `lib/core/ui/app_symbols.dart` — tambah icon baru (calendar, image, upload, dll)
-- [x] Path normalization: `etalase1` → `etalase-1` (sinkron dengan DB rows existing)
-- [x] Lazy Supabase client init di service — test bisa jalan tanpa `Supabase.instance` di-init
-- [x] Tests: 13/13 passed (path build, slugify, validation)
-- [x] **HARD GATE PASS — DB verification via MCP:** 20 existing foto_key rows SEMUA match format `etalase-{N}/{slug}.webp` ✅
-  - `etalase1` → `etalase-1/die_da_tay_ping_yao_jing.webp` (sample id_obat=77)
-  - `etalase2` → `etalase-2/sanjin_tablets.webp` (sample id_obat=91)
-  - `foto_url` legacy: semua `null` (sudah migrasi ke `foto_key`)
-- [x] **HARD GATE PASS — Storage verification via MCP:** bucket `obat-images` exists, public, type=STANDARD
-- [x] Commit: `546c580` — feat(F12): foto upload service + owner dashboard widgets + repo refactor (8 files, +2822/-191)
+### Fase 12.3 — Foto Obat Upload Flow
+- Upload service dibuat
+- `updateFotoKey()` dipisah agar slim
+- Halaman terkait memakai service bersama
+- Path normalization dan test helper beres
 
-### ✅ FASE 12.4 — Sinkronisasi Stok Enhancement — SELESAI (2026-06-01)
-- [x] `lib/data/repositories/sinkronisasi_stok_repository.dart` — `getRecentSinkronisasiStok(limit)` method (read-only, 6-8 entri terakhir)
-- [x] `lib/core/utils/csv_exporter.dart` — `exportSinkronisasiAuditLog()` method (Tanggal, Obat, Sistem, Fisik, Selisih, Status, Alasan, Admin)
-- [x] `lib/pages/sinkronisasi_stok/widgets/sinkronisasi_audit_log_card.dart` — widget baru (owner-only): 6 entri opname terakhir dengan nama obat + admin
-- [x] `lib/pages/sinkronisasi_stok_page.dart` — owner-only audit log card di bawah search bar; AppBar action CSV export (owner-only)
-- [x] Visual diff 3-tier: 0 (secondary) / ±1-2 (warning amber) / >2 (positive green untuk lebih, danger red untuk kurang)
-- [x] Main list card: tampilkan `nama_obat` (resolved via lazy `ObatRepository.getObat()` lookup) — fallback ke "Obat #ID" bila gagal
-- [x] `AppColors.warning/positive` + `AppSpacing/AppRadius/AppTextStyles` design tokens dipakai
-- [x] AdminSession.isOwner() gating — admin/petugas tidak melihat audit log & export action
-- [x] Tests: 207 passed (tidak ada regression)
-- [x] flutter analyze: 0 new issues (pre-existing dashboard/owner_dashboard warnings tidak terkait)
+### Fase 12.4 — Sinkronisasi Stok Enhancement
+- Audit log owner-only
+- Export CSV
+- Resolusi nama obat
+- Token visual dipakai
+- Tests stabil saat itu
 
-### ✅ FASE 12.5 — Design Token Migration — SELESAI (2026-06-01)
-- [x] 45 file di-refactor pakai `AppColors`/`AppRadius`/`AppSpacing`/`AppTextStyles`/`EmilDesign`
-- [x] Helper `app_theme.dart` untuk `cprimary`, `cteal`, `csurface`, `ctextPrimary` token-style
-- [x] Laporan cards: 6 widget (SummaryCard/TransactionItem/MethodBadge/PeriodFilterButton) — full token
-- [x] 7 file `pages/laporan/*` + 3 model + 1 export — zero raw hex/double
-- [x] Tests: 207 passed, 0 analyze issues
-- [x] Sisa: 29 file dengan raw values (dashboard 1172 baris + beberapa widget besar) — masuk F12.6
+### Fase 12.5 — Design Token Migration
+- Banyak file sudah pindah ke token
+- Sisa pekerjaan: file besar dengan raw values
+- Analyze dan test stabil saat itu
 
----
+## Pekerjaan berikutnya
+- Lanjut F12.6 token refactor pada file besar
+- Review file besar yang masih memakai raw values
+- Jaga agar perubahan tetap kecil dan aman
 
-## 🧠 DESIGN SYSTEM — EMIL DESIGN (IN PROGRESS)
-- [x] `lib/core/design_system/emil_design.dart` — created
-- [x] Apply ke login page (F6 ✅)
-- [ ] Apply ke dashboard page
-- [ ] Apply ke halaman lain
-- [ ] Token: durations, curves, scale, reduced motion
+## Known issues / catatan
+- Ada file besar yang masih perlu dirapikan
+- Beberapa issue test lama bisa saja pre-existing
+- Jangan ubah schema / RLS / RPC tanpa izin eksplisit
 
-### 🎨 External Design Reference (Stitch)
-- **Active project:** `4910840135092048917` — *Duplicate of Jaya Abadi Premium Redesign* (isRemixed)
-- **Original:** `453074346827444289` — *Jaya Abadi Premium Redesign*
-- **Theme:** Teal primary `#008080`, Plus Jakarta Sans, light mode, MOBILE
-- **Tokens (Stitch):** spacing `xs/sm/md/lg/xl/xxl` = 4/8/12/16/20/24px, radius `sm/md/lg/xl/full` = 8/12/16/20/999
-- **Screens:** 37 instances aktif (35 screen + 2 design system asset, terverifikasi via `mcp__stitch__get_project` 2026-06-04 09:26 GMT+7) / 16 (original). Lihat `design.md` section 6 untuk transkrip lengkap.
-- **Catatan:** Token 32/40/48 di `app_tokens.dart` Flutter bukan berasal dari project Stitch ini (Stitch hanya punya sampai 24px); kemungkinan tambahan lokal
-- **Status:** Belum ada fase implementasi F2 Features (C/F/A/B/D/E) — entry ini hanya catatan reference, bukan task tracker
+## Yang sengaja tidak ditaruh di sini
+- Arsitektur detail
+- Model data lengkap
+- Routing lengkap
+- Token desain lengkap
+- Penjelasan Stitch
 
----
-
-## 📝 ERROR LIST (FIXED ✅)
-
-1. ✅ `lib/pages/obat_hub_page.dart:140` — `AppSymbols.arrowLeft` → `arrowBack`
-2. ✅ `lib/pages/obat_hub_page.dart` — `EmilDesign` import hilang → fixed dengan add import
-3. ✅ `lib/pages/obat_hub_page.dart:409-423` — `_getStokAlertSummaryBuilder` / `_getObatRepo` → refactor inline tanpa method tersebut, gunakan `ObatRepository()` langsung + `buildStokAlertSummary()` dari `features/stok/stok_alert_logic.dart`
-4. ✅ `lib/pages/transaksi_hub_page.dart:301,308` — `AppErrorMapper` undefined → add import `../core/error/app_error_mapper.dart`
-5–11. ⚠️ `lib/pages/transaksi_hub_page.dart` — warning line length (long the- line) → aman (warning, bukan error)
-Test target: **194 passed** ✅
-
----
-
-## ⚙️ INFO TEKNIS PERMANEN
-- **Supabase project ref:** `cdfklvbzbffqvhgifesk`
-- **Branch kerja:** `latihan-plugin` (ahead of master: 103 commits) → squash-merge ke `master` via PR
-- **Push repo:** https://github.com/faridsaifulrahman44/sin_she_jaya_abadi/
-- **Test target:** 194 passed, 0 failed (sesi 2026-05-31 6:10 PM)
-- **AppSymbols:** `lib/core/ui/app_symbols.dart`
-- **Spec Mockup v7:** `docs/superpowers/specs/2026-05-29-penyempurnaan-mockup-design.md`
-- **Plan:** `docs/superpowers/plans/2026-05-29-penyempurnaan-mockup.md`
-
----
-
-## 📝 CARA UPDATE FILE INI
-Setiap task selesai, update:
-1. Centang `[x]` task yang selesai
-2. Tandai `⚠️ ERROR` yang perlu fix
-3. Update "Posisi Terakhir"
-4. Commit PROJECT_PROGRESS.md bersamaan dengan commit task
+File itu ada di dokumen lain.

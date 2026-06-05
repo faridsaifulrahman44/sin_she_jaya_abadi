@@ -1,269 +1,110 @@
-# CLAUDE.md — Klinik Sin She Jaya Abadi
-# Panduan kerja untuk Claude Code (claude-sonnet-4-6)
-# Letakkan file ini di root project: flutter_klinik_starter/CLAUDE.md
-
----
-
-⚠️ **ATURAN INISIALISASI:** Setiap kali memulai sesi baru, kamu WAJIB membaca file `docs/PROJECT_PROGRESS.md` terlebih dahulu secara otomatis untuk mengetahui status terakhir dan task apa yang harus kamu kerjakan sekarang tanpa menunggu instruksi tambahan.
-
----
-
-## 🏥 KONTEKS PROYEK
-
-Aplikasi mobile Flutter untuk operasional klinik/obat herbal **Klinik Sin She Jaya Abadi**.
-Bukan sekadar demo — aplikasi ini akan dipakai di lapangan jangka panjang (bertahun-tahun).
-
-- **Platform target:** Android (APK, sideload / direct install ke HP staf klinik)
-- **Backend:** Supabase (project ref: `cdfklvbzbffqvhgifesk`)
-- **Framework:** Flutter + Dart, Supabase Flutter client, Riverpod, go_router
-- **Pengguna lapangan:** Owner + 1–2 admin/petugas klinik
-
----
-
-## 👥 ROLE & AKSES
-
-| Fitur                              | Owner | Admin/Petugas |
-|------------------------------------|-------|---------------|
-| Input transaksi                    | ✅    | ✅            |
-| Kelola obat, pasien, kehadiran     | ✅    | ✅            |
-| Obat masuk, keluar, sinkronisasi   | ✅    | ✅            |
-| Lihat laporan / nominal uang       | ✅    | ❌            |
-| Lihat riwayat transaksi lengkap    | ✅    | ❌            |
-
-**Aturan penting:**
-- Role dideteksi lewat `AdminSession` — jangan bypass atau hardcode role.
-- Jangan pernah menampilkan laporan/nominal ke admin, meski hanya di debug/dummy.
-- `id_pasien` WAJIB null untuk transaksi jenis Obat.
-- `id_pasien` WAJIB diisi untuk transaksi jenis Praktek — tolak simpan dengan pesan ramah jika belum pilih.
-
----
-
-## 🌿 GIT WORKFLOW
-
-- **Branch utama/stabil:** `master`
-- **Workflow:** branch per fitur → test → merge ke master
-- **Sebelum mulai task apapun:** pastikan tahu branch aktif saat ini
-- Untuk perubahan UI minor (tidak menyentuh DB/auth), boleh langsung di `master`
-- Untuk perubahan yang menyentuh logika stok, transaksi, auth, atau DB → **wajib buat branch baru dulu**
-
-Contoh nama branch yang disarankan:
-```
-fix/foto-key-upload
-feat/dashboard-owner-final
-feat/qris-tunai-icon
-fix/test-harness-supabase
-```
-
----
-
-## 🗄️ DATABASE — SUPABASE
-
-### Aturan Utama (TIDAK BOLEH DILANGGAR)
-
-1. **Untuk SELECT:** boleh langsung eksekusi via MCP.
-2. **Untuk INSERT / UPDATE:** tampilkan SQL final terlebih dahulu, tunggu pengguna mengetik **LANJUT**.
-3. **DILARANG KERAS tanpa izin eksplisit:**
-   - `DELETE`, `DROP`, `TRUNCATE`
-   - `ALTER TABLE`, `CREATE TABLE`
-   - Mengubah migration / apply_migration
-   - Mengubah RLS policy, RPC function, trigger, schema
-4. Jangan ubah tabel selain yang diminta secara eksplisit.
-5. Jangan simpan secret/API key dalam kode.
-6. Jangan hapus file Storage tanpa izin.
-
-### Tabel Utama
-
-```
-public.obat           — master data obat
-public.transaksi      — header transaksi
-public.transaksi_item — item per transaksi
-public.pasien         — data pasien
-public.admin          — data user/admin
-public.kehadiran_pasien
-public.kunjungan_pasien
-public.obat_masuk     — penambahan stok
-public.obat_keluar    — pengeluaran stok non-penjualan
-public.sinkronisasi_stok — koreksi/audit stok fisik
-```
-
-### Kolom Kritis `public.obat`
-
-| Kolom           | Keterangan                                                      |
-|-----------------|-----------------------------------------------------------------|
-| `foto_key`      | Path Storage utama. Format: `etalase-1/nama_file.webp`          |
-| `foto_url`      | Legacy fallback — candidat deprecation, jangan tulis baru ke sini |
-| `foto_updated_at` | Timestamp update foto — untuk cache busting                   |
-| `deskripsi`     | Teks deskripsi obat — tampilkan "Deskripsi belum tersedia." jika null/kosong |
-| `harga_jual`    | Source of truth harga jual satuan                               |
-| `bisa_ecer`     | Boolean — jika true, tampilkan opsi harga ecer                  |
-
----
-
-## 📦 STORAGE — FOTO OBAT
-
-### Format `foto_key` yang BENAR
-
-```
-etalase-1/die_da_tay_ping_yao_jing.webp   ✅
-etalase-2/sanjin_tablets.webp             ✅
-obat-images/etalase-1/nama.webp           ❌  (jangan pakai prefix bucket)
-/etalase-1/nama.webp                      ❌  (jangan pakai leading slash)
-```
-
-### Struktur Bucket
-
-```
-Bucket: obat-images
-├── etalase-1/   → 13 obat (sudah ada foto)
-├── etalase-2/   → 12 obat (perlu foto)
-└── etalase-3/   → kosong
-```
-
----
-
-## 💊 LOGIKA TRANSAKSI
-
-### Jenis Transaksi (value internal — JANGAN DIUBAH)
-
-| Value Internal          | Label User-Facing |
-|-------------------------|-------------------|
-| `obatReadyStock`        | "Obat"            |
-| `praktekCustom`         | "Praktek"         |
-
-> ⚠️ Jika hanya mengubah label tampilan, jangan ubah value enum/database.
-
-### Alur Stok
-
-- **Obat Masuk** → stok bertambah
-- **Transaksi Obat** → stok berkurang otomatis (via RPC/trigger DB)
-- **Obat Keluar** → pengeluaran non-penjualan (rusak, hilang, kedaluwarsa)
-- **Sinkronisasi Stok** → koreksi/audit, menyamakan sistem dengan fisik
-
-> Jangan ubah logika stok sembarangan. Stok dikomputasi oleh SQL/RPC di sisi DB.
-
----
-
-## 📊 DASHBOARD
-
-### Dashboard Owner (card biru/header)
-Konten yang harus ada:
-- "Halo, Owner" + "Klinik Sin She Jaya Abadi"
-- "Laporan Hari Ini:" + "Penjualan : Rp xxx.xxx"
-- Jam real-time + tanggal (format: "15.25 | Senin, 11 Mei 2026") → pojok kanan atas
-- Tombol dark mode + logout → pojok kanan bawah card biru
-
-### Dashboard Admin
-- Fokus operasional: Jadwal Hari Ini, Hadir Hari Ini
-- TIDAK boleh ada nominal uang atau ringkasan laporan
-
----
-
-## 💳 METODE PEMBAYARAN
-
-Opsi: **Tunai** dan **QRIS** — keduanya harus punya ikon di kiri label.
-Status saat ini: `SegmentedButton` sudah ada, tapi ikon belum ditambahkan.
-
-```dart
-// Target tampilan:
-// [ 💵 Tunai ]  [ 📱 QRIS ]
-```
-
-Gunakan ikon dari `HugeIcons` atau `AppIcons` yang sudah ada di project.
-
----
-
-## 🧪 TEST
-
-File test ada di `test/` — jalankan setelah setiap perubahan:
-
-```bash
-flutter analyze
-flutter test
-```
-
-### Catatan Test Harness
-
-Beberapa test gagal karena `Supabase.instance` belum diinisialisasi di test environment.
-Ini adalah **pre-existing issue** — bukan akibat perubahan UI/logika baru.
-Jika test gagal karena ini, **laporkan secara eksplisit** jangan dianggap sebagai regresi baru.
-
-Test yang kemungkinan terdampak:
-- `test/features/stok/stock_service_test.dart`
-- `test/data/schema_contract_test.dart`
-
----
-
-## 🏗️ ARSITEKTUR & ATURAN KODING
-
-### Struktur Folder
-
-```
-lib/
-├── core/
-│   ├── auth/          — AdminSession, role detection
-│   ├── database/      — DbTables constants
-│   ├── design_system/ — AppTokens (spacing, radius, text styles)
-│   ├── error/         — AppErrorMapper, AppException
-│   ├── routing/       — AppRouter, AppRouteRegistry
-│   ├── services/      — ReceiptPrinterService
-│   ├── supabase/      — KlinikRepository, SupabaseConfig
-│   ├── theme/         — AppTheme, AppColors, AppWidgets
-│   ├── ui/            — AppIcons, ObatAssetRegistry
-│   └── utils/         — Formatters, Parsers, ObatFotoResolver
-├── data/
-│   ├── models/        — semua model data
-│   └── repositories/  — semua repository
-├── features/          — modul fitur dengan usecase/provider/dto
-├── pages/             — semua halaman UI
-└── widgets/           — shared widget kecil
-```
-
-### Prinsip Utama
-
-1. **Jangan refactor besar** tanpa alasan dan tanpa izin eksplisit.
-2. **Audit dulu** file terkait sebelum edit — pahami status awal, baru buat perubahan minimal.
-3. **Jangan ubah value internal** enum/DB jika task-nya hanya mengubah label tampilan.
-4. **Jangan ubah schema/RLS/RPC** kecuali diminta eksplisit.
-5. `transaksi_form_page.dart` sudah 1.478 baris — berhati-hati saat edit, jangan tambah kompleksitas tanpa pertimbangan.
-6. State management: beberapa halaman masih `setState`, sebagian sudah Riverpod. Jangan paksa migrasi ke Riverpod tanpa diminta.
-
-### Foto Obat — Cara Resolve URL
-
-Gunakan `ObatFotoResolver.resolveStorageUrl()` — jangan build URL Storage secara manual di tempat lain.
-Prioritas resolver: `foto_key` → `foto_url` (legacy) → null (tampilkan placeholder).
-
----
-
-## 📋 LAPORAN SETIAP SELESAI TASK
-
-Setiap kali selesai mengerjakan task, laporkan:
-
-```
-✅ File yang diubah:
-  - lib/xxx/yyy.dart — [ringkasan perubahan]
-
-🔒 Yang TIDAK diubah:
-  - [list logika/file sensitif yang sengaja tidak disentuh]
-
-🧪 Hasil analyze & test:
-  - flutter analyze: [clean / N warning / N error]
-  - flutter test: [passed / N failed — sebutkan nama test yang gagal]
-
-⚠️ Isu yang perlu diketahui:
-  - [jika ada pre-existing issue atau hal yang perlu dikonfirmasi]
-```
-
----
-
----
-
-## ⛔ GARIS MERAH — TIDAK BOLEH DILANGGAR
-
-| Larangan                                        | Konsekuensi jika dilanggar                    |
-|-------------------------------------------------|-----------------------------------------------|
-| Ubah RLS / policy / RPC tanpa izin eksplisit    | Bisa bocorkan data pasien atau laporan ke admin |
-| Ubah logika stok tanpa izin                     | Stok bisa tidak sinkron dengan fisik klinik    |
-| Ubah `core/auth/` tanpa izin                    | Bisa bypass role owner/admin                   |
-| Eksekusi DELETE/DROP/TRUNCATE                   | Data permanen hilang                           |
-| Tulis ke `foto_url` untuk upload foto baru      | Mismatch dengan resolver yang pakai `foto_key` |
-| Tampilkan laporan/nominal ke role admin         | Pelanggaran privasi bisnis owner               |
+# CLAUDE.md — Panduan Kerja Claude Code
+# Proyek: Klinik Sin She Jaya Abadi
+
+## Tujuan file ini
+File ini adalah **instruksi kerja untuk Claude Code**, bukan dokumen desain.  
+Gunakan file ini untuk memahami cara kerja, batasan, urutan baca, dan aturan aman saat mengubah kode.
+
+## Urutan baca saat sesi baru
+Baca dalam urutan ini:
+
+1. `docs/PROJECT_PROGRESS.md` — status terakhir dan langkah berikutnya
+2. `STITCH_SOURCE_OF_TRUTH.md` — rujukan visual final
+3. `design.md` — spesifikasi teknis arsitektur dan alur data
+
+## Prinsip utama
+- Jangan mengarang konteks dari memori jika sudah ada di dokumen.
+- Jangan menulis ulang informasi desain yang sudah ada di `design.md`.
+- Jangan menulis status progres di file desain.
+- Jangan menyalin referensi visual dari Stitch ke file lain kecuali sebagai pointer singkat.
+- Kalau ada konflik antar dokumen, ikuti hierarki: `PROJECT_PROGRESS.md` → `STITCH_SOURCE_OF_TRUTH.md` → `design.md`.
+
+## Konteks proyek
+Aplikasi Flutter untuk operasional Klinik Sin She Jaya Abadi.
+Target utama: Android APK untuk dipakai staf klinik di lapangan.
+Backend: Supabase.
+Gaya kerja: perubahan kecil, terukur, dan aman untuk produksi.
+
+## Lokasi aset Stitch (eksternal)
+- Proyek Stitch `stitch_duplicate_of_jaya_abadi_premium_redesign` berada di filesystem lokal, di LUAR repo ini: `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`
+- Stitch MCP NONAKTIF (per 2026-06-06). Akses ke proyek Stitch hanya lewat filesystem biasa (Read/Glob/Bash `ls`), BUKAN lewat MCP tools.
+- Daftar KEEP/IGNORE dan rujukan visual final tetap di `docs/STITCH_SOURCE_OF_TRUTH.md`.
+
+## Standar skill visual/UX (permanen)
+Untuk setiap eksekusi besar yang涉及 visual/UX/typography/color/layout/motion/a11y/design system, WAJIB konsultasi 2 skill:
+- `impeccable` — `.agents/skills/impeccable/` + `.claude/skills/impeccable/`. Severity tagging P0/P1/P2, root-cause analysis, drift detection, polish checklist (22 dimensi). Framework audit + craft.
+- `ui-ux-pro-max` — `.agents/skills/ui-ux-pro-max/`. Prescriptive reference: 50+ style, 161 palette, 161 product type, 99 UX guideline, 25 chart, 10 stack (termasuk Flutter). Library style/token/font.
+
+Aturan operasional:
+- Severity P0/P1/P2 selalu mengikuti framework `impeccable/audit.md` & `critique.md`.
+- Style, palette, font, token, a11y baseline selalu mengecek `ui-ux-pro-max` (cocokkan ke product type Healthcare / Clinic POS).
+- Untuk project ini: product type = Healthcare POS. Style default = Restrained color strategy + Material 3 + Plus Jakarta Sans + 4dp base + 12-16dp premium-soft radius + 48dp touch target.
+- Tidak boleh pakai style generik (cream-warm, Inter default, purple-blue gradient). Ikuti filter anti-generic dari impeccable.
+- Refactor besar tanpa widget test dilarang. Wajib tambah minimal 1 widget test per halaman target.
+
+## Role & akses
+- Role dibaca lewat `AdminSession`.
+- Jangan hardcode role.
+- Jangan menampilkan nominal/laporan ke admin/petugas.
+- Transaksi tipe Obat harus `id_pasien = null`.
+- Transaksi tipe Praktek harus punya `id_pasien`.
+
+## Aturan kerja git
+- Branch utama/stabil: `master`.
+- Untuk perubahan besar atau yang menyentuh DB / auth / stok / transaksi, kerja di branch fitur dulu.
+- Untuk perubahan UI kecil yang tidak menyentuh logika sensitif, boleh tetap di branch aktif jika aman.
+- Sebelum ubah file besar, audit dulu file terkait dan cari overlap.
+
+## Aturan database
+### Boleh
+- SELECT via MCP / query read-only.
+
+### Tidak boleh tanpa izin eksplisit
+- INSERT / UPDATE ke data produksi
+- DELETE / DROP / TRUNCATE
+- ALTER TABLE / CREATE TABLE
+- ubah migration, trigger, RPC, RLS, schema
+
+Jika user meminta operasi tulis data, tampilkan SQL final dulu dan tunggu izin eksplisit.
+
+## Aturan coding
+- Jangan refactor besar tanpa alasan yang jelas.
+- Jaga perubahan seminimal mungkin.
+- Hindari duplikasi logika antar file.
+- Jangan menambah kompleksitas ke `transaksi_form_page.dart` tanpa alasan kuat.
+- Gunakan helper/token yang sudah ada.
+- Kalau ada file besar, cari titik edit paling sempit dulu.
+
+## Design system & UI
+- Ikuti token yang sudah ada di codebase.
+- Jangan mendefinisikan ulang token visual di file kerja kalau sudah tersedia di `lib/core/design_system/`.
+- Untuk referensi visual final, lihat `STITCH_SOURCE_OF_TRUTH.md`.
+- Untuk spesifikasi teknis, lihat `design.md`.
+
+## Testing
+Setelah perubahan:
+- jalankan `flutter analyze`
+- jalankan `flutter test` bila perubahan menyentuh logic atau widget penting
+
+Jika test failure terlihat pre-existing, tulis dengan jelas bahwa itu bukan regresi baru.
+
+## Format laporan akhir
+Saat selesai, laporkan dengan format ringkas:
+
+- File yang diubah
+- File yang sengaja tidak diubah
+- Hasil analyze / test
+- Risiko atau isu yang perlu diketahui
+
+## Larangan
+- Jangan menulis dua kali informasi yang sama di dokumen berbeda.
+- Jangan menjadikan `PROJECT_PROGRESS.md` sebagai dokumen arsitektur.
+- Jangan menjadikan `STITCH_SOURCE_OF_TRUTH.md` sebagai dokumen implementasi.
+- Jangan menjadikan `design.md` sebagai catatan status kerja.
+
+## Checklist sebelum mengubah kode
+1. Baca `PROJECT_PROGRESS.md`
+2. Cek apakah ada overlap di `design.md`
+3. Cek apakah desain visual final sudah ada di `STITCH_SOURCE_OF_TRUTH.md`
+4. Ubah kode sesedikit mungkin
+5. Laporkan hasil dengan jelas
