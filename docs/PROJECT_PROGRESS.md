@@ -32,6 +32,7 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
   - 4 commit: `104cdda` dashboard, `945eee1` transaksi-form, `14cd20d` dashboard cleanup, `1e3dee2` riwayat
   - Hasil: 0 raw `Color(0xFF...)`, 0 raw `SizedBox`, 1 raw `BorderRadius.circular(10)` (terdokumentasi), 9 raw `fontSize` off-grid (12.5/13/14/17) — belum di-token-kan
   - Catatan: `operasional_dashboard_page.dart` di step1-token-map.md ternyata adalah `dashboard_page.dart` (alias)
+  - **Cleanup lanjutan (post-F0.4, 2026-06-06):** `8703860` bonus batch (laporan/obat/login_layouts + app_tokens) + `00203da` duplicate-import fix di login_layouts
 - **F0.5 — Redesign halaman KEEP (dimulai 2026-06-06)**
   - 16 KEEP folder Stitch jadi target redesign visual
   - Prinsip: terapkan 1 halaman = 1 logical unit = 1 commit
