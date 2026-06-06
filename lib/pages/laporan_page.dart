@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/csv_exporter.dart';
@@ -1195,7 +1196,7 @@ class _LapCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: cisDark(context)
                   ? DarkColors.surface
-                  : const Color(0xFFF1F5F9),
+                  : AppColors.legacySlate100,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(14),
                 topRight: Radius.circular(14),
@@ -1275,7 +1276,7 @@ class _OpRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: cisDark(context)
             ? DarkColors.surface
-            : const Color(0xFFF8FAFC),
+            : AppColors.legacySlate50,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(

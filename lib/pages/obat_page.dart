@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
@@ -904,11 +905,11 @@ class _EtalaseLabel extends StatelessWidget {
   Color get _color {
     switch (etalase) {
       case Etalase.etalase1:
-        return const Color(0xFF2563EB);
+        return AppColors.info;
       case Etalase.etalase2:
-        return const Color(0xFF10B981);
+        return AppColors.positive;
       case Etalase.etalase3:
-        return const Color(0xFFF59E0B);
+        return AppColors.warning;
     }
   }
 

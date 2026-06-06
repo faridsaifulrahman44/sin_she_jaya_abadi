@@ -14,7 +14,7 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 - **Relaksasi rules (2026-06-06):** untuk fase F0.5 redesign, aturan md yang sebelumnya kaku (token lock di step1-token-map.md, "zero hardcoded" di design-system-establish.md, "1 file = 1 commit" di CLAUDE.md, "P0 blocker" di cluster-a audit) sudah dilonggarkan. Detail di file md masing-masing. Yang **tetap ketat:** role guard (Owner/Admin), schema/RLS/RPC, logika stok/auth/printer, INSERT butuh SQL dulu.
 
 ## Ringkasan fase selesai
-### Fase 0 — Reset & Clean Slate (2026-06-06)
+### Fase historis (F3–F12.6)
 - **F0.1 — Stitch audit (16 KEEP + 18 IGNORE)**
   - Verifikasi folder Stitch fisik di `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`
   - Semua 16 KEEP folder hadir, 18 IGNORE folder sudah hilang dari Stitch
