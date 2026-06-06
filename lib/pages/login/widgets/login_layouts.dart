@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/design_system/app_tokens.dart';
 import '../../../core/theme/app_theme.dart';
@@ -35,44 +36,81 @@ class LoginMobileLayout extends StatelessWidget {
       bottom: false,
       child: Column(
         children: [
-          // ── Upper zone: gradient header with logo ──────────────────────────
+          // ── Wallpaper zone: soft teal gradient with medical cross watermark ──
           Expanded(
-            flex: 55,
+            flex: 38,
             child: Container(
               width: double.infinity,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0D1117), Color(0xFF1A2332)],
+                  colors: [Color(0xFF00897B), Color(0xFF00695C)],
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
                 children: [
-                  const SizedBox(height: 48),
-                  Image.asset(
-                    'assets/logo/logo_sinshe_login.png',
-                    height: 100,
-                    errorBuilder: (_, __, ___) => const SizedBox(height: 100),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'SinShe Jaya Abadi',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.3,
+                  // Faded medical cross watermark (top-right, opacity 12%)
+                  Positioned(
+                    top: 24,
+                    right: 24,
+                    child: Opacity(
+                      opacity: 0.12,
+                      child: Icon(
+                        Symbols.health_and_safety_rounded,
+                        size: 160,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'System Manajemen Klinik Herbal',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withAlpha(127),
-                      fontWeight: FontWeight.w500,
+                  // Center: logo + clinic name
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Soft-white circular badge with medical icon
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(38),
+                                blurRadius: 18,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Symbols.medical_services_rounded,
+                            size: 44,
+                            color: AppColors.primaryDark,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'SinShe Jaya Abadi',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Klinik Herbal Tradisional',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Colors.white.withAlpha(204),
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -80,84 +118,99 @@ class LoginMobileLayout extends StatelessWidget {
             ),
           ),
 
-          // ── Lower zone: white form card ────────────────────────────────────
+          // ── Form zone: white card dengan top radius 28, no shadow upward ─────
           Expanded(
-            flex: 45,
+            flex: 62,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(32),
-                  topRight: Radius.circular(32),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(31),
-                    blurRadius: 24,
-                    offset: const Offset(0, -8),
-                  ),
-                ],
               ),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(28, 28, 28, AppSpacing.xxl),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, AppSpacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Welcome text
+                    // Welcome text — left-aligned, 22px w800
                     Text(
                       'Selamat Datang',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: textPrimary,
                         letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Masuk untuk melanjutkan',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Email label
-                    Text(
-                      'Email',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: textSecondary,
+                        height: 1.2,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // Email field — bordered style
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                        borderRadius: BorderRadius.circular(10),
+                    Text(
+                      'Masuk untuk melanjutkan ke dashboard klinik',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: textSecondary,
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
                       ),
-                      child: TextField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          hintText: 'username atau nama@email.com',
-                          hintStyle: TextStyle(color: textMuted, fontSize: 14),
-                          prefixIcon: Icon(AppLegacyIcons.mail, color: textMuted, size: 20),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Email label — small-caps style
+                    Text(
+                      'EMAIL',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: textMuted,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Email field — soft fill style (Stitch login_premium)
+                    TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'nama@email.com',
+                        hintStyle: TextStyle(
+                          color: textMuted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        prefixIcon: Icon(
+                          AppLegacyIcons.mail,
+                          color: textMuted,
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F7FA),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFF00897B), width: 1.5),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                         ),
                       ),
                     ),
@@ -165,143 +218,183 @@ class LoginMobileLayout extends StatelessWidget {
 
                     // Password label
                     Text(
-                      'Password',
+                      'PASSWORD',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: textMuted,
+                        letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    // Password field — bordered style
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 8),
+                    // Password field — soft fill style
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => onLogin(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textPrimary,
+                        fontWeight: FontWeight.w500,
                       ),
-                      child: TextField(
-                        controller: passwordController,
-                        obscureText: obscurePassword,
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => onLogin(),
-                        decoration: InputDecoration(
-                          hintText: 'Masukkan password',
-                          hintStyle: TextStyle(color: textMuted, fontSize: 14),
-                          prefixIcon: Icon(AppLegacyIcons.lock, color: textMuted, size: 20),
-                          suffixIcon: GestureDetector(
-                            onTap: onTogglePassword,
-                            child: Icon(
-                              obscurePassword ? AppLegacyIcons.visibilityOff : AppLegacyIcons.visibilityOn,
-                              color: textMuted,
-                              size: 20,
-                            ),
+                      decoration: InputDecoration(
+                        hintText: 'Masukkan password',
+                        hintStyle: TextStyle(
+                          color: textMuted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        prefixIcon: Icon(
+                          AppLegacyIcons.lock,
+                          color: textMuted,
+                          size: 20,
+                        ),
+                        suffixIcon: GestureDetector(
+                          onTap: onTogglePassword,
+                          child: Icon(
+                            obscurePassword
+                                ? AppLegacyIcons.visibilityOff
+                                : AppLegacyIcons.visibilityOn,
+                            color: textMuted,
+                            size: 20,
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F7FA),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFF00897B), width: 1.5),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                         ),
                       ),
                     ),
+
+                    // Forgot password — right-aligned
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: GestureDetector(
+                          onTap: onForgotPassword,
+                          child: Text(
+                            'Lupa password?',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: AppSpacing.xxl),
 
-                    // Login button — teal
-                    Container(
+                    // Login button — solid teal, full width, AppRadius.md
+                    SizedBox(
                       height: 52,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00897B),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF00897B).withAlpha(77),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: loading ? null : onLogin,
-                          borderRadius: BorderRadius.circular(10),
-                          child: Center(
-                            child: loading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                  )
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(AppSymbols.login, color: Colors.white, size: 20),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'Masuk',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withAlpha(77),
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: loading ? null : onLogin,
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            child: Center(
+                              child: loading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    )
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          AppSymbols.login,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Text(
+                                          'Masuk',
+                                          style: TextStyle(
+                                            fontSize: 15.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            letterSpacing: 0.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
 
-                    // Lupa password
-                    Center(
-                      child: GestureDetector(
-                        onTap: onForgotPassword,
-                        child: Text(
-                          'Lupa password?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: textPrimary.withAlpha(179),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Info hubungi admin
+                    // Info hubungi admin — soft fill style
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: textMuted.withAlpha(15),
-                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFFF5F7FA),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline_rounded, color: textMuted, size: 16),
-                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.info_outline_rounded,
+                            color: textMuted,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'Belum punya akun? Hubungi admin klinik untuk dibuatkan akun.',
                               style: TextStyle(
                                 fontSize: 11.5,
                                 color: textMuted,
-                                fontWeight: FontWeight.w400,
-                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                                height: 1.45,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
                     // Copyright
                     Center(
@@ -311,6 +404,7 @@ class LoginMobileLayout extends StatelessWidget {
                           fontSize: 11,
                           color: textMuted,
                           fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ),
