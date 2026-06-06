@@ -215,10 +215,10 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                             isPraktek ? 'Praktek' : 'Obat';
 
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.sm10),
                           decoration: BoxDecoration(
                             color: cardBg,
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             border: Border.all(
                               color: dividerColor,
                               width: 1,
@@ -228,23 +228,23 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                             onTap: () {
                               // Navigate to detail
                             },
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             child: Padding(
-                              padding: const EdgeInsets.all(14),
+                              padding: const EdgeInsets.all(AppSpacing.md14),
                               child: Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(10),
+                                    padding: const EdgeInsets.all(AppSpacing.sm10),
                                     decoration: BoxDecoration(
                                       color: badgeColor.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                     ),
                                     child: Icon(
                                       isPraktek
                                           ? Icons.medical_services_outlined
                                           : Icons.medication_outlined,
                                       color: badgeColor,
-                                      size: 22,
+                                      size: 20,
                                     ),
                                   ),
                                   const SizedBox(width: AppSpacing.md),
@@ -270,8 +270,7 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                                               ),
                                               child: Text(
                                                 badgeLabel,
-                                                style: TextStyle(
-                                                  fontSize: 10,
+                                                style: AppTextStyles.labelXs.copyWith(
                                                   fontWeight: FontWeight.w700,
                                                   color: badgeColor,
                                                 ),
@@ -306,8 +305,7 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                                     children: [
                                       Text(
                                         rupiah(total),
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                        style: AppTextStyles.bodyMd.copyWith(
                                           fontWeight: FontWeight.w800,
                                           color: textPrimary,
                                         ),
@@ -489,24 +487,24 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                         final badgeLabel = isMasuk ? 'Masuk' : 'Keluar';
 
                         return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
+                          margin: const EdgeInsets.only(bottom: AppSpacing.sm10),
                           decoration: BoxDecoration(
                             color: cardBg,
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             border: Border.all(
                               color: dividerColor,
                               width: 1,
                             ),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(AppSpacing.md14),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(10),
+                                  padding: const EdgeInsets.all(AppSpacing.sm10),
                                   decoration: BoxDecoration(
                                     color: badgeColor.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(AppRadius.sm),
                                   ),
                                   child: Icon(
                                     isMasuk
@@ -539,8 +537,7 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                                             ),
                                             child: Text(
                                               badgeLabel,
-                                              style: TextStyle(
-                                                fontSize: 10,
+                                              style: AppTextStyles.labelXs.copyWith(
                                                 fontWeight: FontWeight.w700,
                                                 color: badgeColor,
                                               ),
@@ -574,8 +571,7 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                                   children: [
                                     Text(
                                       isMasuk ? '+$jumlah' : '-$jumlah',
-                                      style: TextStyle(
-                                        fontSize: 16,
+                                      style: AppTextStyles.bodyLg.copyWith(
                                         fontWeight: FontWeight.w800,
                                         color: badgeColor,
                                       ),
