@@ -49,7 +49,7 @@ Urutan eksekusi step 1, dipilih karena paling banyak raw value di file Dart:
 | `--text-muted`   | `#9CA3AF` | `AppColors.textMuted`             |
 | `--border`       | `#E5E7EB` | `AppColors.border`                |
 
-> **Aturan:** setiap raw hex di tiga file target **harus** diganti dengan `AppColors.*`. Dilarang tambah hex baru di luar tabel ini.
+> **Aturan (direlaksasi 2026-06-06):** Setiap raw hex di tiga file target F0.4 **sebaiknya** diganti dengan `AppColors.*`. Untuk penerapan Stitch KEEP #16 (`klinik_sin_she_jaya_abadi_design_system`), tabel di atas **boleh diperluas** dengan hex Material 3 penuh (surface-tint, on-primary-container, outline, outline-variant, primary-container, tertiary, dsb.) selama nilai numerik cocok dengan `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/klinik_sin_she_jaya_abadi_design_system/DESIGN.md`. Tambah token baru di `app_tokens.dart` boleh, asal ada justifikasi visual dari KEEP.
 
 ## 3. Typography (Plus Jakarta Sans)
 
@@ -91,10 +91,12 @@ Urutan eksekusi step 1, dipilih karena paling banyak raw value di file Dart:
 5. Setelah ketiganya lulus, commit per file.
 
 ## 7. Yang tidak boleh dilakukan
-- Jangan tambah token baru tanpa izin (sesuai aturan PROJECT_PROGRESS.md).
-- Jangan ubah logika stok / auth / role / printer.
-- Jangan ubah schema / RLS / RPC.
-- Jangan edit file di luar 3 target tanpa izin eksplisit.
+- **Dilarang** ubah logika stok / auth / role / printer.
+- **Dilarang** ubah schema / RLS / RPC.
+- Untuk edit di luar 3 target F0.4, **tidak butuh izin per-file** selama tujuannya menerapkan Stitch KEEP (16 folder di `STITCH_SOURCE_OF_TRUTH.md`). Yang tetap butuh izin: ubah DB, ubah logic bisnis, hapus file.
+- **Boleh** tambah token baru di `app_tokens.dart` selama nilainya cocok dengan KEEP #16 DESIGN.md atau ter-justifikasi dari KEEP folder lain. Tidak perlu izin per-token.
+- **Boleh** override font family (mis. Plus Jakarta Sans via `google_fonts`) dan extend `AppTextStyles` (headlineSm/Md/Lg, bodySm/Md/Lg, labelSm/Md) untuk memenuhi scale ratio ≥ 1.25 sesuai audit cluster-a.
+- **Boleh** set `IconButton.styleFrom(minimumSize: Size(48, 48))` untuk memenuhi tap target ≥ 48dp (WCAG 2.5.5).
 
 ## 8. Lokasi token Dart saat ini
 - `lib/core/design_system/app_colors.dart`

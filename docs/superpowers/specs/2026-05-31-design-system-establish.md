@@ -27,7 +27,7 @@ Establish desain foundation yang seragam agar semua halaman (F1-F11) punya "look
 | `xl` | 20px | Section spacing |
 | `xxl` | 24px | Major section break |
 
-**Signature rule:** Semua page pakai `AppSpacing` — tidak boleh pakai angka hardcoded.
+**Signature rule:** Semua page pakai `AppSpacing` — **sebaiknya** pakai token; outlier 1-2px karena grid alignment visual boleh di-justifikasi (mis. chip dengan radius 10px untuk konsistensi dengan mockup yang bukan 4dp base, didokumentasikan sebagai pengecualian inline).
 
 ### 2.2 Border Radius
 **Current:** mix of `BorderRadius.circular()` hardcoded di banyak tempat.
@@ -39,7 +39,7 @@ Establish desain foundation yang seragam agar semua halaman (F1-F11) punya "look
 | `lg` | 16px | Bottom sheets, modals |
 | `xl` | 20px | Dialogs |
 
-**Signature rule:** Semua komponen pakai `AppRadius` — `BorderRadius.circular(AppRadius.md)`, dst.
+**Signature rule:** Semua komponen pakai `AppRadius` — `BorderRadius.circular(AppRadius.md)`, dst. Outlier karena pad ke visual Stitch KEEP (mis. 10px, 14px) **boleh** dipakai dan didokumentasikan sebagai pengecualian inline. Token radius tambahan (10, 14) boleh ditambah di `AppRadius` jika dipakai ≥ 3 tempat.
 
 ### 2.3 Animation & Motion (Emil Design)
 **Current:** `emil_design.dart` sudah ada tapi belum dipakai.
@@ -80,10 +80,10 @@ Establish desain foundation yang seragam agar semua halaman (F1-F11) punya "look
 
 ## 3. Signature Decisions (3-5 points)
 
-1. **Spacing:** Semua page pakai `AppSpacing` tokens — zero hardcoded pixel values
-2. **Radius:** Cards: `AppRadius.md` (12px), Buttons: `AppRadius.sm` (8px), Bottom sheets: `AppRadius.lg` (16px)
+1. **Spacing:** Semua page pakai `AppSpacing` tokens — zero hardcoded pixel values untuk hal baru; outlier terdokumentasi inline OK.
+2. **Radius:** Cards: `AppRadius.md` (12px), Buttons: `AppRadius.sm` (8px), Bottom sheets: `AppRadius.lg` (16px). Outlier (10/14) OK jika dari Stitch KEEP.
 3. **Motion:** Page transition = fade 300ms easeOutCubic; Button press = scale 0.97 + 150ms
-4. **Color:** Pakai helper functions dari `app_theme.dart` — `cprimary()`, `cscaffoldBg()`, dst. — tidak boleh `Colors.blue` atau hex langsung
+4. **Color:** Pakai helper functions dari `app_theme.dart` — `cprimary()`, `cscaffoldBg()`, dst. — **dianjurkan**; raw `Colors.blue` / hex langsung untuk hal baru di luar KEEP harus di-justify.
 5. **Reduced Motion:** Semua animasi auto-disable kalau `accessibilityFeatures.reduceMotion = true`
 
 ---
@@ -123,9 +123,10 @@ Establish desain foundation yang seragam agar semua halaman (F1-F11) punya "look
 ## 6. Constraints
 
 - **Tidak ubah logic** — hanya ganti value (spacing, radius, color)
-- **Tidak ubah layout** — repositioning hanya jika ada inkonsistensi yang jelas
-- **Hati-hati dengan `transaksi_form_page.dart`** — 1478 lines, change minimal
+- **Tidak ubah layout** — repositioning hanya jika ada inkonsistensi yang jelas, atau sesuai Stitch KEEP
+- **Hati-hati dengan `transaksi_form_page.dart`** — 1595 lines (post F0.4), refactor visual bertahap per section OK, jangan 1 PR besar
 - **Dark mode** — semua helper functions sudah handle dark/light, pastikan konsisten
+- **Penerapan Stitch KEEP** — untuk fase redesign mengikuti KEEP folder, **boleh** mengubah layout, radius, typography, dan motion selama sesuai `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/<folder-KEEP>/`. Tetap jaga logic bisnis (stok/auth/role/printer) dan struktur repository.
 
 ---
 

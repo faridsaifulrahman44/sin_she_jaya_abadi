@@ -31,8 +31,8 @@ Gaya kerja: perubahan kecil, terukur, dan aman untuk produksi.
 - Stitch MCP NONAKTIF (per 2026-06-06). Akses ke proyek Stitch hanya lewat filesystem biasa (Read/Glob/Bash `ls`), BUKAN lewat MCP tools.
 - Daftar KEEP/IGNORE dan rujukan visual final tetap di `docs/STITCH_SOURCE_OF_TRUTH.md`.
 
-## Standar skill visual/UX (permanen)
-Untuk setiap eksekusi besar yang menyentuh visual/UX/typography/color/layout/motion/a11y/design system, WAJIB konsultasi 2 skill:
+## Standar skill visual/UX (permanen, TETAP WAJIB)
+Untuk setiap eksekusi besar yang menyentuh visual/UX/typography/color/layout/motion/a11y/design system, **WAJIB** konsultasi 2 skill:
 - `impeccable` — `.agents/skills/impeccable/` + `.claude/skills/impeccable/`. Severity tagging P0/P1/P2, root-cause analysis, drift detection, polish checklist (22 dimensi). Framework audit + craft.
 - `ui-ux-pro-max` — `.agents/skills/ui-ux-pro-max/`. Prescriptive reference: 50+ style, 161 palette, 161 product type, 99 UX guideline, 25 chart, 10 stack (termasuk Flutter). Library style/token/font.
 
@@ -41,7 +41,7 @@ Aturan operasional:
 - Style, palette, font, token, a11y baseline selalu mengecek `ui-ux-pro-max` (cocokkan ke product type Healthcare / Clinic POS).
 - Untuk project ini: product type = Healthcare POS. Style default = Restrained color strategy + Material 3 + Plus Jakarta Sans + 4dp base + 12-16dp premium-soft radius + 48dp touch target.
 - Tidak boleh pakai style generik (cream-warm, Inter default, purple-blue gradient). Ikuti filter anti-generic dari impeccable.
-- Refactor besar tanpa widget test dilarang. Wajib tambah minimal 1 widget test per halaman target.
+- Refactor besar tanpa widget test **tetap wajib** tambah minimal 1 widget test per halaman KEEP prioritas. Untuk refactor kecil (token migration, hardcoded value replace) yang tidak menambah behavior baru, test existing dianggap cukup.
 
 ## Role & akses
 - Role dibaca lewat `AdminSession`.
@@ -55,6 +55,7 @@ Aturan operasional:
 - Untuk perubahan besar atau yang menyentuh DB / auth / stok / transaksi, kerja di branch fitur dulu.
 - Untuk perubahan UI kecil yang tidak menyentuh logika sensitif, boleh tetap di branch aktif jika aman.
 - Sebelum ubah file besar, audit dulu file terkait dan cari overlap.
+- **Commit policy (direlaksasi 2026-06-06):** 1 logical unit = 1 commit. Definisi logical unit: 1 halaman KEEP yang selesai diterapkan, atau 1 batch refactor token di beberapa file kecil, atau 1 audit + fix. Bukan 1 file = 1 commit (terlalu kecil, noisy) dan bukan 1 fase = 1 commit (terlalu besar, susah review). Pesan commit format: `scope(F0.x): ringkasan perubahan`.
 
 ## Aturan database
 ### Boleh tanpa izin
@@ -74,7 +75,9 @@ Jika user meminta operasi tulis data, tampilkan SQL final dulu dan tunggu izin e
 - **Eksplorasi (tanpa izin):** baca file, baca folder Stitch eksternal, baca tabel lewat SELECT, identifikasi raw value yang perlu dimigrasi
 - **Eksekusi kecil (boleh langsung):** rename `const SizedBox(height: 24)` jadi `AppSpacing.xxl`, ganti `BorderRadius.circular(8)` jadi `AppRadius.sm`, refactor widget privat dalam 1 file
 - **Eksekusi besar (butuh izin):** rename helper antar-file, hapus file, ubah signature fungsi publik, refactor halaman transaksi
-- **Threshold "besar":** menyentuh ≥3 file sekaligus, atau menyentuh `transaksi_form_page.dart`, atau menyentuh schema/auth/stok
+- **Threshold "besar" revisi (2026-06-06):** menyentuh **logic bisnis** (stok/auth/role/printer/DB), atau **menghapus** file/function publik. Bukan sekadar "menyentuh ≥3 file sekaligus" — itu sudah biasa untuk 1 halaman KEEP.
+- **Eksekusi menengah (boleh langsung untuk penerapan Stitch KEEP):** refactor halaman 1 KEEP folder (mis. `login_premium`, `profil_pasien_crm_final`), tambah token baru di `app_tokens.dart` sesuai KEEP #16, extend `AppTextStyles` untuk scale ≥ 1.25, override font family di ThemeData, set tap target ≥ 48dp, ganti `Icons.*` ke `AppSymbols.*`. Untuk refactor 1 halaman KEEP, tidak butuh izin per-file.
+- **Eksekusi besar (butuh izin):** rename helper antar-file yang dipakai di ≥ 5 file, hapus file, ubah signature fungsi publik, refactor halaman `transaksi_form_page.dart` (1595 LOC), ubah schema/auth/stok/role/printer.
 
 ## Aturan coding
 - Jangan refactor besar tanpa alasan yang jelas.
@@ -83,6 +86,7 @@ Jika user meminta operasi tulis data, tampilkan SQL final dulu dan tunggu izin e
 - Jangan menambah kompleksitas ke `transaksi_form_page.dart` tanpa alasan kuat.
 - Gunakan helper/token yang sudah ada.
 - Kalau ada file besar, cari titik edit paling sempit dulu.
+- **Fase redesign Stitch KEEP (F0.5+, mulai 2026-06-06):** "Perubahan besar" yang punya justifikasi visual dari `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/<folder-KEEP>/` **dianggap punya alasan yang jelas**. Boleh refactor layout, radius, typography, motion, icon style, dan struktur widget selama sesuai KEEP. Yang tetap dijaga: logic bisnis, repository signature, schema DB.
 
 ## Design system & UI
 - Ikuti token yang sudah ada di codebase.

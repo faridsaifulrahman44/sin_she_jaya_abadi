@@ -33,6 +33,12 @@ Healthcare / Clinic POS (clinical transactional workflow).
 - **Touch target:** ≥ 48dp.
 - **A11y baseline:** WCAG AA (contrast 4.5:1, focus ring visible, semantic labels).
 
+### Status P0 (revisi 2026-06-06)
+P0 list di §3 adalah **target wajib, bukan blocker** untuk halaman di luar cluster A. Artinya:
+- Untuk halaman KEEP yang sedang diterapkan (mis. `login_premium`, `operational_dashboard_owner_redux`), **tidak wajib** selesaikan P0 typography/tap-target/test dulu sebelum lanjut.
+- P0 wajib diselesaikan bertahap selama fase redesign, sebelum dianggap "implementasi KEEP selesai untuk halaman itu".
+- Untuk cluster A sendiri (`transaksi_form_page.dart` + `transaksi_hub_page.dart`), tetap prioritas karena ini halaman paling banyak dipakai.
+
 ### Anti-patterns yang harus dihindari
 - Cream-warm body bg (Material default white M3 mungkin ok, tapi cek tinted warm).
 - Gradient text, glassmorphism default, hero-metric template, identical card grids.
@@ -268,20 +274,31 @@ Healthcare / Clinic POS (clinical transactional workflow).
 7. **Formatters** — `rupiah()`, `formatDateDb()` reusable, dipakai konsisten.
 8. **DESIGN.md + STITCH_SOURCE_OF_TRUTH.md** — dokumentasi visual good enough untuk acuan.
 
-## 8. Recommended Actions (Priority Order)
+## 8. Recommended Actions (Flexible Order, mulai 2026-06-06)
 
+Urutan di bawah ini **adalah referensi**, bukan sequential blocking. Claude boleh eksekusi sesuai prioritas yang masuk akal untuk halaman KEEP yang sedang diterapkan.
+
+**Fondasi (apply sekali, dipakai banyak halaman):**
 1. **[P0] `$impeccable typeset`** — extend `AppTextStyles` ke scale ≥ 1.25, install Plus Jakarta Sans via `google_fonts`, override ThemeData font family.
-2. **[P0] `$impeccable adapt`** — audit semua tap target, set minimum 48dp, terutama stepper qty.
-3. **[P0] `$impeccable harden`** — tambah `test/widget/transaksi_form_page_test.dart` (pump + findByKey + tap simulasi).
-4. **[P1] `$impeccable layout`** — replace hardcoded `EdgeInsets`/`BorderRadius`/`fontSize` ke token `AppSpacing`/`AppRadius`/`AppTextStyles`. Bertahap per section.
-5. **[P1] `$impeccable audit`** — icon consistency check: replace `Icons.*` → `AppSymbols.*`. Extend `AppSymbols` jika missing.
-6. **[P1] `$impeccable polish`** — full M3 SegmentedButton untuk metode bayar, custom active state.
-7. **[P1] `$impeccable shape`** — re-architect layout: pindah CTA ke `Scaffold.bottomNavigationBar` (sticky bottom summary).
-8. **[P1] `$impeccable onboard`** — empty state cart + empty state walk-in pasien.
-9. **[P2] `$impeccable layout`** — nested card cleanup, ghost-card elimination, side-stripe border removal.
-10. **[P2] `$impeccable animate`** — replace hardcoded durasi ke `EmilDesign.adaptiveDuration()`.
-11. **[P3] `$impeccable adapt`** — reduced-motion + focus ring polish.
-12. **[final] `$impeccable polish`** — final pass setelah semua fix.
+2. **[P0] `$impeccable adapt`** — audit semua tap target, set minimum 48dp.
+3. **[P0] `$impeccable harden`** — tambah widget test untuk halaman KEEP prioritas (bukan hanya cluster A).
+
+**Body refactor (per halaman KEEP, bisa paralel):**
+4. **[P1] `$impeccable layout`** — replace hardcoded `EdgeInsets`/`BorderRadius`/`fontSize` ke token. Bertahap per section.
+5. **[P1] `$impeccable audit`** — icon consistency: `Icons.*` → `AppSymbols.*`. Extend `AppSymbols` jika missing.
+6. **[P1] `$impeccable shape`** — re-architect layout sesuai KEEP (sticky bottom summary, M3 SegmentedButton, dll.).
+7. **[P1] `$impeccable onboard`** — empty state informatif.
+
+**Cleanup + polish (setelah body stabil):**
+8. **[P2] `$impeccable layout`** — nested card cleanup, ghost-card elimination, side-stripe border removal.
+9. **[P2] `$impeccable animate`** — replace hardcoded durasi ke `EmilDesign.adaptiveDuration()`.
+10. **[P3] `$impeccable adapt`** — reduced-motion + focus ring polish.
+11. **[final] `$impeccable polish`** — final pass per halaman KEEP.
+
+**Catatan ordering:**
+- Untuk halaman KEEP tertentu, body refactor (#4-7) bisa langsung jalan tanpa tunggu fondasi #1-3 selesai (gunakan placeholder).
+- Cluster A (`transaksi_form_page.dart`) disarankan selesaikan fondasi dulu karena halaman ini paling banyak dipakai.
+- Halaman KEEP lain (login, dashboard, obat hub, dll.) bisa langsung body refactor.
 
 ## 9. Verifikasi End-to-End (per rekomendasi)
 
