@@ -56,14 +56,17 @@ class DashboardSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
+        border: Border.all(
+          color: color.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: isDark
                 ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+                : color.withValues(alpha: 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -740,14 +743,14 @@ class _DashboardPageState extends State<DashboardPage> {
                 AppSpacing.xl,
               ),
               decoration: BoxDecoration(
-                color: AppColors.headerBlueDark,
+                color: AppColors.primary,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(AppRadius.xl),
                   bottomRight: Radius.circular(AppRadius.xl),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.headerBlueDark.withValues(alpha: 0.35),
+                    color: AppColors.primary.withValues(alpha: 0.35),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
