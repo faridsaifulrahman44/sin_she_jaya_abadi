@@ -4,6 +4,11 @@ import 'app_colors.dart';
 export 'app_colors.dart' show LightColors, DarkColors;
 export 'app_widgets.dart';
 
+// F0.5: Global font family override — Stitch KEEP pakai Plus Jakarta Sans.
+// Di-apply di ThemeData level agar semua DefaultTextStyle mewarisi.
+// TextStyle eksplisit di TextTheme yang tidak set fontFamily juga ikut inherit.
+const String _kFontFamily = 'Plus Jakarta Sans';
+
 // ============================================================================
 // LIGHT THEME DATA
 // ============================================================================
@@ -11,6 +16,7 @@ ThemeData buildLightTheme() {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    fontFamily: _kFontFamily,
 
     // ── Colors ──────────────────────────────────────────────
     colorScheme: const ColorScheme.light(
@@ -359,6 +365,7 @@ ThemeData buildDarkTheme() {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    fontFamily: _kFontFamily,
 
     // ── Colors ──────────────────────────────────────────────
     colorScheme: const ColorScheme.dark(

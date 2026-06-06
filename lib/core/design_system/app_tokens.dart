@@ -13,15 +13,25 @@ class AppSpacing {
   static const lg = 16.0;
   static const xl = 20.0;
   static const xxl = 24.0;
+  // F0.5: extended scale (1.25 progression) untuk hero/auth surface
+  static const sm2 = 18.0;
+  static const sm3 = 32.0;
+  static const sm4 = 40.0;
+  static const sm5 = 48.0;
+  static const sm6 = 56.0;
 }
 
 class AppRadius {
   const AppRadius._();
 
+  static const xs = 6.0;
   static const sm = 8.0;
+  static const sm10 = 10.0;
   static const md = 12.0;
+  static const lg14 = 14.0;
   static const lg = 16.0;
   static const xl = 20.0;
+  static const xxl = 24.0;
   static const full = 999.0;
 }
 
@@ -96,6 +106,19 @@ class AppTextStyles {
     fontSize: 11,
     fontWeight: FontWeight.w500,
   );
+
+  // F0.5: extended scale untuk hero/auth surface
+  static const sectionTitle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+  );
+
+  static const display = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w800,
+    height: 1.1,
+  );
 }
 
 class AppColors {
@@ -132,6 +155,11 @@ class AppColors {
 
   // Border
   static const border = Color(0xFFE5E7EB);
+  static const borderMuted = Color(0xFFE2E8F0); // softer border for auth surface
+
+  // Dark surface (auth/hero gradient base)
+  static const surfaceDark = Color(0xFF0D1117);
+  static const surfaceDeep = Color(0xFF1A2332);
 
   // ── Legacy / semantic (pre-existing) ──────────────────────────────────────
   static const positive = Color(0xFF10B981);
