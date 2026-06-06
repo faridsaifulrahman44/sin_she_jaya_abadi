@@ -44,6 +44,23 @@ class AppTextStyles {
     height: 1.1,
   );
 
+  // F0.5: off-grid interpolations (12.5px, 17/w700) untuk hal2 yang
+  // tidak match ke scale generik. Digunakan di dashboard + transaksi.
+  static const metricBody = TextStyle(
+    fontSize: 12.5,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const metricBold = TextStyle(
+    fontSize: 12.5,
+    fontWeight: FontWeight.w700,
+  );
+
+  static const menuTitle = TextStyle(
+    fontSize: 17,
+    fontWeight: FontWeight.w700,
+  );
+
   static const title = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w700,

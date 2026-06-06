@@ -16,6 +16,88 @@ import 'obat_masuk_page.dart';
 import 'obat_page.dart';
 import 'sinkronisasi_stok_page.dart';
 
+/// Branded loading indicator (teal pulse).
+/// Menggantikan `CircularProgressIndicator` polos yang KEEP #6 (hub_inventaris_final)
+/// justru menggantinya dengan animasi pulse + logo subtle.
+class _BrandedLoading extends StatefulWidget {
+  const _BrandedLoading();
+
+  @override
+  State<_BrandedLoading> createState() => _BrandedLoadingState();
+}
+
+class _BrandedLoadingState extends State<_BrandedLoading>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat(reverse: true);
+    _opacity = Tween<double>(begin: 0.45, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brand = isDark ? DarkColors.primary : LightColors.primary;
+    return Center(
+      child: AnimatedBuilder(
+        animation: _opacity,
+        builder: (_, __) => Opacity(
+          opacity: _opacity.value,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: brand,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: brand.withValues(alpha: 0.32),
+                      blurRadius: 14,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.local_pharmacy_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(brand),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Tab count: 5 for owner, 4 for petugas.
 /// "Keterangan Stok" → tab ke-4 (renamed from Stok Alert)
 /// "Sinkronisasi" → tab ke-5 (owner only)
@@ -69,7 +151,7 @@ class _ObatHubPageState extends State<ObatHubPage>
     // Show loading while checking role
     if (_tabCount == 4 && !_isOwner && _tabController.length == 0) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: _BrandedLoading(),
       );
     }
 
@@ -261,7 +343,7 @@ class _KeteranganStokEmbeddedState extends State<_KeteranganStokEmbedded> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: _BrandedLoading(),
       );
     }
 
@@ -379,7 +461,7 @@ class _StokAlertBodyState extends State<_StokAlertBody> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const _BrandedLoading();
     }
 
     if (_errorMessage != null) {
@@ -619,73 +701,99 @@ class _ObatAlertCard extends StatelessWidget {
     final etalase = item['etalaseLabel'] ?? item['etalase'] ?? '';
     final stok = item['stok'] ?? item['stokSaatIni'] ?? 0;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm10),
+      child: Material(
         color: cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.15)
-                : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
+        elevation: 0,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {/* no-op: presentation-only, see F0.5 #2 redesign */},
+          splashColor: color.withValues(alpha: 0.08),
+          highlightColor: color.withValues(alpha: 0.04),
+          child: AnimatedContainer(
+            duration: EmilDesign.fast,
+            curve: EmilDesign.toggle,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Icon(
-              stok == 0 ? AppSymbols.error : AppSymbols.warning,
-              color: color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  nama.toString(),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: ctextPrimary(context)),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
+              ],
+            ),
+            padding: const EdgeInsets.all(AppSpacing.md14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm10),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Icon(
+                    stok == 0 ? AppSymbols.error : AppSymbols.warning,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nama.toString(),
+                        style: AppTextStyles.bodyMd.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: ctextPrimary(context),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      child: Text(
-                        etalase.toString(),
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+                      const SizedBox(height: AppSpacing.xs),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: AppSpacing.md,
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(AppRadius.xs),
+                            ),
+                            child: Text(
+                              etalase.toString(),
+                              style: AppTextStyles.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: color,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Stok: $stok',
+                            style: AppTextStyles.caption.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: ctextSecondary(context),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Stok: $stok',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: ctextSecondary(context)),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
