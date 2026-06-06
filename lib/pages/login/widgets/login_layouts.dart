@@ -45,20 +45,20 @@ class LoginMobileLayout extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF00897B), Color(0xFF00695C)],
+                  colors: [AppColors.primary, AppColors.primaryDark],
                 ),
               ),
               child: Stack(
                 children: [
                   // Faded medical cross watermark (top-right, opacity 12%)
                   Positioned(
-                    top: 24,
-                    right: 24,
+                    top: AppSpacing.xxl,
+                    right: AppSpacing.xxl,
                     child: Opacity(
                       opacity: 0.12,
                       child: Icon(
                         Symbols.health_and_safety_rounded,
-                        size: 160,
+                        size: AppRadius.size160,
                         color: Colors.white,
                       ),
                     ),
@@ -70,14 +70,14 @@ class LoginMobileLayout extends StatelessWidget {
                       children: [
                         // Soft-white circular badge with medical icon
                         Container(
-                          width: 88,
-                          height: 88,
+                          width: AppRadius.size88,
+                          height: AppRadius.size88,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withAlpha(38),
+                                color: Colors.black.withValues(alpha: 0.15),
                                 blurRadius: 18,
                                 offset: const Offset(0, 6),
                               ),
@@ -86,26 +86,26 @@ class LoginMobileLayout extends StatelessWidget {
                           alignment: Alignment.center,
                           child: Icon(
                             Symbols.medical_services_rounded,
-                            size: 44,
+                            size: AppRadius.size44,
                             color: AppColors.primaryDark,
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: AppSpacing.md14),
                         const Text(
                           'SinShe Jaya Abadi',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: AppRadius.size22,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                             letterSpacing: -0.3,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: AppSpacing.xs6),
                         Text(
                           'Klinik Herbal Tradisional',
                           style: TextStyle(
-                            fontSize: 12.5,
-                            color: Colors.white.withAlpha(204),
+                            fontSize: AppRadius.size12half,
+                            color: Colors.white.withValues(alpha: 0.80),
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.2,
                           ),
@@ -124,58 +124,55 @@ class LoginMobileLayout extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(28),
-                  topRight: Radius.circular(28),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.size28),
                 ),
               ),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, AppSpacing.xxl),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppRadius.size28, AppSpacing.xxl, AppSpacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Welcome text — left-aligned, 22px w800
                     Text(
                       'Selamat Datang',
-                      style: TextStyle(
-                        fontSize: 22,
+                      style: AppTextStyles.headlineLg.copyWith(
                         fontWeight: FontWeight.w800,
                         color: textPrimary,
                         letterSpacing: -0.3,
                         height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: AppSpacing.xs6),
                     Text(
                       'Masuk untuk melanjutkan ke dashboard klinik',
-                      style: TextStyle(
-                        fontSize: 13.5,
+                      style: AppTextStyles.bodyMd.copyWith(
+                        fontSize: AppRadius.size13half,
                         color: textSecondary,
                         fontWeight: FontWeight.w500,
                         height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     // Email label — small-caps style
                     Text(
                       'EMAIL',
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: AppTextStyles.caption.copyWith(
                         fontWeight: FontWeight.w700,
                         color: textMuted,
                         letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     // Email field — soft fill style (Stitch login_premium)
                     TextField(
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppRadius.size14,
                         color: textPrimary,
                         fontWeight: FontWeight.w500,
                       ),
@@ -183,19 +180,19 @@ class LoginMobileLayout extends StatelessWidget {
                         hintText: 'nama@email.com',
                         hintStyle: TextStyle(
                           color: textMuted,
-                          fontSize: 14,
+                          fontSize: AppRadius.size14,
                           fontWeight: FontWeight.w400,
                         ),
                         prefixIcon: Icon(
                           AppLegacyIcons.mail,
                           color: textMuted,
-                          size: 20,
+                          size: AppRadius.size20,
                         ),
                         filled: true,
                         fillColor: AppColors.legacySlate50,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
+                          horizontal: AppRadius.size16,
+                          vertical: AppRadius.size16,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -219,14 +216,14 @@ class LoginMobileLayout extends StatelessWidget {
                     // Password label
                     Text(
                       'PASSWORD',
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: AppRadius.size11,
                         fontWeight: FontWeight.w700,
                         color: textMuted,
                         letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     // Password field — soft fill style
                     TextField(
                       controller: passwordController,
@@ -234,7 +231,7 @@ class LoginMobileLayout extends StatelessWidget {
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => onLogin(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppRadius.size14,
                         color: textPrimary,
                         fontWeight: FontWeight.w500,
                       ),
@@ -242,13 +239,13 @@ class LoginMobileLayout extends StatelessWidget {
                         hintText: 'Masukkan password',
                         hintStyle: TextStyle(
                           color: textMuted,
-                          fontSize: 14,
+                          fontSize: AppRadius.size14,
                           fontWeight: FontWeight.w400,
                         ),
                         prefixIcon: Icon(
                           AppLegacyIcons.lock,
                           color: textMuted,
-                          size: 20,
+                          size: AppRadius.size20,
                         ),
                         suffixIcon: GestureDetector(
                           onTap: onTogglePassword,
@@ -257,14 +254,14 @@ class LoginMobileLayout extends StatelessWidget {
                                 ? AppLegacyIcons.visibilityOff
                                 : AppLegacyIcons.visibilityOn,
                             color: textMuted,
-                            size: 20,
+                            size: AppRadius.size20,
                           ),
                         ),
                         filled: true,
                         fillColor: AppColors.legacySlate50,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
+                          horizontal: AppRadius.size16,
+                          vertical: AppRadius.size16,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -288,13 +285,13 @@ class LoginMobileLayout extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.only(top: AppSpacing.sm10),
                         child: GestureDetector(
                           onTap: onForgotPassword,
                           child: Text(
                             'Lupa password?',
                             style: TextStyle(
-                              fontSize: 12.5,
+                              fontSize: AppRadius.size12half,
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -307,7 +304,7 @@ class LoginMobileLayout extends StatelessWidget {
 
                     // Login button — solid teal, full width, AppRadius.md
                     SizedBox(
-                      height: 52,
+                      height: AppRadius.size52,
                       width: double.infinity,
                       child: Container(
                         decoration: BoxDecoration(
@@ -316,7 +313,7 @@ class LoginMobileLayout extends StatelessWidget {
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withAlpha(77),
-                              blurRadius: 14,
+                              blurRadius: AppRadius.size14,
                               offset: const Offset(0, 6),
                             ),
                           ],
@@ -329,8 +326,8 @@ class LoginMobileLayout extends StatelessWidget {
                             child: Center(
                               child: loading
                                   ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
+                                      width: AppRadius.size22,
+                                      height: AppRadius.size22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
                                         valueColor: AlwaysStoppedAnimation<Color>(
@@ -344,13 +341,13 @@ class LoginMobileLayout extends StatelessWidget {
                                         Icon(
                                           AppSymbols.login,
                                           color: Colors.white,
-                                          size: 20,
+                                          size: AppRadius.size20,
                                         ),
-                                        const SizedBox(width: 10),
+                                        const SizedBox(width: AppSpacing.sm10),
                                         const Text(
                                           'Masuk',
                                           style: TextStyle(
-                                            fontSize: 15.5,
+                                            fontSize: AppRadius.size15half,
                                             fontWeight: FontWeight.w700,
                                             color: Colors.white,
                                             letterSpacing: 0.2,
@@ -367,7 +364,7 @@ class LoginMobileLayout extends StatelessWidget {
 
                     // Info hubungi admin — soft fill style
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppRadius.size12),
                       decoration: BoxDecoration(
                         color: AppColors.legacySlate50,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -377,14 +374,14 @@ class LoginMobileLayout extends StatelessWidget {
                           Icon(
                             Icons.info_outline_rounded,
                             color: textMuted,
-                            size: 16,
+                            size: AppRadius.size16,
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: AppSpacing.sm10),
                           Expanded(
                             child: Text(
                               'Belum punya akun? Hubungi admin klinik untuk dibuatkan akun.',
                               style: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: AppRadius.size11half,
                                 color: textMuted,
                                 fontWeight: FontWeight.w500,
                                 height: 1.45,
@@ -394,21 +391,21 @@ class LoginMobileLayout extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppRadius.size18),
 
                     // Copyright
                     Center(
                       child: Text(
                         '© 2026 SinShe Jaya Abadi',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: AppRadius.size11,
                           color: textMuted,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.3,
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + AppRadius.size16),
                   ],
                 ),
               ),
@@ -622,8 +619,8 @@ class _DesktopBrandingSection extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             navyColor,
-            const Color(0xFF1E40AF),
-            const Color(0xFF1D4ED8),
+            AppColors.brandBlueMid,
+            AppColors.brandBlueLight,
           ],
         ),
       ),

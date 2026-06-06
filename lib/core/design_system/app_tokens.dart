@@ -19,6 +19,33 @@ class AppSpacing {
   static const sm4 = 40.0;
   static const sm5 = 48.0;
   static const sm6 = 56.0;
+  // F0.6g: extended fine-grained values (off-grid interpolations untuk
+  // hero branding, certificate border, dan padlock spacing)
+  static const sm11 = 11.0;
+  static const sm115 = 11.5;
+  static const sm135 = 13.5;
+  static const sm14 = 14.0;
+  static const sm155 = 15.5;
+  static const sm18 = 18.0;
+  static const sm20 = 20.0;
+  static const sm22 = 22.0;
+  static const sm28 = 28.0;
+  static const sm44 = 44.0;
+  static const sm52 = 52.0;
+  static const sm88 = 88.0;
+  static const sm160 = 160.0;
+}
+
+class AppIconSize {
+  const AppIconSize._();
+
+  // F0.6g: ukuran ikon spesifik yang tidak masuk AppRadius/AppSpacing scale
+  static const size14 = 14.0;
+  static const size15 = 15.0;
+  static const size16 = 16.0;
+  static const size20 = 20.0;
+  static const size28 = 28.0;
+  static const size160 = 160.0; // hero branding circle
 }
 
 class AppRadius {
@@ -33,6 +60,23 @@ class AppRadius {
   static const xl = 20.0;
   static const xxl = 24.0;
   static const full = 999.0;
+  static const size24 = 24.0; // F0.6g — Stitch login branding badge
+  static const size11 = 11.0;
+  static const size11half = 11.5;
+  static const size12 = 12.0;
+  static const size12half = 12.5;
+  static const size13half = 13.5;
+  static const size14 = 14.0;
+  static const size15half = 15.5;
+  static const size16 = 16.0;
+  static const size18 = 18.0;
+  static const size20 = 20.0;
+  static const size22 = 22.0;
+  static const size28 = 28.0;
+  static const size44 = 44.0;
+  static const size52 = 52.0;
+  static const size88 = 88.0;
+  static const size160 = 160.0;
 }
 
 class AppTextStyles {
@@ -150,6 +194,11 @@ class AppColors {
   // Blue — header
   static const headerBlue = Color(0xFF1565C0);
   static const headerBlueDark = Color(0xFF0D47A1);
+
+  // Navy/brand gradient (F0.6g — Stitch login_premium desktop branding band)
+  static const brandNavy = Color(0xFF1E3A8A);
+  static const brandBlueMid = Color(0xFF1E40AF);
+  static const brandBlueLight = Color(0xFF1D4ED8);
 
   // Accents
   static const accentCoral = Color(0xFFFF7043);
