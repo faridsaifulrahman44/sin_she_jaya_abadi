@@ -1399,9 +1399,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                         ),
                         Text(
                           rupiah(_liveSubtotal),
-                          style: AppTextStyles.headline.copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                          style: AppTextStyles.title.copyWith(
                             color: cteal(context),
                           ),
                         ),
@@ -1553,7 +1551,7 @@ class _SatuanOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? color : ccardBg(context),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm10),
           border: Border.all(
             color: isSelected ? color : cdivider(context),
             width: isSelected ? 1.5 : 1,
