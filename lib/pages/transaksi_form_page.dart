@@ -946,13 +946,13 @@ class _PasienPickerSheetState extends State<_PasienPickerSheet> {
           height: media.size.height * 0.82,
           child: Column(
             children: [
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm10),
               Container(
                 width: 42,
                 height: 4,
                 decoration: BoxDecoration(
                   color: cdivider(context),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
               ),
               Padding(
@@ -962,9 +962,7 @@ class _PasienPickerSheetState extends State<_PasienPickerSheet> {
                     Expanded(
                       child: Text(
                         'Pilih Pasien',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                        style: AppTextStyles.headline.copyWith(
                           color: ctextPrimary(context),
                         ),
                       ),
@@ -986,13 +984,13 @@ class _PasienPickerSheetState extends State<_PasienPickerSheet> {
                     hintText: 'Cari nama, nomor, atau alamat pasien',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                   ),
                   onChanged: _onSearchChanged,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               ListTile(
                 leading: const Icon(Icons.person_off_outlined),
                 title: const Text('Tanpa pasien'),
@@ -1028,7 +1026,7 @@ class _PasienPickerSheetState extends State<_PasienPickerSheet> {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: ctextSecondary(context)),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               OutlinedButton.icon(
                 onPressed: () {
                   if (query.length >= 2) {
@@ -1254,13 +1252,11 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
             children: [
               Text(
                 'Pilih Obat',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                style: AppTextStyles.headline.copyWith(
                   color: ctextPrimary(context),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
 
               // Search
               TextField(
@@ -1269,13 +1265,13 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                   hintText: 'Cari obat...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
                 onChanged: _filter,
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
 
               // List
               Expanded(
@@ -1300,12 +1296,11 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                               'Stok: ${obat.stokSaatIni} | Etalase: ${obat.etalase.label}',
                             ),
                             if (obat.hasHargaJual) ...[
-                              const SizedBox(height: 2),
+                              const SizedBox(height: AppSpacing.xxs),
                               Text(
                                 '${rupiah(obat.hargaJual!)} / ${obat.satuanJual ?? '-'}'
                                 '${obat.hasEceran ? '   |   Ecer: ${rupiah(obat.hargaEcer!)} / ${obat.satuanEcer}' : ''}',
-                                style: TextStyle(
-                                  fontSize: 11,
+                                style: AppTextStyles.caption.copyWith(
                                   color: cteal(context),
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1331,7 +1326,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                 // Tampilkan hanya jika obat bisa ecer
                 if (canEcer) ...[
                   _buildLabel('Satuan Jual', context),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs6),
                   _SatuanToggle(
                     satuanUtama: selected.satuanJual ?? 'Botol',
                     satuanEcer: selected.satuanEcer ?? 'Ecer',
@@ -1340,7 +1335,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                     isEcer: _ecerMode,
                     onChanged: _toggleSatuan,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.sm10),
                 ],
 
                 // ── Jumlah + Harga ─────────────────────────────────────────
@@ -1361,7 +1356,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: TextField(
                         controller: _hargaController,
@@ -1372,8 +1367,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                           helperText: selected.hasHargaJual
                               ? (_ecerMode ? 'Harga ecer' : 'Dari Master Obat')
                               : 'Input manual',
-                          helperStyle: TextStyle(
-                            fontSize: 10,
+                          helperStyle: AppTextStyles.labelXs.copyWith(
                             color: ctextSecondary(context),
                           ),
                         ),
@@ -1385,12 +1379,12 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
 
                 // ── Real-time subtotal ──────────────────────────────────────
                 if (_liveSubtotal > 0) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: cteal(context).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1416,7 +1410,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
 
                 // ── Tombol Tambah ───────────────────────────────────────────
                 SizedBox(
@@ -1482,9 +1476,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
   Widget _buildLabel(String text, BuildContext context) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
+      style: AppTextStyles.label.copyWith(
         color: ctextSecondary(context),
       ),
     );
@@ -1523,7 +1515,7 @@ class _SatuanToggle extends StatelessWidget {
             onTap: () => onChanged(false),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _SatuanOption(
             label: satuanEcer,
@@ -1572,18 +1564,14 @@ class _SatuanOption extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+              style: AppTextStyles.titleSm.copyWith(
                 color: isSelected ? Colors.white : ctextPrimary(context),
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
               rupiah(harga),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+              style: AppTextStyles.caption.copyWith(
                 color: isSelected ? Colors.white70 : color,
               ),
             ),
