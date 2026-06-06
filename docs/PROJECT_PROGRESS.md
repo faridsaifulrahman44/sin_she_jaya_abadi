@@ -9,7 +9,7 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 - **Fase aktif:** F0 — reset/clean slate
 - **Next action:** mulai F0.4 (eksekusi refactor 3 file besar berdasarkan step1-token-map.md)
 - **Aset Stitch:** `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` (eksternal, di luar repo). Stitch MCP nonaktif per 2026-06-06.
-- **Standar skill visual/UX:** setiap eksekusi besar yang涉及 visual/UX WAJIB konsultasi skill `impeccable` (P0/P1/P2) dan `ui-ux-pro-max` (style/palette/token). Aturan tercatat permanen di `CLAUDE.md`.
+- **Standar skill visual/UX:** setiap eksekusi besar yang menyentuh visual/UX WAJIB konsultasi skill `impeccable` (P0/P1/P2) dan `ui-ux-pro-max` (style/palette/token). Aturan tercatat permanen di `CLAUDE.md`.
 
 ## Ringkasan fase selesai
 ### Fase 0 — Reset & Clean Slate (2026-06-06)
@@ -66,3 +66,8 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 - Penjelasan Stitch
 
 File itu ada di dokumen lain.
+
+## Catatan operasional (2026-06-06)
+- Stitch MCP NONAKTIF. Proyek Stitch `stitch_duplicate_of_jaya_abadi_premium_redesign` diakses lewat filesystem di `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`, di luar repo ini.
+- Rujukan visual final (KEEP/IGNORE) tetap di `docs/STITCH_SOURCE_OF_TRUTH.md`. Folder IGNORE yang tercantum di sana adalah daftar historis; per 2026-06-06 folder-folder IGNORE sudah tidak ada lagi di lokasi Stitch.
+- `.mcp.json` saat ini hanya berisi `supabase`. Tidak ada MCP server Stitch yang perlu di-uninstall dari konfigurasi.

@@ -235,7 +235,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                 children: [
                   PageHeader(
                       _isEdit ? 'Edit Sinkronisasi Stok' : 'Sinkronisasi Stok Baru'),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Tanggal
                   Text(
@@ -244,7 +244,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                         fontWeight: FontWeight.w600,
                         color: ctextSecondary(ctx)),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
                   InkWell(
                     onTap: _pickDate,
                     child: InputDecorator(
@@ -255,7 +255,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                       child: Text(asDate(_selectedDate)),
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Obat dropdown
                   Text(
@@ -264,7 +264,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                         fontWeight: FontWeight.w600,
                         color: ctextSecondary(ctx)),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
                   DropdownButtonFormField<int>(
                     initialValue: _selectedIdObat,
                     decoration: InputDecoration(
@@ -320,7 +320,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Selisih preview
                   if (_selectedIdObat != null) ...[
@@ -328,7 +328,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                       selisih: _selisih,
                       selisihLabel: _selisihLabel,
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppSpacing.lg),
                   ],
 
                   // Alasan penyesuaian
@@ -338,7 +338,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                         fontWeight: FontWeight.w600,
                         color: ctextSecondary(ctx)),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
                   TextFormField(
                     controller: _alasanController,
                     maxLines: 2,
@@ -353,7 +353,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     '* Stok sistem akan diperbarui sesuai stok fisik yang dimasukkan setelah disimpan.',
                     style: TextStyle(
@@ -362,7 +362,7 @@ class _SinkronisasiStokFormPageState extends State<SinkronisasiStokFormPage> {
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   SizedBox(
                     height: 46,

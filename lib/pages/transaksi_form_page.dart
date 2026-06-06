@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:klinik_mobile_app/core/auth/admin_session.dart';
+import 'package:klinik_mobile_app/core/design_system/app_tokens.dart';
 import 'package:klinik_mobile_app/core/error/app_exception.dart';
 import 'package:klinik_mobile_app/core/feedback/app_feedback.dart';
 import 'package:klinik_mobile_app/core/theme/app_theme.dart';
@@ -392,21 +393,21 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   Widget _buildReadyStockTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         // F10: Filter indicator
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Row(
             children: [
-              Icon(Icons.filter_list, size: 16, color: ctextSecondary(context)),
-              const SizedBox(width: 4),
+              Icon(Icons.filter_list, size: AppSpacing.lg, color: ctextSecondary(context)),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 _activeTabIndex == 0
                     ? 'Menampilkan: Etalase 1 & 2'
                     : 'Menampilkan: Etalase 3',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTextStyles.label.fontSize,
                   color: ctextSecondary(context),
                 ),
               ),
@@ -418,14 +419,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           Text(
             'Item Terpilih',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppTextStyles.body.fontSize,
               fontWeight: FontWeight.w600,
               color: ctextPrimary(context),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           ..._selectedObats.map((o) => _buildSelectedObatItem(o)),
-          const Divider(height: 24),
+          const Divider(height: AppSpacing.xxl),
         ],
 
         // Add item button
@@ -439,14 +440,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // Total
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: cteal(context).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -454,7 +455,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
               Text(
                 'Total',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: AppTextStyles.bodyLg.fontSize,
                   fontWeight: FontWeight.w600,
                   color: ctextPrimary(context),
                 ),
@@ -462,7 +463,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
               Text(
                 rupiah(_totalReadyStock),
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: AppTextStyles.heroMetric.fontSize,
                   fontWeight: FontWeight.w800,
                   color: cteal(context),
                 ),
@@ -476,9 +477,9 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   Widget _buildSelectedObatItem(_SelectedObat selected) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             Expanded(
@@ -492,7 +493,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                   Text(
                     '${selected.jumlah} ${selected.satuanTerjual} x ${rupiah(selected.hargaJual)}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppTextStyles.label.fontSize,
                       color: ctextSecondary(context),
                     ),
                   ),
@@ -506,7 +507,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                 color: cprimary(context),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () {
@@ -523,18 +524,18 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   Widget _buildCustomTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         // Total input
         Text(
           'Total Transaksi Praktek',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTextStyles.body.fontSize,
             fontWeight: FontWeight.w600,
             color: ctextPrimary(context),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _totalCustomController,
           keyboardType: TextInputType.number,
@@ -543,23 +544,23 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
             prefixText: 'Rp ',
             hintText: '0',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xxl),
 
         // Durasi (optional)
         Text(
           'Durasi Obat (hari) - Opsional',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTextStyles.body.fontSize,
             fontWeight: FontWeight.w600,
             color: ctextPrimary(context),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _durasiController,
           keyboardType: TextInputType.number,
@@ -567,30 +568,30 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           decoration: InputDecoration(
             hintText: 'Misal: 5, 10',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xxl),
 
         // Catatan
         Text(
           'Catatan - Opsional',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTextStyles.body.fontSize,
             fontWeight: FontWeight.w600,
             color: ctextPrimary(context),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _catatanController,
           maxLines: 3,
           decoration: InputDecoration(
             hintText: 'Tambahkan catatan jika diperlukan',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
         ),
@@ -605,13 +606,13 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         : parseDouble(_totalCustomController.text, fallback: 0);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
+            blurRadius: AppSpacing.sm,
             offset: const Offset(0, -2),
           ),
         ],
@@ -625,12 +626,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
               Text(
                 'Metode Bayar:',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTextStyles.body.fontSize,
                   fontWeight: FontWeight.w600,
                   color: ctextPrimary(context),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: SegmentedButton<MetodeBayarTransaksi>(
                   emptySelectionAllowed: true,
@@ -638,12 +639,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     ButtonSegment(
                       value: MetodeBayarTransaksi.cash,
                       label: Text('Tunai'),
-                      icon: Icon(AppSymbols.tunai, size: 18),
+                      icon: Icon(AppSymbols.tunai, size: AppSpacing.lg),
                     ),
                     ButtonSegment(
                       value: MetodeBayarTransaksi.qris,
                       label: Text('QRIS'),
-                      icon: Icon(AppSymbols.qris, size: 18),
+                      icon: Icon(AppSymbols.qris, size: AppSpacing.lg),
                     ),
                   ],
                   selected: _selectedMetodeBayar != null
@@ -659,7 +660,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           if (!isReadyStock) ...[
             Row(
@@ -667,16 +668,16 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                 Text(
                   'Pasien:',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: AppTextStyles.body.fontSize,
                     fontWeight: FontWeight.w600,
                     color: ctextPrimary(context),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(child: _buildPasienPickerField()),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
 
           // Total display & Save button
@@ -689,14 +690,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     Text(
                       'Total Transaksi',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTextStyles.label.fontSize,
                         color: ctextSecondary(context),
                       ),
                     ),
                     Text(
                       rupiah(total),
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: AppTextStyles.heroMetric.fontSize,
                         fontWeight: FontWeight.w800,
                         color: cteal(context),
                       ),
@@ -708,8 +709,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                 onPressed: _loading ? null : _saveTransaksi,
                 icon: _loading
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: AppSpacing.lg,
+                        height: AppSpacing.lg,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.save),
@@ -718,8 +719,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                   backgroundColor: cteal(context),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 14,
+                    horizontal: AppSpacing.xxl,
+                    vertical: AppSpacing.md14,
                   ),
                 ),
               ),
@@ -736,16 +737,16 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
     return InkWell(
       onTap: _showPasienPickerSheet,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: InputDecorator(
         decoration: InputDecoration(
           hintText: 'Tanpa pasien',
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           suffixIcon: SizedBox(
             width: hasSelection ? 88 : 44,
@@ -765,7 +766,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     },
                   ),
                 const Icon(Icons.search),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.sm10),
               ],
             ),
           ),

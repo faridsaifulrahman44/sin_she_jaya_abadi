@@ -81,7 +81,7 @@ Item-item ini ada di `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/
 5. Token desain tetap dari design system final; variant teal hanya referensi palet.
 
 ## Standar audit visual/UX
-Setiap eksekusi besar yang涉及 visual/UX/typography/color/layout/motion/a11y/design system WAJIB mengikuti 2 skill:
+Setiap eksekusi besar yang menyentuh visual/UX/typography/color/layout/motion/a11y/design system WAJIB mengikuti 2 skill:
 - **`impeccable`** (`.agents/skills/impeccable/`): severity tagging P0/P1/P2, root-cause analysis, drift detection, polish checklist.
 - **`ui-ux-pro-max`** (`.agents/skills/ui-ux-pro-max/`): prescriptive style, palette, font, token reference.
 

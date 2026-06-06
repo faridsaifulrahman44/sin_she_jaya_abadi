@@ -11,6 +11,7 @@ Baca dalam urutan ini:
 1. `docs/PROJECT_PROGRESS.md` — status terakhir dan langkah berikutnya
 2. `STITCH_SOURCE_OF_TRUTH.md` — rujukan visual final
 3. `design.md` — spesifikasi teknis arsitektur dan alur data
+4. Proyek Stitch (eksternal, di luar repo): `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` — akses via filesystem, **bukan** lewat MCP (Stitch MCP sudah nonaktif per 2026-06-06)
 
 ## Prinsip utama
 - Jangan mengarang konteks dari memori jika sudah ada di dokumen.
@@ -31,7 +32,7 @@ Gaya kerja: perubahan kecil, terukur, dan aman untuk produksi.
 - Daftar KEEP/IGNORE dan rujukan visual final tetap di `docs/STITCH_SOURCE_OF_TRUTH.md`.
 
 ## Standar skill visual/UX (permanen)
-Untuk setiap eksekusi besar yang涉及 visual/UX/typography/color/layout/motion/a11y/design system, WAJIB konsultasi 2 skill:
+Untuk setiap eksekusi besar yang menyentuh visual/UX/typography/color/layout/motion/a11y/design system, WAJIB konsultasi 2 skill:
 - `impeccable` — `.agents/skills/impeccable/` + `.claude/skills/impeccable/`. Severity tagging P0/P1/P2, root-cause analysis, drift detection, polish checklist (22 dimensi). Framework audit + craft.
 - `ui-ux-pro-max` — `.agents/skills/ui-ux-pro-max/`. Prescriptive reference: 50+ style, 161 palette, 161 product type, 99 UX guideline, 25 chart, 10 stack (termasuk Flutter). Library style/token/font.
 
@@ -56,8 +57,10 @@ Aturan operasional:
 - Sebelum ubah file besar, audit dulu file terkait dan cari overlap.
 
 ## Aturan database
-### Boleh
-- SELECT via MCP / query read-only.
+### Boleh tanpa izin
+- SELECT via MCP / query read-only
+- Eksplorasi filesystem proyek (`ls`, `find`, `grep`, `read`) — termasuk baca folder Stitch eksternal di `D:/stitch/...`
+- Baca dokumentasi, token, helper, dan file `.md` di project
 
 ### Tidak boleh tanpa izin eksplisit
 - INSERT / UPDATE ke data produksi
@@ -66,6 +69,12 @@ Aturan operasional:
 - ubah migration, trigger, RPC, RLS, schema
 
 Jika user meminta operasi tulis data, tampilkan SQL final dulu dan tunggu izin eksplisit.
+
+## Batas eksplorasi vs eksekusi
+- **Eksplorasi (tanpa izin):** baca file, baca folder Stitch eksternal, baca tabel lewat SELECT, identifikasi raw value yang perlu dimigrasi
+- **Eksekusi kecil (boleh langsung):** rename `const SizedBox(height: 24)` jadi `AppSpacing.xxl`, ganti `BorderRadius.circular(8)` jadi `AppRadius.sm`, refactor widget privat dalam 1 file
+- **Eksekusi besar (butuh izin):** rename helper antar-file, hapus file, ubah signature fungsi publik, refactor halaman transaksi
+- **Threshold "besar":** menyentuh ≥3 file sekaligus, atau menyentuh `transaksi_form_page.dart`, atau menyentuh schema/auth/stok
 
 ## Aturan coding
 - Jangan refactor besar tanpa alasan yang jelas.

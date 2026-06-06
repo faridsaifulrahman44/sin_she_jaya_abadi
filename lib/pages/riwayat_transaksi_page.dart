@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -136,7 +137,7 @@ class _TransaksiTabState extends State<_TransaksiTab> {
       children: [
         // Filter chips
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: chips.map((chip) {
               final active = _filter == chip.value;
@@ -153,16 +154,14 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                       color: active
                           ? primary
                           : cardBg,
-                      borderRadius: BorderRadius.circular(100),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
                       border: active
                           ? null
                           : Border.all(color: dividerColor, width: 1),
                     ),
                     child: Text(
                       chip.label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      style: AppTextStyles.label.copyWith(
                         color: active ? Colors.white : textSecondary,
                       ),
                     ),
@@ -186,19 +185,19 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                             size: 48,
                             color: textMuted,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             'Belum ada transaksi',
-                            style: TextStyle(
+                            style: AppTextStyles.label.copyWith(
                               color: textMuted,
-                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                       itemCount: _filtered.length,
                       itemBuilder: (context, index) {
                         final tx = _filtered[index];
@@ -248,7 +247,7 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                                       size: 22,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: AppSpacing.md),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -266,7 +265,8 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                                                 color: badgeColor
                                                     .withValues(alpha: 0.1),
                                                 borderRadius:
-                                                    BorderRadius.circular(100),
+                                                    BorderRadius.circular(
+                                                        AppRadius.full),
                                               ),
                                               child: Text(
                                                 badgeLabel,
@@ -279,22 +279,21 @@ class _TransaksiTabState extends State<_TransaksiTab> {
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: AppSpacing.xs),
                                         Text(
                                           namaPasien,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
+                                          style: AppTextStyles.title.copyWith(
                                             color: textPrimary,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(height: 2),
+                                        const SizedBox(
+                                            height: AppSpacing.xxs),
                                         Text(
                                           '$tanggal • $metode',
-                                          style: TextStyle(
-                                            fontSize: 11,
+                                          style: AppTextStyles.caption
+                                              .copyWith(
                                             color: textSecondary,
                                           ),
                                         ),
@@ -416,7 +415,7 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             children: chips.map((chip) {
               final active = _filter == chip.value;
@@ -433,16 +432,14 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                       color: active
                           ? primary
                           : cardBg,
-                      borderRadius: BorderRadius.circular(100),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
                       border: active
                           ? null
                           : Border.all(color: dividerColor, width: 1),
                     ),
                     child: Text(
                       chip.label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      style: AppTextStyles.label.copyWith(
                         color: active ? Colors.white : textSecondary,
                       ),
                     ),
@@ -465,19 +462,19 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                             size: 48,
                             color: textMuted,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             'Belum ada riwayat stok',
-                            style: TextStyle(
+                            style: AppTextStyles.label.copyWith(
                               color: textMuted,
-                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
                       itemCount: _filtered.length,
                       itemBuilder: (context, index) {
                         final item = _filtered[index];
@@ -519,7 +516,7 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                                     size: 22,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: AppSpacing.md),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -537,7 +534,8 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                                               color: badgeColor
                                                   .withValues(alpha: 0.1),
                                               borderRadius:
-                                                  BorderRadius.circular(100),
+                                                  BorderRadius.circular(
+                                                      AppRadius.full),
                                             ),
                                             child: Text(
                                               badgeLabel,
@@ -550,22 +548,21 @@ class _RiwayatStokTabState extends State<_RiwayatStokTab> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: AppSpacing.xs),
                                       Text(
                                         namaObat,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
+                                        style: AppTextStyles.title.copyWith(
                                           color: textPrimary,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 2),
+                                      const SizedBox(
+                                          height: AppSpacing.xxs),
                                       Text(
                                         tanggal,
-                                        style: TextStyle(
-                                          fontSize: 11,
+                                        style: AppTextStyles.caption
+                                            .copyWith(
                                           color: textSecondary,
                                         ),
                                       ),
