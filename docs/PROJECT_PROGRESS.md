@@ -6,8 +6,8 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 ## Posisi terakhir
 - **Branch aktif:** `latihan-plugin`
 - **Tanggal update:** 2026-06-06
-- **Fase aktif:** F0 — reset/clean slate
-- **Next action:** mulai F0.4 (eksekusi refactor 3 file besar berdasarkan step1-token-map.md)
+- **Fase aktif:** F0.4 — refactor 3 file target berdasarkan step1-token-map.md
+- **Next action:** eksekusi refactor operasional_dashboard_page.dart → transaksi_form_page.dart → riwayat_transaksi_page.dart. Satu file = satu commit, dengan `flutter analyze` + `flutter test` per file.
 - **Aset Stitch:** `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` (eksternal, di luar repo). Stitch MCP nonaktif per 2026-06-06.
 - **Standar skill visual/UX:** setiap eksekusi besar yang menyentuh visual/UX WAJIB konsultasi skill `impeccable` (P0/P1/P2) dan `ui-ux-pro-max` (style/palette/token). Aturan tercatat permanen di `CLAUDE.md`.
 
@@ -25,8 +25,12 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
   - 3 screen prioritas: operasional dashboard, transaksi form, riwayat transaksi
   - Tabel token lengkap: palette, typography, radius, spacing, shadow
   - Disclaimer sumber: mockup_v7 hanya untuk angka token, layout 100% dari Stitch KEEP
+- **F0.4 — Refactor 3 file target (in progress 2026-06-06)**
+  - Target: operasional_dashboard_page.dart, transaksi_form_page.dart, riwayat_transaksi_page.dart
+  - Prinsip: ganti raw value → token per step1-token-map.md, satu file = satu commit
+  - Sebelum F0.4: working tree F0.3 (commit `cdfcaf1`) dan skill assets (commit `af44882`) sudah di-commit
 
-## Fase historis (F3–F12.5)
+## Fase historis (F3–F12.6)
 > **Catatan:** Fase-fase di bawah ini sudah selesai sebelum reset F0. Disimpan di sini sebagai arsip, bukan sebagai target kerja. Detail implementasi tetap di git history (commit sebelum F0).
 
 | Fase   | Nama                            | Status          |
@@ -43,6 +47,7 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 | F12.3  | Foto Obat Upload Flow           | Selesai (historis) |
 | F12.4  | Sinkronisasi Stok Enhancement   | Selesai (historis) |
 | F12.5  | Design Token Migration (parsial)| Selesai (historis) |
+| F12.6  | Sisa Token Migration (29 file)  | Di-cancel (historis) — diputuskan 2026-06-06, sisa migrasi token ke-29 file dianggap lampau, langsung lanjut F0.4. Tidak ada kode F12.6 yang perlu di-trace. |
 
 ## Pekerjaan berikutnya
 - **F0.4** — Eksekusi refactor 3 file besar berdasarkan `docs/superpowers/specs/step1-token-map.md`:
