@@ -80,7 +80,7 @@ class DashboardSummaryCard extends StatelessWidget {
                       padding: const EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Icon(icon, color: color, size: 18),
                     ),
@@ -124,7 +124,7 @@ class DashboardSummaryCard extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
             const SizedBox(width: AppSpacing.sm10),
@@ -134,7 +134,7 @@ class DashboardSummaryCard extends StatelessWidget {
                 width: 60,
                 decoration: BoxDecoration(
                   color: Colors.grey.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
               ),
             ),
@@ -146,7 +146,7 @@ class DashboardSummaryCard extends StatelessWidget {
           width: 80,
           decoration: BoxDecoration(
             color: Colors.grey.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
         ),
       ],
@@ -460,7 +460,7 @@ class ThemeToggleBtn extends StatelessWidget {
           color: isDark
               ? DarkColors.surfaceHigh
               : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           border: isDark
               ? Border.all(color: DarkColors.borderActive, width: 1)
               : null,
@@ -744,8 +744,8 @@ class _DashboardPageState extends State<DashboardPage> {
               decoration: BoxDecoration(
                 color: AppColors.headerBlueDark,
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
+                  bottomLeft: Radius.circular(AppRadius.xl),
+                  bottomRight: Radius.circular(AppRadius.xl),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -842,7 +842,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               padding: const EdgeInsets.all(AppSpacing.sm10),
                               decoration: BoxDecoration(
                                 color: textOnPrimary.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(AppRadius.md),
                               ),
                               child: Icon(
                                 AppSymbols.logout,
