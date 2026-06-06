@@ -1348,9 +1348,8 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                         decoration: InputDecoration(
                           labelText: 'Jumlah',
                           suffixText: canEcer ? _activeSatuanLabel : null,
-                          suffixStyle: AppTextStyles.bodyMd.copyWith(
+                          suffixStyle: AppTextStyles.titleSm.copyWith(
                             color: ctextSecondary(context),
-                            fontSize: 13,
                           ),
                         ),
                         onChanged: (_) => setState(() {}),
@@ -1391,9 +1390,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                       children: [
                         Text(
                           'Subtotal',
-                          style: AppTextStyles.bodyMd.copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                          style: AppTextStyles.label.copyWith(
                             color: ctextSecondary(context),
                           ),
                         ),
