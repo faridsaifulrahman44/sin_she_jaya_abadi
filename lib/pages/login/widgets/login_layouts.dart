@@ -192,7 +192,7 @@ class LoginMobileLayout extends StatelessWidget {
                           size: 20,
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFF5F7FA),
+                        fillColor: AppColors.legacySlate50,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -261,7 +261,7 @@ class LoginMobileLayout extends StatelessWidget {
                           ),
                         ),
                         filled: true,
-                        fillColor: const Color(0xFFF5F7FA),
+                        fillColor: AppColors.legacySlate50,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 16,
@@ -369,7 +369,7 @@ class LoginMobileLayout extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF5F7FA),
+                        color: AppColors.legacySlate50,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
