@@ -1348,7 +1348,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                         decoration: InputDecoration(
                           labelText: 'Jumlah',
                           suffixText: canEcer ? _activeSatuanLabel : null,
-                          suffixStyle: TextStyle(
+                          suffixStyle: AppTextStyles.bodyMd.copyWith(
                             color: ctextSecondary(context),
                             fontSize: 13,
                           ),
@@ -1391,7 +1391,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                       children: [
                         Text(
                           'Subtotal',
-                          style: TextStyle(
+                          style: AppTextStyles.bodyMd.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: ctextSecondary(context),
@@ -1399,7 +1399,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                         ),
                         Text(
                           rupiah(_liveSubtotal),
-                          style: TextStyle(
+                          style: AppTextStyles.headline.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: cteal(context),

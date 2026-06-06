@@ -358,7 +358,7 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
                   const SizedBox(height: AppSpacing.md),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 160),
-                    style: TextStyle(
+                    style: AppTextStyles.bodyMd.copyWith(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
                       color: _titleColor,
@@ -776,34 +776,27 @@ class _DashboardPageState extends State<DashboardPage> {
                               ),
                             ),
                             const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              'Klinik Sin She Jaya Abadi',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: textOnPrimary.withValues(alpha: 0.72),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                  Text(
+                    'Klinik Sin She Jaya Abadi',
+                    style: AppTextStyles.titleSm.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: textOnPrimary.withValues(alpha: 0.72),
+                    ),
+                  ),
                             if (role.isOwner) ...[
                               const SizedBox(height: AppSpacing.sm),
                               Row(
                                 children: [
-                                  Text(
-                                    'Laporan Hari Ini:  ',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: textOnPrimary.withValues(alpha: 0.65),
-                                      fontWeight: FontWeight.w500,
+                                    Text(
+                                      'Laporan Hari Ini:  ',
+                                      style: AppTextStyles.label
+                                          .copyWith(fontWeight: FontWeight.w500, color: textOnPrimary.withValues(alpha: 0.65)),
                                     ),
-                                  ),
-                                  Text(
-                                    'Penjualan : ${_loadingOwner ? '...' : rupiah(_omzetHariIni)}',
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      color: textOnPrimary,
-                                      fontWeight: FontWeight.w700,
+                                    Text(
+                                      'Penjualan : ${_loadingOwner ? '...' : rupiah(_omzetHariIni)}',
+                                      style: AppTextStyles.bodyMd
+                                          .copyWith(fontSize: 12.5, fontWeight: FontWeight.w700, color: textOnPrimary),
                                     ),
-                                  ),
                                 ],
                               ),
                             ],
@@ -823,11 +816,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           role.isOwner
                               ? 'Ringkasan aktivitas klinik hari ini'
                               : 'Aktivitas klinik hari ini',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: textOnPrimary.withValues(alpha: 0.65),
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: AppTextStyles.bodyMd
+                              .copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: textOnPrimary.withValues(alpha: 0.65)),
                         ),
                       ),
                       // Action buttons (theme + logout)
@@ -897,7 +887,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: [
                     Text(
                       'Menu Utama',
-                      style: TextStyle(
+                      style: AppTextStyles.bodyLg.copyWith(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: textPrimary,
