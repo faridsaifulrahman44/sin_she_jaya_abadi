@@ -77,20 +77,18 @@ class DashboardSummaryCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(icon, color: color, size: 18),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: AppSpacing.sm10),
                     Expanded(
                       child: Text(
                         label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                        style: AppTextStyles.caption.copyWith(
                           color: textSecondary,
                         ),
                         maxLines: 1,
@@ -99,12 +97,10 @@ class DashboardSummaryCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.sm10),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                  style: AppTextStyles.heroMetric.copyWith(
                     color: textPrimary,
                     height: 1.2,
                   ),
@@ -131,7 +127,7 @@ class DashboardSummaryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm10),
             Expanded(
               child: Container(
                 height: 12,
@@ -144,7 +140,7 @@ class DashboardSummaryCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.sm10),
         Container(
           height: 24,
           width: 80,
@@ -212,20 +208,16 @@ class _DashboardClockState extends State<_DashboardClock> {
       children: [
         Text(
           formatClock(_now),
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
+          style: AppTextStyles.heroJumbo.copyWith(
             color: clockColor,
             letterSpacing: -0.5,
             height: 1,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppSpacing.xxs),
         Text(
           formatDashboardDate(_now),
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+          style: AppTextStyles.caption.copyWith(
             color: dateColor,
           ),
           maxLines: 1,
@@ -321,7 +313,7 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
         curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
           color: _cardBg,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           border: Border.all(color: _cardBorder, width: 1),
           boxShadow: [
             BoxShadow(
@@ -335,11 +327,14 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
           color: Colors.transparent,
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             splashColor: widget.color.withValues(alpha: 0.06),
             highlightColor: widget.color.withValues(alpha: 0.05),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm10,
+                vertical: 18, // no AppSpacing token for 18; keep literal
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -360,7 +355,7 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 160),
                     style: TextStyle(
@@ -428,16 +423,18 @@ class _StokAlertPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 9, // no token; visual pill padding
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: AppTextStyles.caption.copyWith(
           color: Colors.white,
-          fontSize: 11,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -458,7 +455,7 @@ class ThemeToggleBtn extends StatelessWidget {
     return GestureDetector(
       onTap: () => ThemeServiceInstance.notifier.toggle(),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(AppSpacing.sm10),
         decoration: BoxDecoration(
           color: isDark
               ? DarkColors.surfaceHigh
@@ -738,16 +735,21 @@ class _DashboardPageState extends State<DashboardPage> {
             // ── HEADER ──────────────────────────────────────────────────────
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.lg,
+                AppSpacing.xl,
+                AppSpacing.xl,
+              ),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E3A8A),
+                color: AppColors.headerBlueDark,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(28),
                   bottomRight: Radius.circular(28),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.35),
+                    color: AppColors.headerBlueDark.withValues(alpha: 0.35),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -767,14 +769,13 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             Text(
                               greeting,
-                              style: TextStyle(
-                                fontSize: 22,
+                              style: AppTextStyles.headlineLg.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: textOnPrimary,
                                 letterSpacing: -0.3,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(
                               'Klinik Sin She Jaya Abadi',
                               style: TextStyle(
@@ -813,7 +814,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       const _DashboardClock(),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   // Subtitle row
                   Row(
                     children: [
@@ -834,11 +835,11 @@ class _DashboardPageState extends State<DashboardPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const ThemeToggleBtn(),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           GestureDetector(
                             onTap: () => _logout(context),
                             child: Container(
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(AppSpacing.sm10),
                               decoration: BoxDecoration(
                                 color: textOnPrimary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(14),
@@ -864,18 +865,23 @@ class _DashboardPageState extends State<DashboardPage> {
             // ── OWNER ENHANCEMENTS (F12.2) ───────────────────────────────
             if (role.isOwner) ...[
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     QuickActionGrid(
                       actions: _buildQuickActions(context, role),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: AppSpacing.md14),
                     const SalesChart7dCard(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     const StokKritisCard(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     const TopObat7dCard(),
                   ],
                 ),
@@ -885,7 +891,7 @@ class _DashboardPageState extends State<DashboardPage> {
             // ── MENU GRID ──────────────────────────────────────────────────
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -897,7 +903,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         color: textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: AppSpacing.md14),
                     Expanded(
                       child: GridView.count(
                         crossAxisCount: 2,
@@ -928,7 +934,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildOwnerSummary() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? DarkColors.surface : const Color(0xFFF1F5F9);
+    final bgColor = isDark ? DarkColors.surface : AppColors.surface;
     final accent1 = cprimary(context);       // blue for omzet
     final accent2 = cobatAmber(context);     // amber for penjualan obat
     final accent3 = cteal(context);          // teal for jadwal
@@ -936,7 +942,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md14,
+        AppSpacing.lg,
+        AppSpacing.xs6,
+      ),
       color: bgColor,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -955,7 +966,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         loading: _loadingOwner,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: AppSpacing.sm10),
                     Expanded(
                       child: DashboardSummaryCard(
                         label: 'Penjualan Obat Hari Ini',
@@ -967,7 +978,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.sm10),
                 Row(
                   children: [
                     Expanded(
@@ -979,7 +990,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         loading: _loadingOwner,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: AppSpacing.sm10),
                     Expanded(
                       child: DashboardSummaryCard(
                         label: 'Hadir Hari Ini',
@@ -991,7 +1002,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.xs6),
               ],
             );
           }
@@ -1011,7 +1022,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       loading: _loadingOwner,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm10),
                   Expanded(
                     child: DashboardSummaryCard(
                       label: 'Penjualan Obat Hari Ini',
@@ -1025,7 +1036,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm10),
               Row(
                 children: [
                   Expanded(
@@ -1039,7 +1050,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       loading: _loadingOwner,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm10),
                   Expanded(
                     child: DashboardSummaryCard(
                       label: 'Hadir Hari Ini',
@@ -1053,7 +1064,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.xs6),
             ],
           );
         },
@@ -1063,14 +1074,19 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildAdminSummary() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? DarkColors.surface : const Color(0xFFF1F5F9);
+    final bgColor = isDark ? DarkColors.surface : AppColors.surface;
     final accent3 = cteal(context);
     final accent4 = csuccess(context);
     final accent5 = cprimary(context);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md14,
+        AppSpacing.lg,
+        AppSpacing.xs6,
+      ),
       color: bgColor,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1086,7 +1102,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     loading: _loadingAdmin,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.sm10),
                 Expanded(
                   child: DashboardSummaryCard(
                     label: 'Hadir Hari Ini',
@@ -1096,7 +1112,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     loading: _loadingAdmin,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.sm10),
                 Expanded(
                   child: DashboardSummaryCard(
                     label: 'Transaksi Hari Ini',
@@ -1125,7 +1141,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       loading: _loadingAdmin,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm10),
                   Expanded(
                     child: DashboardSummaryCard(
                       label: 'Hadir Hari Ini',
@@ -1139,7 +1155,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm10),
               Row(
                 children: [
                   Expanded(
@@ -1153,11 +1169,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       loading: _loadingAdmin,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm10),
                   const Expanded(child: SizedBox()),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.xs6),
             ],
           );
         },

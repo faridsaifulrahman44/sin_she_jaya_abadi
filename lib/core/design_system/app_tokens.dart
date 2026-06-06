@@ -101,7 +101,39 @@ class AppTextStyles {
 class AppColors {
   const AppColors._();
 
+  // ── Brand palette (per docs/superpowers/specs/step1-token-map.md) ──────────
+  // Teal — primary
+  static const primary = Color(0xFF00897B);
+  static const primaryDark = Color(0xFF00695C);
+  static const primaryLight = Color(0xFF4DB6AC);
+
+  // Blue — header
+  static const headerBlue = Color(0xFF1565C0);
+  static const headerBlueDark = Color(0xFF0D47A1);
+
+  // Accents
+  static const accentCoral = Color(0xFFFF7043);
+  static const accentAmber = Color(0xFFFFB300);
+  static const accentGreen = Color(0xFF26A69A);
+
+  // Surfaces
+  static const surface = Color(0xFFF5F7FA);
+  static const card = Color(0xFFFFFFFF);
+
+  // Status
+  static const danger = Color(0xFFEF5350);
+  static const warning = Color(0xFFFF9800);
+  static const success = Color(0xFF66BB6A);
+
+  // Text
+  static const textPrimary = Color(0xFF1A1A2E);
+  static const textSecondary = Color(0xFF6B7280);
+  static const textMuted = Color(0xFF9CA3AF);
+
+  // Border
+  static const border = Color(0xFFE5E7EB);
+
+  // ── Legacy / semantic (pre-existing) ──────────────────────────────────────
   static const positive = Color(0xFF10B981);
-  static const warning = Color(0xFFF59E0B);
   static const accent = Color(0xFF14B8A6);
 }
