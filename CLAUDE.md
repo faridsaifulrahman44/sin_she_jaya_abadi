@@ -1,6 +1,15 @@
 # CLAUDE.md — Panduan Kerja Claude Code
 # Proyek: Klinik Sin She Jaya Abadi
 
+## INSTRUKSI WAJIB INGAT (CLAUDE.md GLOBAL)
+**Setiap sesi baru, baca file ini — saya otomatis ingat dan menerapkan semua aturan di bawah ini tanpa perlu diingatkan.**
+
+- **Rujukan visual = folder Stitch KEEP**. Jangan gunakan folder IGNORE. Path: `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`
+- **Wajib pakai skill `impeccable` + `ui-ux-pro-max`** untuk setiap eksekusi yang menyentuh UI/UX/typography/color/layout/motion/design system. Bukan cuma lihat, tapi benar-benar dipakai sebagai framework kerja.
+- **Token map (`step1-token-map.md`) = patokan** — tidak boleh menambah token baru tanpa izin.
+- **RLS/RPC/DELETE/DROP/TABBLE = larangan keras.** Tidak boleh diubah tanpa izin eksplisit user.
+- **1 file = 1 commit. Kecil & aman. Tidak menyentuh stok/auth/role/printer.**
+
 ## Tujuan file ini
 File ini adalah **instruksi kerja untuk Claude Code**, bukan dokumen desain.  
 Gunakan file ini untuk memahami cara kerja, batasan, urutan baca, dan aturan aman saat mengubah kode.
@@ -31,8 +40,8 @@ Gaya kerja: perubahan kecil, terukur, dan aman untuk produksi.
 - Stitch MCP NONAKTIF (per 2026-06-06). Akses ke proyek Stitch hanya lewat filesystem biasa (Read/Glob/Bash `ls`), BUKAN lewat MCP tools.
 - Daftar KEEP/IGNORE dan rujukan visual final tetap di `docs/STITCH_SOURCE_OF_TRUTH.md`.
 
-## Standar skill visual/UX (permanen, TETAP WAJIB)
-Untuk setiap eksekusi besar yang menyentuh visual/UX/typography/color/layout/motion/a11y/design system, **WAJIB** konsultasi 2 skill:
+## Standar skill visual/UX (permanen, TETAP WAJIB DIPAKAI)
+Untuk setiap eksekusi yang menyentuh visual/UX/typography/color/layout/motion/a11y/design system, **WAJIB PAKAI** 2 skill (bukan cuma lihat):
 - `impeccable` — `.agents/skills/impeccable/` + `.claude/skills/impeccable/`. Severity tagging P0/P1/P2, root-cause analysis, drift detection, polish checklist (22 dimensi). Framework audit + craft.
 - `ui-ux-pro-max` — `.agents/skills/ui-ux-pro-max/`. Prescriptive reference: 50+ style, 161 palette, 161 product type, 99 UX guideline, 25 chart, 10 stack (termasuk Flutter). Library style/token/font.
 

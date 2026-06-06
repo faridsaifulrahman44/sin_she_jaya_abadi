@@ -358,9 +358,7 @@ class _DashboardMenuCardState extends State<DashboardMenuCard> {
                   const SizedBox(height: AppSpacing.md),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 160),
-                    style: AppTextStyles.bodyMd.copyWith(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.metricBody.copyWith(
                       color: _titleColor,
                       letterSpacing: 0.1,
                       height: 1.3,
@@ -794,8 +792,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ),
                                     Text(
                                       'Penjualan : ${_loadingOwner ? '...' : rupiah(_omzetHariIni)}',
-                                      style: AppTextStyles.bodyMd
-                                          .copyWith(fontSize: 12.5, fontWeight: FontWeight.w700, color: textOnPrimary),
+                                      style: AppTextStyles.metricBold
+                                          .copyWith(color: textOnPrimary),
                                     ),
                                 ],
                               ),
@@ -816,8 +814,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           role.isOwner
                               ? 'Ringkasan aktivitas klinik hari ini'
                               : 'Aktivitas klinik hari ini',
-                          style: AppTextStyles.bodyMd
-                              .copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: textOnPrimary.withValues(alpha: 0.65)),
+                          style: AppTextStyles.metricBody
+                              .copyWith(color: textOnPrimary.withValues(alpha: 0.65)),
                         ),
                       ),
                       // Action buttons (theme + logout)
@@ -887,9 +885,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: [
                     Text(
                       'Menu Utama',
-                      style: AppTextStyles.bodyLg.copyWith(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
+                      style: AppTextStyles.menuTitle.copyWith(
                         color: textPrimary,
                       ),
                     ),

@@ -5,8 +5,8 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 
 ## Posisi terakhir
 - **Branch aktif:** `latihan-plugin`
-- **Tanggal update:** 2026-06-06
-- **Fase aktif:** F0.5 — redesign halaman Flutter mengikuti Stitch KEEP (16 folder di `STITCH_SOURCE_OF_TRUTH.md`)
+- **Tanggal update:** 2026-06-07
+- **Fase aktif:** F0.5 #1 selesai (login_premium). F0.5 #2 = pilih KEEP target berikutnya.
 - **Fase sebelumnya (selesai):** F0.4 — token migration selesai di 4 commit (`104cdda` dashboard, `945eee1` transaksi-form, `14cd20d` dashboard cleanup, `1e3dee2` riwayat). 1 raw `BorderRadius.circular(10)` residual di `transaksi_form_page.dart:1556` terdokumentasi sebagai pengecualian inline (tidak ada token matching, menjaga konsistensi visual chip).
 - **Next action:** pilih 1 halaman KEEP prioritas, terapkan visual + behavior sesuai Stitch. 1 logical unit = 1 commit. Konsultasi skill `impeccable` + `ui-ux-pro-max` untuk setiap halaman.
 - **Aset Stitch:** `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` (eksternal, di luar repo). Stitch MCP nonaktif per 2026-06-06.
