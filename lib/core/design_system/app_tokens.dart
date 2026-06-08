@@ -185,7 +185,7 @@ class AppTextStyles {
 class AppColors {
   const AppColors._();
 
-  // ── Brand palette (per docs/superpowers/specs/step1-token-map.md) ──────────
+  // ── Brand palette (per step1-token-map.md) ──────────
   // Teal — primary
   static const primary = Color(0xFF00897B);
   static const primaryDark = Color(0xFF00695C);

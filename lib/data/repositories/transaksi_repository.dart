@@ -31,6 +31,22 @@ class TransaksiRepository extends BaseRepository {
     });
   }
 
+  /// Ambil N transaksi terbaru (untuk recent activity di dashboard).
+  Future<List<TransaksiModel>> getRecentTransaksi({int limit = 5}) {
+    return guard(() async {
+      final response = await _client
+          .from(DbTables.transaksi)
+          .select()
+          .order('tanggal', ascending: false)
+          .order('id_transaksi', ascending: false)
+          .limit(limit);
+
+      return List<Map<String, dynamic>>.from(response)
+          .map(TransaksiModel.fromMap)
+          .toList();
+    });
+  }
+
   /// Ambil transaksi dalam rentang tanggal (inclusive), latest first.
   Future<List<TransaksiModel>> getTransaksiByRange(
     DateTime startDate,

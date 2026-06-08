@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../core/auth/admin_session.dart';
 import '../core/design_system/app_tokens.dart';
@@ -8,19 +9,17 @@ import '../core/error/app_error_mapper.dart';
 import '../core/services/receipt_printer_service_bw.dart';
 import '../core/theme/app_theme.dart';
 import '../core/ui/app_symbols.dart';
-import '../core/utils/formatters.dart';
-import '../features/stok/stok_alert_logic.dart';
 import '../data/repositories/obat_repository.dart';
+import '../features/stok/stok_alert_logic.dart';
+import '../widgets/app_bottom_nav_stock.dart';
 import 'dashboard_page.dart';
 
-/// Halaman Stok Alert — owner only.
+/// Halaman Stok Alert — owner only (KEEP #6 Stitch).
 /// Route: /stok-alert
 ///
-/// Menampilkan:
-/// - Summary card 3 kolom: [Habis: X] [Menipis: X] [Aman: X]
-/// - Section "Obat Habis" (jika ada)
-/// - Section "Obat Menipis" (jika ada)
-/// - Tombol "Cetak Laporan" (owner only)
+/// F0.5 redesign: white surface header, avatar+title+bell, 3 separate
+/// summary cards with icons, "Aman" section with shield icon, per-item
+/// "Restock" CTA, "Batas min" line, and 5-tab bottom navigation.
 class StokAlertPage extends StatefulWidget {
   const StokAlertPage({super.key});
 
@@ -35,27 +34,10 @@ class _StokAlertPageState extends State<StokAlertPage> {
   StokAlertSummary? _summary;
   String? _errorMessage;
 
-  // Clock state
-  late Timer _timer;
-  late DateTime _now;
-
   @override
   void initState() {
     super.initState();
-    _now = DateTime.now();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(() {
-        _now = DateTime.now();
-      });
-    });
     _checkOwnerAndLoad();
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
   }
 
   Future<void> _checkOwnerAndLoad() async {
@@ -121,83 +103,35 @@ class _StokAlertPageState extends State<StokAlertPage> {
     }
   }
 
+  void _onHeaderNavTap(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/dashboard');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/pasien');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/transaksi-hub');
+        break;
+      case 3:
+        // Already on Stock
+        break;
+      case 4:
+        Navigator.pushReplacementNamed(context, '/akun');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
-    final textOnPrimary = Theme.of(context).colorScheme.onPrimary;
-
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: cscaffoldBg(context),
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
-            // ── HEADER ──────────────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E3A8A),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Stok Alert',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: textOnPrimary,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'SinShe Jaya Abadi',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: textOnPrimary.withValues(alpha: 0.72),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      _buildClock(isDark, textOnPrimary),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Ringkasan status stok obat',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: textOnPrimary.withValues(alpha: 0.65),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── CONTENT ─────────────────────────────────────────────────────
+            _buildHeader(),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -207,43 +141,81 @@ class _StokAlertPageState extends State<StokAlertPage> {
                           ? _buildEmpty()
                           : _buildContent(),
             ),
+            const AppBottomNavStock(currentIndex: 3),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildClock(bool isDark, Color textOnPrimary) {
-    final clockColor = isDark ? DarkColors.textPrimary : Colors.white;
-    final dateColor =
-        isDark ? DarkColors.textSecondary : Colors.white.withValues(alpha: 0.72);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          formatClock(_now),
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: clockColor,
-            letterSpacing: -0.5,
-            height: 1,
+  // ── HEADER (F0.5 redesign: white surface) ─────────────────────────────
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          formatDashboardDate(_now),
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: dateColor,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: AppSpacing.sm5,
+                height: AppSpacing.sm5,
+                decoration: const BoxDecoration(
+                  color: AppColors.secondaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  AppSymbols.klinik,
+                  size: AppIconSize.size28,
+                  color: cteal(context),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  'Stok Alert',
+                  style: AppTextStyles.headlineLg.copyWith(
+                    color: ctextPrimary(context),
+                  ),
+                ),
+              ),
+              _NotificationBell(
+                onTap: () {
+                  // Notifications route not yet defined — show snackbar.
+                  showModernSnackBar(
+                    context,
+                    'Notifikasi belum tersedia',
+                  );
+                },
+              ),
+            ],
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+          const SizedBox(height: AppSpacing.sm),
+          // Horizontal 5-tab nav (Stock active)
+          AppHeaderNavStock(
+            currentIndex: 3,
+            onTap: _onHeaderNavTap,
+          ),
+        ],
+      ),
     );
   }
 
@@ -255,16 +227,13 @@ class _StokAlertPageState extends State<StokAlertPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(AppSymbols.error, size: 64, color: cdanger(context)),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               _errorMessage ?? 'Terjadi kesalahan',
-              style: TextStyle(
-                fontSize: 14,
-                color: ctextSecondary(context),
-              ),
+              style: AppTextStyles.body.copyWith(color: ctextSecondary(context)),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             ElevatedButton.icon(
               onPressed: _loadData,
               icon: const Icon(AppSymbols.refresh),
@@ -282,22 +251,18 @@ class _StokAlertPageState extends State<StokAlertPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(AppSymbols.checkCircle, size: 64, color: csuccess(context)),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             'Tidak ada alert stok',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+            style: AppTextStyles.bodyLg.copyWith(
+              fontWeight: FontWeight.w700,
               color: ctextPrimary(context),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             'Semua obat dalam kondisi aman',
-            style: TextStyle(
-              fontSize: 14,
-              color: ctextSecondary(context),
-            ),
+            style: AppTextStyles.body.copyWith(color: ctextSecondary(context)),
           ),
         ],
       ),
@@ -306,83 +271,242 @@ class _StokAlertPageState extends State<StokAlertPage> {
 
   Widget _buildContent() {
     final summary = _summary!;
+    final totalRisk = summary.totalHabis + summary.totalMenipis;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _StokAlertSummaryCard(summary: summary),
-          const SizedBox(height: 20),
+          // Page title row (Stitch KEEP #6): title + subtitle + Export action
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Keterangan Stok',
+                      style: AppTextStyles.headlineLg.copyWith(
+                        color: ctextPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Ringkasan inventaris klinik dan peringatan restock.',
+                      style: AppTextStyles.body.copyWith(
+                        color: ctextSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              // Export Laporan — title row right (Stitch: text button with download icon, teal tint)
+              InkWell(
+                onTap: _cetakLaporan,
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cteal(context).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppRadius.sm10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.download_rounded,
+                        size: AppIconSize.size16,
+                        color: cteal(context),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        'Export Laporan',
+                        style: AppTextStyles.menuTitle.copyWith(
+                          color: cteal(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // 3 summary cards (Stitch KEEP #6): Total Risk Items / Stok Habis / Stok Menipis
+          Row(
+            children: [
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Total Risk Items',
+                  count: totalRisk,
+                  color: cwarning(context),
+                  icon: AppSymbols.warning,
+                  sublabel: 'butuh perhatian',
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Stok Habis',
+                  count: summary.totalHabis,
+                  color: cdanger(context),
+                  icon: AppSymbols.error,
+                  sublabel: 'items',
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: _SummaryCard(
+                  label: 'Stok Menipis',
+                  count: summary.totalMenipis,
+                  color: cwarning(context),
+                  icon: AppSymbols.warning,
+                  sublabel: 'items',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
 
           if (summary.hasHabis) ...[
-            _buildSectionHeader('Obat Habis', summary.totalHabis, cdanger(context)),
-            const SizedBox(height: 12),
+            _buildSectionHeader(
+              'Obat Habis',
+              summary.totalHabis,
+              cdanger(context),
+              pillLabel: 'Kritis',
+              pillBg: AppColors.errorContainer,
+              pillFg: AppColors.onErrorContainer,
+            ),
+            const SizedBox(height: AppSpacing.md),
             ...summary.habis.map((item) => _ObatAlertCard(
                   item: item,
                   color: cdanger(context),
+                  showRestock: true,
                 )),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
           ],
 
           if (summary.hasMenipis) ...[
-            _buildSectionHeader('Obat Menipis', summary.totalMenipis, cwarning(context)),
-            const SizedBox(height: 12),
+            _buildSectionHeader(
+              'Obat Menipis',
+              summary.totalMenipis,
+              cwarning(context),
+              pillLabel: 'Segera',
+              pillBg: AppColors.warning.withValues(alpha: 0.14),
+              pillFg: AppColors.warning,
+            ),
+            const SizedBox(height: AppSpacing.md),
             ...summary.menipis.map((item) => _ObatAlertCard(
                   item: item,
                   color: cwarning(context),
+                  showRestock: true,
                 )),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
           ],
 
-          ElevatedButton.icon(
-            onPressed: _cetakLaporan,
-            icon: const Icon(AppSymbols.computer),
-            label: const Text('Cetak Laporan'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
+          // Aman section (Stitch KEEP #6 requires this)
+          _buildSectionHeader(
+            'Obat Aman',
+            summary.aman.length,
+            csuccess(context),
+            pillLabel: 'Terpantau',
+            pillBg: csuccess(context).withValues(alpha: 0.14),
+            pillFg: csuccess(context),
+            iconOverride: Symbols.shield_rounded,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
+          if (summary.aman.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: ccardBg(context),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: csuccess(context).withValues(alpha: 0.3),
+                  width: 1.2,
+                ),
+              ),
+              child: Text(
+                'Belum ada data obat yang tercatat aman.',
+                style: AppTextStyles.body.copyWith(color: ctextMuted(context)),
+              ),
+            )
+          else
+            ...summary.aman.take(10).map((item) => _ObatAlertCard(
+                  item: item,
+                  color: csuccess(context),
+                  showRestock: false,
+                )),
+          const SizedBox(height: AppSpacing.lg),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, int count, Color color) {
+  Widget _buildSectionHeader(
+    String title,
+    int count,
+    Color color, {
+    required String pillLabel,
+    required Color pillBg,
+    required Color pillFg,
+    IconData? iconOverride,
+  }) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.sm10),
           ),
-          child: Icon(AppSymbols.warning, color: color, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: ctextPrimary(context),
+          child: Icon(
+            iconOverride ?? AppSymbols.warning,
+            color: color,
+            size: AppIconSize.size20,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Text(
+            title,
+            style: AppTextStyles.menuTitle.copyWith(color: ctextPrimary(context)),
+          ),
+        ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xxs,
+          ),
+          decoration: BoxDecoration(
+            color: pillBg,
+            borderRadius: BorderRadius.circular(AppRadius.full),
+          ),
+          child: Text(
+            pillLabel,
+            style: AppTextStyles.label.copyWith(color: pillFg),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xxs,
+          ),
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           child: Text(
             '$count',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTextStyles.label.copyWith(color: Colors.white),
           ),
         ),
       ],
@@ -394,107 +518,98 @@ class _StokAlertPageState extends State<StokAlertPage> {
 // PRIVATE WIDGETS
 // ============================================================================
 
-class _StokAlertSummaryCard extends StatelessWidget {
-  const _StokAlertSummaryCard({required this.summary});
-
-  final StokAlertSummary summary;
+class _NotificationBell extends StatelessWidget {
+  const _NotificationBell({required this.onTap});
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final borderColor = isDark ? DarkColors.borderActive : LightColors.divider;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Row(
-        children: [
-          Expanded(
-            child: _SummaryColumn(
-              label: 'Habis',
-              count: summary.totalHabis,
-              color: cdanger(context),
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 50,
-            color: borderColor.withValues(alpha: 0.3),
-          ),
-          Expanded(
-            child: _SummaryColumn(
-              label: 'Menipis',
-              count: summary.totalMenipis,
-              color: cwarning(context),
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 50,
-            color: borderColor.withValues(alpha: 0.3),
-          ),
-          Expanded(
-            child: _SummaryColumn(
-              label: 'Aman',
-              count: summary.aman.length,
-              color: csuccess(context),
-            ),
-          ),
-        ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: Container(
+        width: AppSpacing.sm5,
+        height: AppSpacing.sm5,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: cscaffoldBg(context),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Symbols.notifications_rounded,
+          size: AppIconSize.size20,
+          color: ctextSecondary(context),
+        ),
       ),
     );
   }
 }
 
-class _SummaryColumn extends StatelessWidget {
-  const _SummaryColumn({
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
     required this.label,
     required this.count,
     required this.color,
+    required this.icon,
+    this.sublabel,
   });
 
   final String label;
   final int count;
   final Color color;
+  final IconData icon;
+  final String? sublabel;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '$count',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: color,
-            height: 1,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+          width: 1.2,
         ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: ctextSecondary(context),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-      ],
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.sm10),
+            ),
+            child: Icon(icon, color: color, size: AppIconSize.size20),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            '$count',
+            style: AppTextStyles.heroJumbo.copyWith(color: color, height: 1),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            label,
+            style: AppTextStyles.label.copyWith(color: ctextSecondary(context)),
+          ),
+          if (sublabel != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              sublabel!,
+              style: AppTextStyles.caption.copyWith(color: ctextMuted(context)),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -503,104 +618,144 @@ class _ObatAlertCard extends StatelessWidget {
   const _ObatAlertCard({
     required this.item,
     required this.color,
+    required this.showRestock,
   });
 
   final ObatAlertItem item;
   final Color color;
+  final bool showRestock;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-
     final stokLabel = item.stokSaatIni == 0
         ? 'Stok: Habis'
-        : 'Stok: ${item.stokSaatIni}';
+        : 'Stok: ${item.stokSaatIni} box';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(14),
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(AppRadius.size14),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.15)
-                : Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(14),
-      child: Row(
+      padding: const EdgeInsets.all(AppSpacing.md14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Icon(
-              item.stokSaatIni == 0 ? AppSymbols.error : AppSymbols.warning,
-              color: color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.namaObat,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: ctextPrimary(context),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                const SizedBox(height: 4),
-                Row(
+                child: Icon(
+                  item.stokSaatIni == 0 ? AppSymbols.error : AppSymbols.warning,
+                  color: color,
+                  size: AppIconSize.size28,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        item.etalaseLabel,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: color,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
                     Text(
-                      '$stokLabel | Min: ${item.stokMinimum}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: ctextSecondary(context),
+                      item.namaObat,
+                      style: AppTextStyles.title.copyWith(
+                        color: ctextPrimary(context),
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppRadius.xs),
+                          ),
+                          child: Text(
+                            item.etalaseLabel,
+                            style: AppTextStyles.caption.copyWith(color: color),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Flexible(
+                          child: Text(
+                            '$stokLabel | Min: ${item.stokMinimum}',
+                            style: AppTextStyles.caption.copyWith(
+                              color: ctextSecondary(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (item.stokSaatIni > 0) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Batas min: ${item.stokMinimum} box',
+              style: AppTextStyles.caption.copyWith(
+                color: ctextMuted(context),
+              ),
+            ),
+          ],
+          if (showRestock) ...[
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              height: AppSpacing.sm5, // 48px touch target
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  showModernSnackBar(
+                    context,
+                    'Restock untuk ${item.namaObat} — fitur menyusul.',
+                  );
+                },
+                icon: Icon(
+                  item.stokSaatIni == 0
+                      ? Symbols.shopping_cart_rounded
+                      : Symbols.add_shopping_cart_rounded,
+                  size: AppIconSize.size20,
+                  color: cteal(context),
+                ),
+                label: Text(
+                  'Restock',
+                  style: AppTextStyles.menuTitle.copyWith(color: cteal(context)),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: cteal(context),
+                  side: BorderSide(color: cteal(context), width: 1.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
