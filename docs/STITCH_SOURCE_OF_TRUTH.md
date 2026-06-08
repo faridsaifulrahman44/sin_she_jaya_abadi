@@ -3,9 +3,11 @@
 > **Tanggal audit terakhir:** 2026-06-06
 > **Auditor:** Claude (Sonnet 4.6) — sesi atas nama user faridsaifulrahman44
 > **Proyek Stitch:** `stitch_duplicate_of_jaya_abadi_premium_redesign`
-> **Lokasi fisik proyek Stitch (eksternal, di luar repo ini):** `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`
+> **Proyek Stitch (via MCP):** `4910840135092048917` (Duplicate of Jaya Abadi Premium Redesign)
 > **Branch aktif saat commit:** `latihan-plugin`
-> **Status Stitch MCP:** NONAKTIF (per 2026-06-06). Akses ke proyek Stitch dilakukan lewat filesystem biasa, bukan lewat MCP tools.
+> **Status Stitch MCP:** AKTIF (per 2026-06-07). Akses ke proyek Stitch via MCP tools (`mcp__stitch__*`).
+> **MCP Endpoint:** HTTP `https://stitch.googleapis.com/mcp` + header `X-Goog-Api-Key`
+> **Cara akses:** `mcp__stitch__list_screens(projectId: "4910840135092048917")` → `mcp__stitch__get_screen(projectId, screenId)` → screenshot PNG
 
 ## Peran file ini
 File ini adalah **rujukan visual final**. Gunakan untuk memilih desain mana yang boleh dipakai saat implementasi UI.
@@ -43,29 +45,29 @@ Gunakan entri KEEP ini sebagai rujukan visual saat membuat atau memperbarui kode
 ## 🟥 DAFTAR IGNORE — Aset Lampau
 Daftar ini adalah **referensi historis** dari audit 2026-06-04. Per 2026-06-06, semua folder IGNORE sudah **tidak ada lagi** di lokasi proyek Stitch `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`. Tetap dicantumkan di sini agar jelas varian mana yang ditolak dan tidak boleh dimunculkan lagi sebagai justifikasi desain.
 
-| #  | Folder                              | Alasan Di-IGNORE                                                                          |
-|----|-------------------------------------|-------------------------------------------------------------------------------------------|
-| 1  | `dashboard_utama_owner`             | Digantikan `operational_dashboard_owner_redux`                                            |
-| 2  | `dashboard_utama_branded`           | Varian branded lama                                                                      |
-| 3  | `dashboard_utama_final`             | Varian final lama                                                                        |
-| 4  | `hub_inventaris_obat`               | Iterasi lama                                                                            |
-| 5  | `hub_inventaris_etalase_fix`        | Iterasi antara                                                                          |
-| 6  | `profil_pasien_crm`                 | Iterasi awal                                                                            |
-| 7  | `profil_pasien_revised`             | Iterasi revisi                                                                          |
-| 8  | `profil_pasien_no_phone`            | Iterasi tanpa kolom phone                                                               |
-| 9  | `patient_crm_detail_insight_redux`  | Varian redux yang tidak dipakai                                                         |
-| 10 | `form_transaksi_petugas`            | Varian untuk petugas                                                                   |
-| 11 | `form_transaksi_pos`                | Varian POS lama                                                                        |
-| 12 | `form_transaksi_pos_final`          | Varian POS lama yang sudah tergantikan                                                  |
-| 13 | `form_transaksi_simplified`         | Varian simplifikasi                                                                     |
-| 14 | `rapid_pos_form_speed_optimized`   | Varian optimasi kecepatan                                                               |
-| 15 | `antrean_cetak_petugas`             | Varian untuk petugas                                                                   |
-| 16 | `laporan_operasional_updated`       | Varian updated lama                                                                     |
-| 17 | `laporan_operasional_revised`       | Varian revisi                                                                          |
-| 18 | `struk_pembayaran_custom`           | Varian custom                                                                           |
+| #  | Folder                              | Alasan Di-IGNORE                                                                          | Status MCP |
+|----|-------------------------------------|-------------------------------------------------------------------------------------------|------------|
+| 1  | `dashboard_utama_owner`             | Digantikan `operational_dashboard_owner_redux`                                            | screen `719fdf0c` (Laporan Operasional) |
+| 2  | `dashboard_utama_branded`           | Varian branded lama                                                                      | screen `674ab065` (Dashboard Branded) |
+| 3  | `dashboard_utama_final`             | Varian final lama                                                                        | screen `ff5eeb01` (Dashboard Final) |
+| 4  | `hub_inventaris_obat`               | Iterasi lama                                                                            | screen `5b95f312` (Hub Inventaris Obat) |
+| 5  | `hub_inventaris_etalase_fix`        | Iterasi antara                                                                          | screen `b2a2751a` (Hub Inventaris Etalase Fix) |
+| 6  | `profil_pasien_crm`                 | Iterasi awal                                                                            | screen `95147233` (Laporan Ops Updated) |
+| 7  | `profil_pasien_revised`             | Iterasi revisi                                                                          | screen `806a3e93` (Profil Pasien Revised) |
+| 8  | `profil_pasien_no_phone`            | Iterasi tanpa kolom phone                                                               | screen `304bdbf4` (Profil Pasien No Phone) |
+| 9  | `patient_crm_detail_insight_redux`  | Varian redux yang tidak dipakai                                                         | screen `303bc641` (Patient CRM Detail Redux) |
+| 10 | `form_transaksi_petugas`            | Varian untuk petugas                                                                   | screen `a6e3ad41` (Form Transaksi Petugas) |
+| 11 | `form_transaksi_pos`                | Varian POS lama                                                                        | screen `52783e63` (Struk Custom) |
+| 12 | `form_transaksi_pos_final`          | Varian POS lama yang sudah tergantikan                                                  | screen `2e132e51` (Form Transaksi POS Final) |
+| 13 | `form_transaksi_simplified`         | Varian simplifikasi                                                                     | screen `e0da684d` (Form Transaksi Simplified) |
+| 14 | `rapid_pos_form_speed_optimized`   | Varian optimasi kecepatan                                                               | screen `9d745305` (Rapid POS Speed Optimized) |
+| 15 | `antrean_cetak_petugas`             | Varian untuk petugas                                                                   | screen `21831574` (Antrean Cetak Petugas) |
+| 16 | `laporan_operasional_updated`       | Varian updated lama                                                                     | screen `95147233` (Laporan Ops Updated) |
+| 17 | `laporan_operasional_revised`       | Varian revisi                                                                          | screen `39315133` (Laporan Operasional Revised) |
+| 18 | `struk_pembayaran_custom`           | Varian custom                                                                           | screen `52783e63` (Struk Custom) |
 
 ## 🟦 File lain di proyek Stitch (di luar KEEP/IGNORE)
-Item-item ini ada di `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` per 2026-06-06, tetapi belum pernah dimasukkan ke KEEP/IGNORE karena bukan folder screen:
+Item-item ini bisa diakses via MCP Stitch — bukan dari filesystem lokal.
 
 | #  | Nama                                       | Jenis         | Keterangan                                                                                  |
 |----|--------------------------------------------|---------------|---------------------------------------------------------------------------------------------|

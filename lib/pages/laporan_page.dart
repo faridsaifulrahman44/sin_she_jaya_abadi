@@ -305,26 +305,12 @@ class _LaporanPageState extends State<LaporanPage>
     if (_accessDenied) return _buildAccessDenied(context);
 
     return Scaffold(
-      backgroundColor: cscaffoldBg(context),
-      appBar: AppBar(
-        title: const Text(
-          'Laporan',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        backgroundColor: cindigo(context),
-        foregroundColor: conPrimary(context),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.white.withValues(alpha: 0.12),
-            height: 1,
-          ),
-        ),
-      ),
+      backgroundColor: cscaffoldBgStitch(context),
+      appBar: _buildStitchHeader(context),
       body: Column(
         children: [
-          _buildTabBar(),
+          _buildGreetingBanner(context),
+          _buildPeriodChips(context),
           Expanded(
             child: _isLoading
                 ? _buildLoading()
@@ -370,30 +356,122 @@ class _LaporanPageState extends State<LaporanPage>
     );
   }
 
-  Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: ccardBg(context),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          color: conPrimary(context),
-          borderRadius: BorderRadius.circular(8),
+  // ─── Stitch KEEP #8 (laporan_eksekutif_owner) header ──────────────────
+
+  /// White AppBar dengan 3-section layout (avatar · center title+subtitle · 2
+  /// action icons). 1px outline-variant border under app bar per spec.
+  PreferredSizeWidget _buildStitchHeader(BuildContext context) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: AppBar(
+        backgroundColor: ccardBg(context),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 0,
+        leadingWidth: 56,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: _stitchAvatarCircle(
+            bg: csurfaceContainer(context),
+            fg: ctextPrimary(context),
+          ),
         ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        labelColor: cindigo(context),
-        unselectedLabelColor: ctextSecondary(context),
-        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Harian'),
-          Tab(text: 'Bulanan'),
-          Tab(text: 'Tahunan'),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Klinik Sin She Jaya Abadi',
+              style: AppTextStyles.labelSm.copyWith(
+                color: ctextSecondary(context),
+                letterSpacing: 0.2,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Laporan',
+              style: AppTextStyles.headlineMd.copyWith(
+                color: ctextPrimary(context),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        actions: [
+          _stitchIconAction(
+            icon: Icons.notifications_none,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notifikasi segera hadir.')),
+              );
+            },
+          ),
+          _stitchIconAction(
+            icon: Icons.health_and_safety_outlined,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Status klinik: Operasional.')),
+              );
+            },
+          ),
+          const SizedBox(width: AppSpacing.sm),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: coutlineVariantStitch(context),
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Greeting banner: "Klinik Jaya Abadi" sebagai headline-lg di bawah header.
+  Widget _buildGreetingBanner(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          'Klinik Jaya Abadi',
+          style: AppTextStyles.headlineLg.copyWith(
+            color: ctextPrimary(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Period chips (Hari Ini / 7H / 30H style) — replaces TabBar visual
+  /// while keeping the existing 3-tab data flow (Harian / Bulanan / Tahunan).
+  Widget _buildPeriodChips(BuildContext context) {
+    const labels = ['Harian', 'Bulanan', 'Tahunan'];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final selected = i == _activeTab;
+          return Padding(
+            padding: EdgeInsets.only(
+              right: i < labels.length - 1 ? AppSpacing.sm : 0,
+            ),
+            child: _stitchPeriodChip(
+              label: labels[i],
+              selected: selected,
+              onTap: () {
+                if (i == _activeTab) return;
+                _tabController.animateTo(i);
+              },
+            ),
+          );
+        }),
       ),
     );
   }
@@ -461,6 +539,74 @@ class _LaporanPageState extends State<LaporanPage>
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Stitch KEEP #13 mini widgets (header bits) ──────────────────────────
+
+  Widget _stitchAvatarCircle({required Color bg, required Color fg}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: bg,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Icon(Icons.person_outline, color: fg, size: 22),
+    );
+  }
+
+  Widget _stitchIconAction({required IconData icon, required VoidCallback onTap}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: InkResponse(
+        onTap: onTap,
+        radius: 22,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: coutlineVariantStitch(context)),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 20, color: ctextPrimary(context)),
+        ),
+      ),
+    );
+  }
+
+  Widget _stitchPeriodChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final teal = cprimaryStitch(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm10,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? teal : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          border: Border.all(
+            color: selected ? teal : coutlineVariantStitch(context),
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.labelLg.copyWith(
+            color: selected ? Colors.white : ctextPrimary(context),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
       ),

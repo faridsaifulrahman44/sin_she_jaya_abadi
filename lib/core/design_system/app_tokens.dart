@@ -306,4 +306,17 @@ class AppColors {
   // ── Legacy / semantic (pre-existing) ──────────────────────────────────────
   static const positive = Color(0xFF10B981);
   static const accent = Color(0xFF14B8A6);
+
+  // ── F0.5 #8: Stitch KEEP #8 teal clinical palette ────────────────────────
+  // Named explicitly for F0.5#8 migration — co-exists with `primary` (legacy
+  // #00897B) and the M3 `primaryContainer` (#008080). These `tealStitch*` are
+  // reserved for the laporan_eksekutif_owner screen to match the Stitch
+  // visual contract.
+  static const tealStitchPrimary = Color(0xFF006565);     // #006565
+  static const tealStitchContainer = Color(0xFF008080);   // #008080
+  static const tealStitchSecondary = Color(0xFFACEDDA);   // #acedda
+  static const scaffoldBgStitch = Color(0xFFF6FAF9);      // #f6faf9
+  static const surfaceContainerStitch = Color(0xFFEBEFEE); // #ebefee
+  static const onSurfaceStitch = Color(0xFF181C1C);       // #181c1c
+  static const outlineVariantStitch = Color(0xFFBDC9C8);  // #bdc9c8
 }

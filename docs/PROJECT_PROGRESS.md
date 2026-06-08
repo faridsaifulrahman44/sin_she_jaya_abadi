@@ -5,19 +5,20 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 
 ## Posisi terakhir
 - **Branch aktif:** `latihan-plugin`
-- **Tanggal update:** 2026-06-07
-- **Fase aktif:** F0.5 #1 selesai (login_premium), F0.5 #2 selesai (dashboard_owner_redux, 2026-06-07). F0.5 #3 = pilih KEEP target berikutnya.
+- **Tanggal update:** 2026-06-08
+- **Fase aktif:** F0.5 #6 + #7 selesai (stok_alert → KEEP #6 + sinkronisasi → KEEP #7 minimal mobile pattern). F0.5 #8 (laporan_eksekutif_owner) = visual extraction selesai, spec di `docs/superpowers/specs/2026-06-08-stitch-keep-8-laporan-eksekutif-analysis.md`. Next: verifikasi backend views/RPCs exist, lalu implementasi Pendapatan section.
+- **F0.5 #2 dashboard_owner_redux = REDO (2026-06-07)** — hasil run tidak mirip Stitch sama sekali. Alasan: dashboard_page.dart punya inline widgets dengan data hardcoded, padahal `lib/widgets/owner_dashboard_widgets.dart` punya widget production-quality dengan real Supabase data yang TIDAK DIPAKAI. Lihat `docs/superpowers/plans/2026-06-07-dashboard-redo-plan.md`.
 - **Anti-Runaway Boundaries (2026-06-07):** Ruflo boundaries sudah di-setup strict. Lihat `docs/RUFLO_BOUNDARIES.md` + section `RUFLO EXECUTION BOUNDARIES` di CLAUDE.md. Hook `ruflo-boundary-check.cjs` aktif di `UserPromptSubmit`. Plan is law.
 - **Fase sebelumnya (selesai):** F0.4 — token migration selesai di 4 commit (`104cdda` dashboard, `945eee1` transaksi-form, `14cd20d` dashboard cleanup, `1e3dee2` riwayat). 1 raw `BorderRadius.circular(10)` residual di `transaksi_form_page.dart:1556` terdokumentasi sebagai pengecualian inline (tidak ada token matching, menjaga konsistensi visual chip).
 - **Next action:** pilih 1 halaman KEEP prioritas, terapkan visual + behavior sesuai Stitch. 1 logical unit = 1 commit. Konsultasi skill `impeccable` + `ui-ux-pro-max` untuk setiap halaman.
-- **Aset Stitch:** `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/` (eksternal, di luar repo). Stitch MCP nonaktif per 2026-06-06.
+- **Aset Stitch:** Proyek Stitch `4910840135092048917` via **MCP Stitch** (terhubung aktif per 2026-06-07)
 - **Standar skill visual/UX:** setiap eksekusi besar yang menyentuh visual/UX **WAJIB** konsultasi skill `impeccable` (P0/P1/P2) dan `ui-ux-pro-max` (style/palette/token). Aturan tercatat permanen di `CLAUDE.md`. **Tidak direlaksasi** — skill consultation tetap wajib.
 - **Relaksasi rules (2026-06-06):** untuk fase F0.5 redesign, aturan md yang sebelumnya kaku (token lock di step1-token-map.md, "zero hardcoded" di design-system-establish.md, "1 file = 1 commit" di CLAUDE.md, "P0 blocker" di cluster-a audit) sudah dilonggarkan. Detail di file md masing-masing. Yang **tetap ketat:** role guard (Owner/Admin), schema/RLS/RPC, logika stok/auth/printer, INSERT butuh SQL dulu.
 
 ## Ringkasan fase selesai
 ### Fase historis (F3–F12.6)
 - **F0.1 — Stitch audit (16 KEEP + 18 IGNORE)**
-  - Verifikasi folder Stitch fisik di `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`
+- Verifikasi folder Stitch via **MCP Stitch** (list_screens)
   - Semua 16 KEEP folder hadir, 18 IGNORE folder sudah hilang dari Stitch
   - 3 file tak terdata dicatat: `complete_redesign_proposal_strategy.md`, `design.md`, `logo_sinshe_versi_png.png`
 - **F0.2 — Source of truth update**
@@ -99,6 +100,6 @@ File ini hanya untuk **status kerja terbaru**: apa yang sudah selesai, apa yang 
 File itu ada di dokumen lain.
 
 ## Catatan operasional (2026-06-06)
-- Stitch MCP NONAKTIF. Proyek Stitch `stitch_duplicate_of_jaya_abadi_premium_redesign` diakses lewat filesystem di `D:/stitch/stitch_duplicate_of_jaya_abadi_premium_redesign/`, di luar repo ini.
+- **Stitch MCP AKTIF** per 2026-06-07. Proyek Stitch `4910840135092048917` diakses via MCP tools (`mcp__stitch__*`), bukan filesystem lokal.
 - Rujukan visual final (KEEP/IGNORE) tetap di `docs/STITCH_SOURCE_OF_TRUTH.md`. Folder IGNORE yang tercantum di sana adalah daftar historis; per 2026-06-06 folder-folder IGNORE sudah tidak ada lagi di lokasi Stitch.
-- `.mcp.json` saat ini hanya berisi `supabase`. Tidak ada MCP server Stitch yang perlu di-uninstall dari konfigurasi.
+- `.mcp.json` + `claude.json` lokal berisi `stitch` (HTTP MCP), `supabase`, `claude-flow`, `ruv-swarm`, `flow-nexus`.
