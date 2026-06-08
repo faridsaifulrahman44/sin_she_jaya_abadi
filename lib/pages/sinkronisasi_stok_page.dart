@@ -235,35 +235,15 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
     }
   }
 
-  void _onHeaderNavTap(int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/dashboard');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/pasien');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/transaksi-hub');
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, '/stok-alert');
-        break;
-      case 4:
-        Navigator.pushReplacementNamed(context, '/akun');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: cscaffoldBg(context),
+      appBar: _buildHeader(),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            _buildHeader(),
             Expanded(
               child: FutureBuilder<List<SinkronisasiStokModel>>(
                 future: _future,
@@ -444,103 +424,60 @@ class _SinkronisasiStokPageState extends State<SinkronisasiStokPage> {
     );
   }
 
-  // ── HEADER (F0.5 redesign: white surface + logo + 5-tab nav) ────────
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.md,
+  // ── HEADER (Stitch KEEP #7: minimal mobile AppBar) ──────────────────
+  PreferredSizeWidget _buildHeader() {
+    return AppBar(
+      backgroundColor: ccardBg(context),
+      surfaceTintColor: ccardBg(context),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      titleSpacing: 0,
+      leading: IconButton(
+        icon: Icon(
+          Symbols.arrow_back_rounded,
+          color: ctextPrimary(context),
+          size: AppIconSize.size28,
+        ),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          }
+        },
       ),
-      decoration: BoxDecoration(
-        color: ccardBg(context),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+      title: Text(
+        'Sinkronisasi Stok',
+        style: AppTextStyles.title.copyWith(color: ctextPrimary(context)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Logo placeholder "PulseCare" (text brand)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: AppSpacing.sm5,
-                    height: AppSpacing.sm5,
-                    decoration: BoxDecoration(
-                      color: cteal(context).withValues(alpha: 0.16),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      AppSymbols.klinik,
-                      size: AppIconSize.size28,
-                      color: cteal(context),
-                    ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(
+          height: 1,
+          thickness: 1,
+          color: cdivider(context).withValues(alpha: 0.5),
+        ),
+      ),
+      actions: [
+        IconButton(
+          tooltip: 'Export CSV',
+          onPressed: _exporting ? null : _exportCsv,
+          icon: _exporting
+              ? SizedBox(
+                  width: AppIconSize.size16,
+                  height: AppIconSize.size16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: cteal(context),
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Text(
-                    'PulseCare',
-                    style: AppTextStyles.headline.copyWith(
-                      color: cteal(context),
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              // Export action
-              IconButton(
-                tooltip: 'Export CSV',
-                onPressed: _exporting ? null : _exportCsv,
-                icon: _exporting
-                    ? SizedBox(
-                        width: AppIconSize.size16,
-                        height: AppIconSize.size16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: cteal(context),
-                        ),
-                      )
-                    : const Icon(
-                        Symbols.download_rounded,
-                        size: AppIconSize.size20,
-                      ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              // User avatar (right)
-              Container(
-                width: AppSpacing.sm5,
-                height: AppSpacing.sm5,
-                decoration: BoxDecoration(
-                  color: AppColors.secondaryContainer,
-                  shape: BoxShape.circle,
+                )
+              : const Icon(
+                  Symbols.download_rounded,
+                  size: AppIconSize.size20,
                 ),
-                alignment: Alignment.center,
-                child: Icon(
-                  AppSymbols.klinik,
-                  size: AppIconSize.size28,
-                  color: cteal(context),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          // Horizontal 5-tab nav (Stock active)
-          AppHeaderNavStock(
-            currentIndex: 3,
-            onTap: _onHeaderNavTap,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
