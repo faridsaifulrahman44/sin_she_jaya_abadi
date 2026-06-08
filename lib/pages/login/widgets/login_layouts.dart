@@ -68,7 +68,7 @@ class LoginMobileLayout extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Soft-white circular badge with medical icon
+                        // Soft-white circular badge with clinic logo
                         Container(
                           width: AppRadius.size88,
                           height: AppRadius.size88,
@@ -84,10 +84,10 @@ class LoginMobileLayout extends StatelessWidget {
                             ],
                           ),
                           alignment: Alignment.center,
-                          child: Icon(
-                            Symbols.medical_services_rounded,
-                            size: AppRadius.size44,
-                            color: AppColors.primaryDark,
+                          padding: const EdgeInsets.all(AppSpacing.md14),
+                          child: Image.asset(
+                            'assets/logo/logo_sinshe_login.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.md14),

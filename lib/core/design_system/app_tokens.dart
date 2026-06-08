@@ -57,6 +57,10 @@ class AppRadius {
   static const md = 12.0;
   static const lg14 = 14.0;
   static const lg = 16.0;
+  // F0.6h: report card pixel sizes for SVG/Icon container dimensions
+  static const size4 = 4.0;
+  static const size6 = 6.0;
+  static const size8 = 8.0;
   static const xl = 20.0;
   static const xxl = 24.0;
   static const full = 999.0;
