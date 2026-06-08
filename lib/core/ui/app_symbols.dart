@@ -87,6 +87,15 @@ class AppSymbols {
   /// Laporan / analytics — chart
   static const IconData laporan = Symbols.bar_chart_rounded;
 
+  /// Laporan (alias) — summarize document icon untuk aksi cepat dashboard.
+  static const IconData summarize = Symbols.summarize_rounded;
+
+  /// Printer / cetak — untuk peringatan antrean print gagal.
+  static const IconData print = Symbols.print_rounded;
+
+  /// Shopping cart — untuk aksi cepat "Restock Needed" di dashboard.
+  static const IconData shoppingCart = Symbols.shopping_cart_rounded;
+
   // ─── Aksi Umum ────────────────────────────────────────────────────────────
 
   /// Tambah data
@@ -94,6 +103,9 @@ class AppSymbols {
 
   /// Tambah (circle variant)
   static const IconData tambahCircle = Symbols.add_circle_rounded;
+
+  /// Tambah (alias) — same glyph, kept for dashboard quick-action clarity.
+  static const IconData addCircle = Symbols.add_circle_rounded;
 
   /// Edit
   static const IconData edit = Symbols.edit_rounded;

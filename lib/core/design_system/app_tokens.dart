@@ -157,6 +157,24 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
   );
 
+  // F0.5 #5: semantic named tokens for dashboard — interpolations
+  // 12px/w500 label-sm, 14px/w600 label-lg, 20px/w700 headline-md.
+  static const labelSm = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+  );
+
+  static const labelLg = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const headlineMd = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+  );
+
   static const labelXs = TextStyle(
     fontSize: 10,
     fontWeight: FontWeight.w600,
@@ -251,6 +269,8 @@ class AppColors {
   static const primaryContainer = Color(0xFF008080);
   static const onPrimaryContainer = Color(0xFFE3FFFE);
   static const inversePrimary = Color(0xFF76D6D5);
+  // Standard on-primary (white) — used for text/icons over `primary` fill.
+  static const onPrimary = Color(0xFFFFFFFF);
   static const secondary = Color(0xFF29695B);
   static const onSecondary = Color(0xFFFFFFFF);
   static const secondaryContainer = Color(0xFFACEDDA);

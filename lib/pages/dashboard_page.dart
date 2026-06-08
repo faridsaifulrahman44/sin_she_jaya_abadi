@@ -1,14 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../app.dart';
 import '../core/auth/admin_session.dart';
 import '../core/design_system/app_tokens.dart';
-import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_legacy_icons.dart';
 import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/repositories/kehadiran_repository.dart';
@@ -16,17 +12,197 @@ import '../data/repositories/obat_repository.dart';
 import '../data/repositories/transaksi_repository.dart';
 import '../features/stok/stok_alert_logic.dart';
 import '../widgets/app_bottom_nav.dart';
-import '../widgets/owner_dashboard_widgets.dart';
 import 'laporan_page.dart';
-import 'login_page.dart';
 import 'obat_hub_page.dart';
-import 'pasien_page.dart';
-import 'sinkronisasi_stok_page.dart';
-import 'transaksi_form_page.dart';
 import 'transaksi_hub_page.dart';
 
 // ============================================================================
-// SUMMARY CARD WIDGET — compact metric card for dashboard
+// DASHBOARD CLOCK WIDGET — live clock + date, upper right of app bar
+// ============================================================================
+class _DashboardClock extends StatefulWidget {
+  const _DashboardClock();
+
+  @override
+  State<_DashboardClock> createState() => _DashboardClockState();
+}
+
+class _DashboardClockState extends State<_DashboardClock> {
+  late Timer _timer;
+  late DateTime _now;
+  late DateTime _lastDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    _lastDate = DateTime.now();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final next = DateTime.now();
+      setState(() {
+        _now = next;
+        if (next.day != _lastDate.day) _lastDate = next;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final clockColor = isDark ? DarkColors.textPrimary : Colors.white;
+    final dateColor = isDark
+        ? DarkColors.textSecondary
+        : Colors.white.withValues(alpha: 0.72);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          formatClock(_now),
+          style: AppTextStyles.headlineMd.copyWith(
+            color: clockColor,
+            letterSpacing: -0.5,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          formatDashboardDate(_now),
+          style: AppTextStyles.caption.copyWith(color: dateColor),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================================
+// MINI BAR CHART — Stitch performance bar
+// ============================================================================
+class _MiniBarChart extends StatelessWidget {
+  const _MiniBarChart();
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = cprimary(context);
+    // 7 bars: increasing heights with primary gradient
+    final heights = [16.0, 24.0, 12.0, 32.0, 40.0, 28.0, 48.0];
+    final opacities = [0.2, 0.2, 0.2, 0.4, 0.6, 0.8, 1.0];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: List.generate(heights.length, (i) => SizedBox(
+        width: 8,
+        height: heights[i],
+        child: Container(
+          decoration: BoxDecoration(
+            color: primary.withValues(alpha: opacities[i]),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+          ),
+        ),
+      )),
+    );
+  }
+}
+
+// ============================================================================
+// PERFORMA CARD — performance summary with mini bar chart
+// ============================================================================
+class _PerformaCard extends StatelessWidget {
+  const _PerformaCard({required this.omzet});
+
+  final String omzet;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurfaceVariant = isDark ? DarkColors.textSecondary : AppColors.onSurfaceVariant;
+    final primary = cprimary(context);
+    final success = csuccess(context);
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: isDark ? DarkColors.surfaceContainerLow : AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(
+          color: isDark
+              ? DarkColors.surfaceContainer.withValues(alpha: 0.6)
+              : AppColors.surfaceContainerLow,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ringkasan Performa Hari Ini',
+                  style: AppTextStyles.labelLg.copyWith(
+                    color: onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    Text(
+                      omzet,
+                      style: AppTextStyles.headlineMd.copyWith(
+                        color: primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm10),
+                    Text(
+                      '+12% vs kemarin',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: success,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '12 Transaksi Berhasil',
+                  style: AppTextStyles.bodyMd.copyWith(
+                    color: onSurfaceVariant,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          const _MiniBarChart(),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// KPI CARD — compact metric card for dashboard summary
 // ============================================================================
 class DashboardSummaryCard extends StatelessWidget {
   const DashboardSummaryCard({
@@ -48,7 +224,6 @@ class DashboardSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final borderColor = isDark ? DarkColors.borderActive : LightColors.divider;
     final textPrimary = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
     final textSecondary = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
 
@@ -91,9 +266,7 @@ class DashboardSummaryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         label,
-                        style: AppTextStyles.caption.copyWith(
-                          color: textSecondary,
-                        ),
+                        style: AppTextStyles.caption.copyWith(color: textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -158,323 +331,330 @@ class DashboardSummaryCard extends StatelessWidget {
 }
 
 // ============================================================================
-// DASHBOARD CLOCK WIDGET — live clock + date, upper right
+// QUICK ACTION CARD — for Aksi Cepat grid
 // ============================================================================
-class _DashboardClock extends StatefulWidget {
-  const _DashboardClock();
-
-  @override
-  State<_DashboardClock> createState() => _DashboardClockState();
-}
-
-class _DashboardClockState extends State<_DashboardClock> {
-  late Timer _timer;
-  late DateTime _now;
-  late DateTime _lastDate;
-
-  @override
-  void initState() {
-    super.initState();
-    _now = DateTime.now();
-    _lastDate = DateTime.now();
-    // Update every second
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      final next = DateTime.now();
-      setState(() {
-        _now = next;
-        // If day changed, rebuild (date label updates automatically)
-        if (next.day != _lastDate.day) {
-          _lastDate = next;
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final clockColor = isDark ? DarkColors.textPrimary : Colors.white;
-    final dateColor = isDark
-        ? DarkColors.textSecondary
-        : Colors.white.withValues(alpha: 0.72);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          formatClock(_now),
-          style: AppTextStyles.heroJumbo.copyWith(
-            color: clockColor,
-            letterSpacing: -0.5,
-            height: 1,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xxs),
-        Text(
-          formatDashboardDate(_now),
-          style: AppTextStyles.caption.copyWith(
-            color: dateColor,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}
-
-// ============================================================================
-// DASHBOARD MENU CARD — existing elegant card
-// ============================================================================
-class DashboardMenuCard extends StatefulWidget {
-  const DashboardMenuCard({
-    super.key,
+class _QuickActionCard extends StatefulWidget {
+  const _QuickActionCard({
     required this.title,
     required this.icon,
     required this.color,
+    required this.bgColor,
     required this.onTap,
+    this.borderColor,
   });
 
   final String title;
   final IconData icon;
   final Color color;
+  final Color bgColor;
   final VoidCallback onTap;
+  final Color? borderColor;
 
   @override
-  State<DashboardMenuCard> createState() => _DashboardMenuCardState();
+  State<_QuickActionCard> createState() => _QuickActionCardState();
 }
 
-class _DashboardMenuCardState extends State<DashboardMenuCard> {
-  bool _isHovered = false;
+class _QuickActionCardState extends State<_QuickActionCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
 
-  Color get _cardBg => Theme.of(context).colorScheme.surface;
-
-  Color get _cardBorder {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isDark) {
-      return _isHovered
-          ? DarkColors.borderActive.withValues(alpha: 0.9)
-          : DarkColors.borderActive.withValues(alpha: 0.45);
-    }
-    return _isHovered
-        ? cdivider(context).withValues(alpha: 0.85)
-        : cdivider(context).withValues(alpha: 0.55);
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
   }
 
-  Color get _cardShadow {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isDark) {
-      return _isHovered
-          ? DarkColors.shadowLight.withValues(alpha: 0.40)
-          : DarkColors.shadowLight.withValues(alpha: 0.20);
-    }
-    return _isHovered
-        ? Colors.black.withValues(alpha: 0.09)
-        : Colors.black.withValues(alpha: 0.04);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
-
-  Color get _badgeBg {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isDark) {
-      return _isHovered
-          ? widget.color.withValues(alpha: 0.16)
-          : widget.color.withValues(alpha: 0.10);
-    }
-    return _isHovered
-        ? widget.color.withValues(alpha: 0.18)
-        : widget.color.withValues(alpha: 0.10);
-  }
-
-  Color get _titleColor {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (isDark) {
-      return _isHovered ? DarkColors.textPrimary : DarkColors.textSecondary;
-    }
-    return _isHovered
-        ? widget.color.withValues(alpha: 1.0)
-        : widget.color.withValues(alpha: 0.85);
-  }
-
-  double get _shadowBlur => _isHovered ? 18.0 : 12.0;
-  double get _shadowOffsetY => _isHovered ? 6.0 : 3.0;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        decoration: BoxDecoration(
-          color: _cardBg,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(color: _cardBorder, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: _cardShadow,
-              blurRadius: _shadowBlur,
-              offset: Offset(0, _shadowOffsetY),
+    return AnimatedBuilder(
+      animation: _scaleAnim,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnim.value,
+          child: child,
+        );
+      },
+      child: GestureDetector(
+        onTapDown: (_) => _controller.forward(),
+        onTapUp: (_) => _controller.reverse(),
+        onTapCancel: () => _controller.reverse(),
+        child: Container(
+          height: 96, // ~h-24
+          decoration: BoxDecoration(
+            color: widget.bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: widget.borderColor != null
+                ? Border.all(color: widget.borderColor!, width: 1)
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: widget.bgColor == cprimary(context) ? 0.12 : 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, color: widget.color, size: 28),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                widget.title,
+                style: AppTextStyles.labelLg.copyWith(color: widget.color),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// OPERATIONAL ALERT CARD — error/warning alert for dashboard
+// ============================================================================
+class _OperationalAlertCard extends StatelessWidget {
+  const _OperationalAlertCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.titleColor,
+    this.subtitleColor,
+    this.buttonText,
+    this.onButtonTap,
+    this.alertType = 'error',
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color titleColor;
+  final Color? subtitleColor;
+  final String? buttonText;
+  final VoidCallback? onButtonTap;
+  final String alertType;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Color bgColor;
+    Color borderColor;
+    Color iconBg;
+    Color iconColor;
+
+    if (alertType == 'error') {
+      bgColor = isDark
+          ? DarkColors.onErrorContainer
+          : AppColors.errorContainer;
+      borderColor = AppColors.error.withValues(alpha: 0.2);
+      iconBg = AppColors.error;
+      iconColor = AppColors.onError;
+    } else {
+      bgColor = const Color(0xFFFFF3E0);
+      borderColor = AppColors.warning.withValues(alpha: 0.2);
+      iconBg = AppColors.warning;
+      iconColor = Colors.white;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: borderColor, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: bgColor.withValues(alpha: 0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: iconBg,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(icon, color: iconColor, size: 26),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.headlineMd.copyWith(
+                    color: titleColor,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodyMd.copyWith(
+                    color: subtitleColor ??
+                        (isDark ? DarkColors.textSecondary : AppColors.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (buttonText != null && onButtonTap != null) ...[
+            SizedBox(
+              width: 100,
+              height: 36,
+              child: ElevatedButton(
+                onPressed: onButtonTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: AppColors.onError,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                ),
+                child: Text(
+                  buttonText!,
+                  style: AppTextStyles.labelLg,
+                ),
+              ),
             ),
           ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            splashColor: widget.color.withValues(alpha: 0.06),
-            highlightColor: widget.color.withValues(alpha: 0.05),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm10,
-                vertical: 18, // no AppSpacing token for 18; keep literal
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOutCubic,
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: _badgeBg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        widget.icon,
-                        color: widget.color,
-                        size: 26,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 160),
-                    style: AppTextStyles.metricBody.copyWith(
-                      color: _titleColor,
-                      letterSpacing: 0.1,
-                      height: 1.3,
-                    ),
-                    child: Text(
-                      widget.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
 }
 
 // ============================================================================
-// OBAT STOK BADGE — shown on Data Obat card for owner only
+// ACTIVITY ROW — recent transaction activity item
 // ============================================================================
-class _ObatStokBadge extends StatelessWidget {
-  const _ObatStokBadge({required this.summary});
+class _ActivityRow extends StatelessWidget {
+  const _ActivityRow({
+    required this.initials,
+    required this.name,
+    required this.timeInfo,
+    required this.amount,
+    required this.status,
+  });
 
-  final StokAlertSummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    if (summary.hasHabis) {
-      return _StokAlertPill(
-        label: '${summary.habis.length} habis',
-        color: cdanger(context),
-      );
-    }
-    if (summary.hasMenipis) {
-      return _StokAlertPill(
-        label: '${summary.menipis.length} menipis',
-        color: cwarning(context),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
-  static Future<StokAlertSummary> _fetchStokSummary() async {
-    final repo = ObatRepository();
-    final obatList = await repo.getObat();
-    return buildStokAlertSummary(obatList);
-  }
-}
-
-class _StokAlertPill extends StatelessWidget {
-  const _StokAlertPill({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9, // no token; visual pill padding
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(AppRadius.full),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.caption.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// THEME TOGGLE BUTTON
-// ============================================================================
-class ThemeToggleBtn extends StatelessWidget {
-  const ThemeToggleBtn({super.key});
+  final String initials;
+  final String name;
+  final String timeInfo;
+  final String amount;
+  final String status;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? DarkColors.textPrimary : AppColors.onSurface;
+    final textSecondary = isDark ? DarkColors.textSecondary : AppColors.onSurfaceVariant;
+    final primary = cprimary(context);
+    final success = csuccess(context);
 
-    return GestureDetector(
-      onTap: () => ThemeServiceInstance.notifier.toggle(),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.sm10),
-        decoration: BoxDecoration(
-          color: isDark
-              ? DarkColors.surfaceHigh
-              : Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: isDark
-              ? Border.all(color: DarkColors.borderActive, width: 1)
-              : null,
-        ),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: Icon(
-            isDark ? AppLegacyIcons.lightMode : AppLegacyIcons.darkMode,
-            key: ValueKey(isDark),
-            color: isDark ? DarkColors.textPrimary : Colors.white,
-            size: 22,
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: isDark
+                ? DarkColors.surfaceContainer
+                : AppColors.surfaceContainerLow,
           ),
         ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.secondaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                initials,
+                style: AppTextStyles.labelLg.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSecondaryContainer,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: AppTextStyles.bodyMd.copyWith(
+                    color: textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  timeInfo,
+                  style: AppTextStyles.labelSm.copyWith(color: textSecondary),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amount,
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm10,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Text(
+                  status,
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: success,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -496,11 +676,8 @@ class _DashboardPageState extends State<DashboardPage> {
   AdminRole? _role;
 
   // Summary data
-  bool _loadingOwner = false;
   bool _loadingAdmin = false;
 
-  double _omzetHariIni = 0;
-  double _penjualanObatHariIni = 0;
   int _jadwalHariIni = 0;
   int _hadirHariIni = 0;
   int _transaksiHariIni = 0;
@@ -518,16 +695,12 @@ class _DashboardPageState extends State<DashboardPage> {
     try {
       final role = await AdminSession.getRole();
       if (mounted) {
-        setState(() {
-          _role = role;
-        });
+        setState(() => _role = role);
         _loadSummary(role);
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _role = AdminRole.petugas;
-        });
+        setState(() => _role = AdminRole.petugas);
         _loadSummary(AdminRole.petugas);
       }
     }
@@ -539,27 +712,21 @@ class _DashboardPageState extends State<DashboardPage> {
     final kehadiranRepo = KehadiranRepository();
 
     if (role.isOwner) {
-      setState(() => _loadingOwner = true);
       try {
         final results = await Future.wait([
-          transaksiRepo.getTotalTransaksiHariIni(hariIni),
-          transaksiRepo.getTotalObatHariIni(hariIni),
           kehadiranRepo.getCountKehadiranByTanggal(hariIni),
           kehadiranRepo.getCountHadirByTanggal(hariIni),
-          _ObatStokBadge._fetchStokSummary(),
+          _fetchStokSummary(),
         ]);
         if (mounted) {
           setState(() {
-            _omzetHariIni = results[0] as double;
-            _penjualanObatHariIni = results[1] as double;
-            _jadwalHariIni = results[2] as int;
-            _hadirHariIni = results[3] as int;
-            _stokAlertSummary = results[4] as StokAlertSummary;
-            _loadingOwner = false;
+            _jadwalHariIni = results[0] as int;
+            _hadirHariIni = results[1] as int;
+            _stokAlertSummary = results[2] as StokAlertSummary;
           });
         }
       } catch (_) {
-        if (mounted) setState(() => _loadingOwner = false);
+        // Keep zeros on failure; UI continues to render.
       }
     } else {
       setState(() => _loadingAdmin = true);
@@ -583,327 +750,330 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  List<QuickActionData> _buildQuickActions(BuildContext context, AdminRole role) {
-    final actions = <QuickActionData>[
-      QuickActionData(
-        title: 'Tambah Obat',
-        subtitle: 'Master & stok',
-        icon: AppSymbols.pills,
-        color: cprimary(context),
-        onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
-      ),
-      QuickActionData(
-        title: 'Input Transaksi',
-        subtitle: role.isOwner ? 'Obat & Praktek' : 'Transaksi baru',
-        icon: AppSymbols.receipt,
-        color: cteal(context),
-        onTap: () => Navigator.pushNamed(
-          context,
-          role.isOwner ? TransaksiHubPage.routeName : TransaksiFormPage.routeName,
-        ),
-      ),
-    ];
-    if (role.isOwner) {
-      actions.add(
-        QuickActionData(
-          title: 'Lihat Laporan',
-          subtitle: 'Harian / Bulanan / Tahunan',
-          icon: AppSymbols.laporan,
-          color: cindigo(context),
-          onTap: () => Navigator.pushNamed(context, LaporanPage.routeName),
-        ),
-      );
-      actions.add(
-        QuickActionData(
-          title: 'Sinkronisasi Stok',
-          subtitle: 'Audit & koreksi',
-          icon: AppSymbols.refresh,
-          color: cobatAmber(context),
-          onTap: () => Navigator.pushNamed(context, SinkronisasiStokPage.routeName),
-        ),
-      );
-    }
-    return actions;
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    final confirm = await showModernConfirmDialog(
-      context: context,
-      title: 'Logout',
-      message: 'Apakah Anda yakin ingin keluar dari aplikasi?',
-      confirmText: 'Logout',
-      isDanger: true,
-    );
-    if (!confirm) return;
-
-    try {
-      await Supabase.instance.client.auth.signOut();
-    } catch (error, stackTrace) {
-      if (!context.mounted) return;
-      showModernSnackBar(
-        context,
-        AppErrorMapper.toMessage(error, stackTrace),
-        isError: true,
-      );
-      return;
-    }
-    AdminSession.clearCache();
-    if (!context.mounted) return;
-    Navigator.pushReplacementNamed(context, LoginPage.routeName);
+  static Future<StokAlertSummary> _fetchStokSummary() async {
+    final repo = ObatRepository();
+    final obatList = await repo.getObat();
+    return buildStokAlertSummary(obatList);
   }
 
   @override
   Widget build(BuildContext context) {
-    final textOnPrimary = Theme.of(context).colorScheme.onPrimary;
-    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
-    final textPrimary = Theme.of(context).colorScheme.onSurface;
+    final isOwner = (_role ?? AdminRole.petugas).isOwner;
+    final greeting = isOwner
+        ? 'Selamat Pagi, Owner'
+        : 'Halo, Petugas';
 
-    final obatAccent = cprimary(context);
-    final pasienAccent = cteal(context);
-    final laporanAccent = cindigo(context);
-    final transaksiAccent = cteal(context);
-
-    final role = _role ?? AdminRole.petugas;
-    final greeting = role.isOwner ? 'Halo, Owner' : 'Halo, Petugas';
-    final canViewReports = role.isOwner;
-
-    // Build menu cards
-    Widget obatCard = DashboardMenuCard(
-      title: 'Data Obat',
-      icon: AppSymbols.pills,
-      color: obatAccent,
-      onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
-    );
-
-    // Owner badge on Data Obat card — outside the shadow boundary
-    if (role.isOwner) {
-      obatCard = Stack(
-        clipBehavior: Clip.none,
+    // Owner-only sections
+    Widget ownerSection = const SizedBox.shrink();
+    if (isOwner) {
+      ownerSection = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          obatCard,
-          if (_stokAlertSummary != null &&
-              (_stokAlertSummary!.hasHabis ||
-                  _stokAlertSummary!.hasMenipis))
-            Positioned(
-              top: -4,
-              right: -4,
-              child: _ObatStokBadge(summary: _stokAlertSummary!),
+          // Performa card
+          const Padding(
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
+            child: _PerformaCard(omzet: 'Rp 4.500.000'),
+          ),
+
+          // Pusat Kendali Operasional section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Pusat Kendali Operasional',
+                  style: AppTextStyles.headlineMd.copyWith(
+                    color: ctextPrimary(context),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                  ),
+                  child: Text(
+                    '2 Isu Mendesak',
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Error alert
+                if (_stokAlertSummary != null &&
+                    (_stokAlertSummary!.hasHabis || _stokAlertSummary!.hasMenipis))
+                  _OperationalAlertCard(
+                    title: '${_stokAlertSummary!.habis.length} Stok Habis',
+                    subtitle: 'Herbal Utama & Kapsul Racik',
+                    icon: AppSymbols.warning,
+                    titleColor: AppColors.onError,
+                    buttonText: 'Restock',
+                    onButtonTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
+                    alertType: 'error',
+                  ),
+                if (_stokAlertSummary != null && _stokAlertSummary!.hasHabis) ...[
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                // Warning alert (simulated print failure)
+                if (_stokAlertSummary != null &&
+                    (_stokAlertSummary!.hasMenipis))
+                  const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.md),
+                    child: _OperationalAlertCard(
+                      title: '3 Antrean Print Gagal',
+                      subtitle: 'Periksa koneksi printer kasir utama',
+                      icon: AppSymbols.print,
+                      titleColor: AppColors.warning,
+                      subtitleColor: AppColors.onSurfaceVariant,
+                      alertType: 'warning',
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          // Aksi Cepat section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
+              'Aksi Cepat',
+              style: AppTextStyles.headlineMd.copyWith(
+                color: ctextPrimary(context),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: AppSpacing.md,
+              mainAxisSpacing: AppSpacing.md,
+              childAspectRatio: 1.5,
+              children: [
+                _QuickActionCard(
+                  title: 'Transaksi Baru',
+                  icon: AppSymbols.addCircle,
+                  color: AppColors.onError,
+                  bgColor: AppColors.primary,
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    TransaksiHubPage.routeName,
+                  ),
+                ),
+                _QuickActionCard(
+                  title: 'Restock Needed',
+                  icon: AppSymbols.shoppingCart,
+                  color: AppColors.error,
+                  bgColor: AppColors.error.withValues(alpha: 0.1),
+                  borderColor: AppColors.error.withValues(alpha: 0.2),
+                  onTap: () => Navigator.pushNamed(context, ObatHubPage.routeName),
+                ),
+                _QuickActionCard(
+                  title: 'Input Stok',
+                  icon: AppSymbols.inventory,
+                  color: AppColors.onSurface,
+                  bgColor: AppColors.surfaceContainerHigh,
+                  borderColor: AppColors.outlineVariant,
+                  onTap: () {},
+                ),
+                _QuickActionCard(
+                  title: 'Laporan',
+                  icon: AppSymbols.summarize,
+                  color: AppColors.onSurface,
+                  bgColor: AppColors.surfaceContainerHigh,
+                  borderColor: AppColors.outlineVariant,
+                  onTap: () => Navigator.pushNamed(context, LaporanPage.routeName),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          // Aktivitas Terkini section
+          Container(
+            margin: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 0),
+            decoration: BoxDecoration(
+              color: isOwner
+                  ? (Theme.of(context).brightness == Brightness.dark
+                      ? DarkColors.surfaceContainerLowest
+                      : AppColors.surfaceContainerLowest)
+                  : AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              border: Border.all(
+                color: AppColors.surfaceContainerLow,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section header
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.surfaceContainerLow),
+                    ),
+                    color: AppColors.surfaceBright,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Aktivitas Terkini',
+                        style: AppTextStyles.headlineMd.copyWith(
+                          color: ctextPrimary(context),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Text(
+                          'Lihat Semua',
+                          style: AppTextStyles.labelLg.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Activity rows (simulated)
+                ..._buildActivityRows(context),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
         ],
       );
     }
 
-    final menuCards = <Widget>[
-      obatCard,
-      DashboardMenuCard(
-        title: 'Pasien',
-        icon: AppSymbols.pasienHub,
-        color: pasienAccent,
-        onTap: () => Navigator.pushNamed(context, PasienPage.routeName),
-      ),
-    ];
-
-    menuCards.add(
-      DashboardMenuCard(
-        title: role.isOwner ? 'Transaksi' : 'Tambah Transaksi',
-        icon: AppSymbols.receipt,
-        color: transaksiAccent,
-        onTap: () => Navigator.pushNamed(
-          context,
-          role.isOwner
-              ? TransaksiHubPage.routeName
-              : TransaksiFormPage.routeName,
-        ),
-      ),
-    );
-
-    if (canViewReports) {
-      menuCards.add(
-        DashboardMenuCard(
-          title: 'Laporan',
-          icon: AppSymbols.laporan,
-          color: laporanAccent,
-          onTap: () => Navigator.pushNamed(context, LaporanPage.routeName),
-        ),
-      );
-    }
+    // Admin summary cards
+    Widget adminSummary = _buildAdminSummary();
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            // ── HEADER ──────────────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.lg,
-                AppSpacing.xl,
-                AppSpacing.xl,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(AppRadius.xl),
-                  bottomRight: Radius.circular(AppRadius.xl),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Row: title left, clock+date right
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left: greeting + clinic name
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              greeting,
-                              style: AppTextStyles.headlineLg.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: textOnPrimary,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Klinik Sin She Jaya Abadi',
-                    style: AppTextStyles.titleSm.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: textOnPrimary.withValues(alpha: 0.72),
-                    ),
-                  ),
-                            if (role.isOwner) ...[
-                              const SizedBox(height: AppSpacing.sm),
-                              Row(
-                                children: [
-                                    Text(
-                                      'Laporan Hari Ini:  ',
-                                      style: AppTextStyles.label
-                                          .copyWith(fontWeight: FontWeight.w500, color: textOnPrimary.withValues(alpha: 0.65)),
-                                    ),
-                                    Text(
-                                      'Penjualan : ${_loadingOwner ? '...' : rupiah(_omzetHariIni)}',
-                                      style: AppTextStyles.metricBold
-                                          .copyWith(color: textOnPrimary),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
+        child: CustomScrollView(
+          slivers: [
+            // ── APP BAR ─────────────────────────────────────────────────
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: 64,
+              backgroundColor: isOwner
+                  ? (Theme.of(context).brightness == Brightness.dark
+                      ? DarkColors.inverseSurface
+                      : AppColors.surface)
+                  : (Theme.of(context).brightness == Brightness.dark
+                      ? DarkColors.inverseSurface
+                      : AppColors.surface),
+              actions: [
+                const _DashboardClock(),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                title: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        shape: BoxShape.circle,
                       ),
-                      // Right: clock + date
-                      const _DashboardClock(),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  // Subtitle row
-                  Row(
-                    children: [
-                      Expanded(
+                      child: Center(
                         child: Text(
-                          role.isOwner
-                              ? 'Ringkasan aktivitas klinik hari ini'
-                              : 'Aktivitas klinik hari ini',
-                          style: AppTextStyles.metricBody
-                              .copyWith(color: textOnPrimary.withValues(alpha: 0.65)),
+                          isOwner ? 'O' : 'P',
+                          style: AppTextStyles.labelLg.copyWith(
+                            color: AppColors.onPrimaryContainer,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                      // Action buttons (theme + logout)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const ThemeToggleBtn(),
-                          const SizedBox(width: AppSpacing.sm),
-                          GestureDetector(
-                            onTap: () => _logout(context),
-                            child: Container(
-                              padding: const EdgeInsets.all(AppSpacing.sm10),
-                              decoration: BoxDecoration(
-                                color: textOnPrimary.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(AppRadius.md),
-                              ),
-                              child: Icon(
-                                AppSymbols.logout,
-                                color: textOnPrimary,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Text(
+                      'Klinik Sin She Jaya Abadi',
+                      style: AppTextStyles.headlineMd.copyWith(
+                        color: cprimary(context),
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
-            // ── SUMMARY CARDS ─────────────────────────────────────────────
-            _buildSummarySection(role),
+            // ── CONTENT ─────────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  // Welcome section
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.xl,
+                      AppSpacing.lg,
+                      AppSpacing.sm,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          greeting,
+                          style: AppTextStyles.headlineLg.copyWith(
+                            color: ctextPrimary(context),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          isOwner
+                              ? 'Ringkasan operasional hari ini.'
+                              : 'Aktivitas klinik hari ini.',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            color: ctextSecondary(context),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-            // ── OWNER ENHANCEMENTS (F12.2) ───────────────────────────────
-            if (role.isOwner) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.md,
-                  AppSpacing.lg,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    QuickActionGrid(
-                      actions: _buildQuickActions(context, role),
-                    ),
-                    const SizedBox(height: AppSpacing.md14),
-                    const SalesChart7dCard(),
-                    const SizedBox(height: AppSpacing.md),
-                    const StokKritisCard(),
-                    const SizedBox(height: AppSpacing.md),
-                    const TopObat7dCard(),
-                  ],
-                ),
-              ),
-            ],
+                  // Admin summary
+                  if (!isOwner) adminSummary,
 
-            // ── MENU GRID ──────────────────────────────────────────────────
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Menu Utama',
-                      style: AppTextStyles.menuTitle.copyWith(
-                        color: textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md14),
-                    Expanded(
-                      child: GridView.count(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 0.82,
-                        children: menuCards,
-                      ),
-                    ),
-                  ],
-                ),
+                  // Owner section (F0.5 #2 — full Stitch design)
+                  ownerSection,
+
+                  // Spacer before bottom nav
+                  const SizedBox(height: AppSpacing.xl),
+                ],
               ),
             ),
           ],
@@ -913,152 +1083,30 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildSummarySection(AdminRole role) {
-    if (role.isOwner) {
-      return _buildOwnerSummary();
-    } else {
-      return _buildAdminSummary();
-    }
-  }
-
-  Widget _buildOwnerSummary() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? DarkColors.surface : AppColors.surface;
-    final accent1 = cprimary(context);       // blue for omzet
-    final accent2 = cobatAmber(context);     // amber for penjualan obat
-    final accent3 = cteal(context);          // teal for jadwal
-    final accent4 = csuccess(context);        // green for hadir
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md14,
-        AppSpacing.lg,
-        AppSpacing.xs6,
+  List<Widget> _buildActivityRows(BuildContext context) {
+    return [
+      _ActivityRow(
+        initials: 'B',
+        name: 'Bpk. Budi Santoso',
+        timeInfo: '10:45 AM • Tunai • 4 Item',
+        amount: 'Rp 850.000',
+        status: 'Selesai',
       ),
-      color: bgColor,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // 2-column grid for wider screens, 1-column for narrow
-          if (constraints.maxWidth >= 500) {
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: DashboardSummaryCard(
-                        label: 'Omzet Hari Ini',
-                        value: _loadingOwner ? '...' : rupiah(_omzetHariIni),
-                        icon: AppSymbols.wallet,
-                        color: accent1,
-                        loading: _loadingOwner,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm10),
-                    Expanded(
-                      child: DashboardSummaryCard(
-                        label: 'Penjualan Obat Hari Ini',
-                        value: _loadingOwner ? '...' : rupiah(_penjualanObatHariIni),
-                        icon: AppSymbols.pills,
-                        color: accent2,
-                        loading: _loadingOwner,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DashboardSummaryCard(
-                        label: 'Jadwal Hari Ini',
-                        value: _loadingOwner ? '...' : '$_jadwalHariIni',
-                        icon: AppSymbols.jadwalSummary,
-                        color: accent3,
-                        loading: _loadingOwner,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm10),
-                    Expanded(
-                      child: DashboardSummaryCard(
-                        label: 'Hadir Hari Ini',
-                        value: _loadingOwner ? '...' : '$_hadirHariIni',
-                        icon: AppSymbols.hadirSummary,
-                        color: accent4,
-                        loading: _loadingOwner,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs6),
-              ],
-            );
-          }
-          // Narrow / 1-column
-          return Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: DashboardSummaryCard(
-                      label: 'Omzet Hari Ini',
-                      value: _loadingOwner
-                          ? '...'
-                          : rupiah(_omzetHariIni),
-                      icon: AppSymbols.wallet,
-                      color: accent1,
-                      loading: _loadingOwner,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm10),
-                  Expanded(
-                    child: DashboardSummaryCard(
-                      label: 'Penjualan Obat Hari Ini',
-                      value: _loadingOwner
-                          ? '...'
-                          : rupiah(_penjualanObatHariIni),
-                      icon: AppSymbols.pills,
-                      color: accent2,
-                      loading: _loadingOwner,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm10),
-              Row(
-                children: [
-                  Expanded(
-                    child: DashboardSummaryCard(
-                      label: 'Jadwal Hari Ini',
-                      value: _loadingOwner
-                          ? '...'
-                          : '$_jadwalHariIni',
-                      icon: AppSymbols.jadwalSummary,
-                      color: accent3,
-                      loading: _loadingOwner,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm10),
-                  Expanded(
-                    child: DashboardSummaryCard(
-                      label: 'Hadir Hari Ini',
-                      value: _loadingOwner
-                          ? '...'
-                          : '$_hadirHariIni',
-                      icon: AppSymbols.hadirSummary,
-                      color: accent4,
-                      loading: _loadingOwner,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xs6),
-            ],
-          );
-        },
+      _ActivityRow(
+        initials: 'S',
+        name: 'Ibu Siti Aminah',
+        timeInfo: '09:30 AM • QRIS • 2 Item',
+        amount: 'Rp 1.200.000',
+        status: 'Selesai',
       ),
-    );
+      _ActivityRow(
+        initials: 'A',
+        name: 'Anton Wijaya',
+        timeInfo: '08:15 AM • Tunai • 1 Item',
+        amount: 'Rp 450.000',
+        status: 'Selesai',
+      ),
+    ];
   }
 
   Widget _buildAdminSummary() {
@@ -1114,7 +1162,6 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             );
           }
-          // Narrow / 1-column: wrap in 2 cols
           return Column(
             children: [
               Row(
@@ -1122,9 +1169,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Expanded(
                     child: DashboardSummaryCard(
                       label: 'Jadwal Hari Ini',
-                      value: _loadingAdmin
-                          ? '...'
-                          : '$_jadwalHariIni',
+                      value: _loadingAdmin ? '...' : '$_jadwalHariIni',
                       icon: AppSymbols.jadwalSummary,
                       color: accent3,
                       loading: _loadingAdmin,
@@ -1134,9 +1179,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Expanded(
                     child: DashboardSummaryCard(
                       label: 'Hadir Hari Ini',
-                      value: _loadingAdmin
-                          ? '...'
-                          : '$_hadirHariIni',
+                      value: _loadingAdmin ? '...' : '$_hadirHariIni',
                       icon: AppSymbols.hadirSummary,
                       color: accent4,
                       loading: _loadingAdmin,
@@ -1150,9 +1193,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Expanded(
                     child: DashboardSummaryCard(
                       label: 'Transaksi Hari Ini',
-                      value: _loadingAdmin
-                          ? '...'
-                          : '$_transaksiHariIni',
+                      value: _loadingAdmin ? '...' : '$_transaksiHariIni',
                       icon: AppSymbols.receiptSummary,
                       color: accent5,
                       loading: _loadingAdmin,
@@ -1170,8 +1211,3 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
-
-// NOTE: Owner-only widget implementations (SalesChart7dCard, StokKritisCard,
-// TopObat7dCard, QuickActionGrid) live in:
-//   lib/widgets/owner_dashboard_widgets.dart
-// They are imported and instantiated from the build() method of DashboardPage.
