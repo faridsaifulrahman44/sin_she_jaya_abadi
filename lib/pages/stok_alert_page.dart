@@ -103,26 +103,6 @@ class _StokAlertPageState extends State<StokAlertPage> {
     }
   }
 
-  void _onHeaderNavTap(int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/dashboard');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/pasien');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/transaksi-hub');
-        break;
-      case 3:
-        // Already on Stock
-        break;
-      case 4:
-        Navigator.pushReplacementNamed(context, '/akun');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,73 +128,32 @@ class _StokAlertPageState extends State<StokAlertPage> {
     );
   }
 
-  // ── HEADER (F0.5 redesign: white surface) ─────────────────────────────
+  // ── HEADER (Stitch KEEP #6: minimal mobile AppBar) ───────────────────
   Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.md,
+    return AppBar(
+      backgroundColor: ccardBg(context),
+      surfaceTintColor: ccardBg(context),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      titleSpacing: 0,
+      leading: IconButton(
+        icon: Icon(
+          Symbols.arrow_back_rounded,
+          color: ctextPrimary(context),
+          size: AppIconSize.size28,
+        ),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          }
+        },
       ),
-      decoration: BoxDecoration(
-        color: ccardBg(context),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: AppSpacing.sm5,
-                height: AppSpacing.sm5,
-                decoration: const BoxDecoration(
-                  color: AppColors.secondaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  AppSymbols.klinik,
-                  size: AppIconSize.size28,
-                  color: cteal(context),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  'Stok Alert',
-                  style: AppTextStyles.headlineLg.copyWith(
-                    color: ctextPrimary(context),
-                  ),
-                ),
-              ),
-              _NotificationBell(
-                onTap: () {
-                  // Notifications route not yet defined — show snackbar.
-                  showModernSnackBar(
-                    context,
-                    'Notifikasi belum tersedia',
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          // Horizontal 5-tab nav (Stock active)
-          AppHeaderNavStock(
-            currentIndex: 3,
-            onTap: _onHeaderNavTap,
-          ),
-        ],
+      title: Text(
+        'Stok Alert',
+        style: AppTextStyles.title.copyWith(color: ctextPrimary(context)),
       ),
     );
   }
@@ -517,33 +456,6 @@ class _StokAlertPageState extends State<StokAlertPage> {
 // ============================================================================
 // PRIVATE WIDGETS
 // ============================================================================
-
-class _NotificationBell extends StatelessWidget {
-  const _NotificationBell({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.full),
-      child: Container(
-        width: AppSpacing.sm5,
-        height: AppSpacing.sm5,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: cscaffoldBg(context),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          Symbols.notifications_rounded,
-          size: AppIconSize.size20,
-          color: ctextSecondary(context),
-        ),
-      ),
-    );
-  }
-}
 
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard({
