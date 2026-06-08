@@ -515,17 +515,16 @@ class _LaporanPageState extends State<LaporanPage>
               const SizedBox(height: 24),
               Text(
                 'Akses Ditolak',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                style: AppTextStyles.headlineLg.copyWith(
                   color: ctextPrimary(context),
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 'Anda tidak memiliki akses untuk melihat halaman laporan.\nHanya owner yang dapat mengakses fitur ini.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: ctextSecondary(context)),
+                style: AppTextStyles.body.copyWith(color: ctextSecondary(context)),
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
@@ -742,7 +741,7 @@ class _TabHarian extends StatelessWidget {
                     final hour = displayHours[value.toInt()];
                     return Text(
                       hour.toString().padLeft(2, '0'),
-                      style: TextStyle(fontSize: 9, color: ctextMuted(context)),
+                      style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
                     );
                   },
                   reservedSize: 20,
@@ -950,7 +949,7 @@ class _TabBulanan extends StatelessWidget {
                     if (dayLabels.contains(day)) {
                       return Text(
                         '$day',
-                        style: TextStyle(fontSize: 9, color: ctextMuted(context)),
+                        style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
                       );
                     }
                     return const SizedBox.shrink();
@@ -1178,7 +1177,7 @@ class _TabTahunan extends StatelessWidget {
                       'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
                     return Text(
                       labels[value.toInt()],
-                      style: TextStyle(fontSize: 9, color: ctextMuted(context)),
+                      style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
                     );
                   },
                   reservedSize: 20,
@@ -1225,12 +1224,12 @@ class _DatePickerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.size12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: ccardBg(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.size12),
         ),
         child: Row(
           children: [
@@ -1239,8 +1238,7 @@ class _DatePickerRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 13,
+                style: AppTextStyles.titleSm.copyWith(
                   fontWeight: FontWeight.w600,
                   color: ctextPrimary(context),
                 ),
@@ -1290,7 +1288,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: ccardBg(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.lg14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1298,20 +1296,16 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             item.label,
-            style: TextStyle(
-              fontSize: 11,
-              color: ctextSecondary(context),
-            ),
+            style: AppTextStyles.caption.copyWith(color: ctextSecondary(context)),
           ),
           const SizedBox(height: 4),
           Text(
             item.value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
+            style: AppTextStyles.bodyLg.copyWith(
               color: ctextPrimary(context),
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -1332,7 +1326,7 @@ class _LapCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: ccardBg(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.lg14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1350,10 +1344,9 @@ class _LapCard extends StatelessWidget {
             ),
             child: Text(
               title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+              style: AppTextStyles.labelLg.copyWith(
                 color: ctextPrimary(context),
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -1387,14 +1380,13 @@ class _BdRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 12, color: ctextSecondary(context)),
+            style: AppTextStyles.labelSm.copyWith(color: ctextSecondary(context)),
           ),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+            style: AppTextStyles.labelSm.copyWith(
               color: ctextPrimary(context),
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -1423,21 +1415,20 @@ class _OpRow extends StatelessWidget {
         color: cisDark(context)
             ? DarkColors.surface
             : AppColors.legacySlate50,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.sm10),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 12, color: ctextSecondary(context)),
+            style: AppTextStyles.labelSm.copyWith(color: ctextSecondary(context)),
           ),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+            style: AppTextStyles.titleSm.copyWith(
               color: _valueColor ?? ctextPrimary(context),
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -1469,7 +1460,7 @@ class _ExportRow extends StatelessWidget {
               side: BorderSide(color: cteal(context)),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
               ),
             ),
           ),
@@ -1485,7 +1476,7 @@ class _ExportRow extends StatelessWidget {
               side: BorderSide(color: cdivider(context)),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
               ),
             ),
           ),
@@ -1516,7 +1507,7 @@ class _TopObatRow extends StatelessWidget {
         color: cisDark(context)
             ? DarkColors.surface
             : Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.sm10),
       ),
       child: Row(
         children: [
@@ -1526,14 +1517,13 @@ class _TopObatRow extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: rankColor,
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(AppRadius.sm10),
             ),
             child: Text(
               '•',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
+              style: AppTextStyles.caption.copyWith(
                 color: Colors.white,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -1546,25 +1536,23 @@ class _TopObatRow extends StatelessWidget {
                   item.namaObat,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  style: AppTextStyles.labelSm.copyWith(
                     color: ctextPrimary(context),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   '${item.jumlahTerjual} terjual',
-                  style: TextStyle(fontSize: 10, color: ctextMuted(context)),
+                  style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
                 ),
               ],
             ),
           ),
           Text(
             rupiah(item.totalNominal),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
+            style: AppTextStyles.titleSm.copyWith(
               color: cteal(context),
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

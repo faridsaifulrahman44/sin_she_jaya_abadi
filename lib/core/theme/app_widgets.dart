@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design_system/app_tokens.dart';
 import '../ui/app_symbols.dart';
 import '../ui/obat_asset_registry.dart';
 import '../utils/obat_foto_resolver.dart';
@@ -29,9 +30,7 @@ class ModernPageHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                style: AppTextStyles.headlineLg.copyWith(
                   color: colorScheme.onSurface,
                   letterSpacing: -0.3,
                 ),
@@ -40,8 +39,7 @@ class ModernPageHeader extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle!,
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: AppTextStyles.titleSm.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
@@ -77,7 +75,7 @@ class ModernSearchBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: colorScheme.outline,
           width: 1,
@@ -92,10 +90,10 @@ class ModernSearchBar extends StatelessWidget {
             color: colorScheme.onSurfaceVariant,
             fontSize: 14,
           ),
-          prefixIcon: Icon(AppSymbols.cari, color: colorScheme.onSurfaceVariant, size: 20),
+          prefixIcon: Icon(AppSymbols.cari, color: colorScheme.onSurfaceVariant, size: AppIconSize.size20),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: Icon(AppSymbols.close, color: colorScheme.onSurfaceVariant, size: 18),
+                  icon: Icon(AppSymbols.close, color: colorScheme.onSurfaceVariant, size: AppIconSize.size20),
                   onPressed: () {
                     controller.clear();
                     onClear?.call();
@@ -103,13 +101,15 @@ class ModernSearchBar extends StatelessWidget {
                 )
               : null,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide.none,
           ),
           filled: true,
           fillColor: colorScheme.surface,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md14,
+          ),
         ),
       ),
     );
@@ -165,7 +165,7 @@ class GradientFAB extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: primary,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.35),
@@ -178,14 +178,17 @@ class GradientFAB extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl,
+              vertical: AppSpacing.md14,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                Icon(icon, color: Colors.white, size: AppIconSize.size20),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   label,
                   style: const TextStyle(
@@ -240,7 +243,7 @@ class ModernListCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: isDark ? DarkColors.borderSubtle : LightColors.divider,
           width: 1,
@@ -257,9 +260,9 @@ class ModernListCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppSpacing.md14),
             child: Row(
               children: [
                 Container(
@@ -270,28 +273,26 @@ class ModernListCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: AppSpacing.md14),
                 if (leading != null)
                   leading!
                 else if (icon != null)
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(AppSpacing.sm10),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Icon(icon!, color: color, size: 22),
                   ),
-                const SizedBox(width: 14),
+                const SizedBox(width: AppSpacing.md14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                        style: AppTextStyles.title.copyWith(
                           color: colorScheme.onSurface,
                         ),
                         maxLines: 1,
@@ -301,8 +302,7 @@ class ModernListCard extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(
                           subtitle!,
-                          style: TextStyle(
-                            fontSize: 12,
+                          style: AppTextStyles.labelSm.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
@@ -319,9 +319,7 @@ class ModernListCard extends StatelessWidget {
                 ] else if (trailingText != null) ...[
                   Text(
                     trailingText!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                    style: AppTextStyles.titleSm.copyWith(
                       color: color,
                     ),
                   ),
@@ -362,24 +360,25 @@ class ModernEmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.xxl,
+          horizontal: AppSpacing.xl,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 color: c.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 40, color: c),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+              style: AppTextStyles.headlineMd.copyWith(
                 color: colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
@@ -388,8 +387,7 @@ class ModernEmptyState extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 subtitle!,
-                style: TextStyle(
-                  fontSize: 13,
+                style: AppTextStyles.titleSm.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
@@ -442,10 +440,10 @@ class SkeletonListCard extends StatelessWidget {
     final cardBg = Theme.of(context).colorScheme.surface;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md14),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Row(
         children: [
@@ -457,16 +455,16 @@ class SkeletonListCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSpacing.md14),
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
               color: shimmer,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: AppSpacing.md14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +537,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                       onPressed: () => Navigator.pop(context),
                     )
                   else
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: centerTitle
                         ? Center(
@@ -799,19 +797,18 @@ Future<bool> showModernConfirmDialog({
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+      ),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
+        style: AppTextStyles.headline.copyWith(
           color: colorScheme.onSurface,
         ),
       ),
       content: Text(
         message,
-        style: TextStyle(
-          fontSize: 14,
+        style: AppTextStyles.body.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
       ),
@@ -826,11 +823,11 @@ Future<bool> showModernConfirmDialog({
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Container(
           decoration: BoxDecoration(
             color: isDanger ? dangerColor : colorScheme.primary,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppRadius.sm10),
           ),
           child: TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -863,14 +860,16 @@ void showModernSnackBar(
     SnackBar(
       content: Row(
         children: [
-          Icon(icon ?? (isError ? AppSymbols.error : AppSymbols.success), color: contentColor, size: 20),
-          const SizedBox(width: 10),
+          Icon(icon ?? (isError ? AppSymbols.error : AppSymbols.success), color: contentColor, size: AppIconSize.size20),
+          const SizedBox(width: AppSpacing.sm10),
           Expanded(child: Text(message, style: TextStyle(color: contentColor))),
         ],
       ),
       backgroundColor: bgColor,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
     ),
   );
 }
