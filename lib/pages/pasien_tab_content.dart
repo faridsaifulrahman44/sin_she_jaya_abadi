@@ -1,43 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
+import '../data/models/kehadiran_model.dart';
 import '../data/models/pasien_model.dart';
+import '../data/repositories/kehadiran_repository.dart';
 import '../data/repositories/pasien_repository.dart';
 import 'kehadiran_form_page.dart';
 import 'pasien_detail_page.dart';
 import 'pasien_form_page.dart';
-import 'pasien_hub_page.dart';
 
-enum _PasienListAction {
-  detail,
-  edit,
-  delete,
-  jadwalkanHadir,
-}
+enum _PasienListAction { detail, edit, delete, jadwalkanHadir }
+enum _PasienFilter { total, jadwal, hadir }
 
-/// Body-widget (embeddable) untuk tab "Data Pasien".
+/// Body widget untuk halaman "Data Pasien".
 ///
-/// Tidak memiliki Scaffold/AppBar sendiri — dirancang untuk di-embed
-/// di dalam TabBarView milik [PasienHubPage].
+/// Dipakai langsung oleh [PasienPage] — halaman standalone.
+/// Tidak memiliki tab atau navigasi ke halaman lain.
 class PasienTabContent extends StatefulWidget {
-  const PasienTabContent({
-    super.key,
-    this.onRefresh,
-    this.domainSummary,
-  });
+  const PasienTabContent({super.key, this.onRefresh});
 
-  /// Callback opsional untuk refresh domain summary saat data berubah.
   final VoidCallback? onRefresh;
-
-  /// Summary data dari parent (PasienHubPage).
-  final DomainSummaryPasien? domainSummary;
 
   @override
   State<PasienTabContent> createState() => _PasienTabContentState();
@@ -45,13 +33,17 @@ class PasienTabContent extends StatefulWidget {
 
 class _PasienTabContentState extends State<PasienTabContent> {
   final PasienRepository _repo = PasienRepository();
+  final KehadiranRepository _kehadiranRepo = KehadiranRepository();
   final TextEditingController _searchController = TextEditingController();
   late Future<List<PasienModel>> _future;
+
+  // Filter state
+  _PasienFilter _activeFilter = _PasienFilter.total;
 
   @override
   void initState() {
     super.initState();
-    _future = _repo.getPasien();
+    _future = _buildFilteredFuture();
   }
 
   @override
@@ -60,8 +52,40 @@ class _PasienTabContentState extends State<PasienTabContent> {
     super.dispose();
   }
 
+  Future<List<PasienModel>> _buildFilteredFuture() async {
+    final today = DateTime.now();
+    final keyword = _searchController.text.trim();
+
+    if (_activeFilter == _PasienFilter.jadwal) {
+      final semua = await _repo.getPasienByTanggalJanjian(today);
+      if (keyword.isEmpty) return semua;
+      return semua
+          .where((p) =>
+              p.namaPasien.toLowerCase().contains(keyword.toLowerCase()))
+          .toList();
+    }
+
+    if (_activeFilter == _PasienFilter.hadir) {
+      final allPasien =
+          await (keyword.isEmpty
+              ? _repo.getPasien()
+              : _repo.getPasien(keyword: keyword));
+      final semuaKehadiran = await _kehadiranRepo.getKehadiranByTanggal(today);
+      final hadirIds = semuaKehadiran
+          .where((k) => k.statusHadir == StatusHadir.hadir)
+          .map((k) => k.idPasien)
+          .toSet();
+      return allPasien.where((p) => hadirIds.contains(p.idPasien)).toList();
+    }
+
+    // total
+    return keyword.isEmpty
+        ? _repo.getPasien()
+        : _repo.getPasien(keyword: keyword);
+  }
+
   Future<void> _reload() async {
-    final future = _repo.getPasien(keyword: _searchController.text);
+    final future = _buildFilteredFuture();
     setState(() {
       _future = future;
     });
@@ -69,6 +93,14 @@ class _PasienTabContentState extends State<PasienTabContent> {
       await future;
       widget.onRefresh?.call();
     } catch (_) {}
+  }
+
+  void _setFilter(_PasienFilter filter) {
+    if (_activeFilter == filter) return;
+    setState(() {
+      _activeFilter = filter;
+      _future = _buildFilteredFuture();
+    });
   }
 
   Future<void> _openForm([PasienModel? item]) async {
@@ -126,72 +158,42 @@ class _PasienTabContentState extends State<PasienTabContent> {
     }
   }
 
+  Future<void> _handleAction(_PasienListAction action, PasienModel item) async {
+    if (action == _PasienListAction.detail) {
+      await _openDetail(item);
+      return;
+    }
+    if (action == _PasienListAction.edit) {
+      await _openForm(item);
+      return;
+    }
+    if (action == _PasienListAction.jadwalkanHadir) {
+      await _jadwalkanHadir(item);
+      return;
+    }
+    await _delete(item);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final s = widget.domainSummary;
-    final isLoading = s == null;
-
     return Column(
       children: [
-        // ── Search bar ──────────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: ModernSearchBar(
-            controller: _searchController,
-            hintText: 'Cari nama pasien...',
-            onChanged: (_) => _reload(),
-            onClear: _reload,
-          ),
-        ),
-
-        // ── Aksi Cepat ───────────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                'Ringkasan',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: ctextSecondary(context),
-                  letterSpacing: 0.2,
+              Expanded(
+                child: ModernSearchBar(
+                  controller: _searchController,
+                  hintText: 'Cari nama pasien...',
+                  onChanged: (_) => _reload(),
+                  onClear: _reload,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _StatCard(
-                    label: 'Total Pasien',
-                    value: isLoading ? '-' : '${s.totalPasien}',
-                    icon: AppIcons.person,
-                    accentColor: cteal(context),
-                    onTap: () => widget.domainSummary?.navigateToTab(0),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatCard(
-                    label: 'Jadwal Hari Ini',
-                    value: isLoading ? '-' : '${s.jadwalHariIni}',
-                    icon: AppIcons.kalender,
-                    accentColor: const Color(0xFF6366F1),
-                    onTap: () => widget.domainSummary?.navigateToTab(1),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatCard(
-                    label: 'Hadir Hari Ini',
-                    value: isLoading ? '-' : '${s.hadirHariIni}',
-                    icon: AppIcons.pasienHadir,
-                    accentColor: const Color(0xFF10B981),
-                    onTap: () => widget.domainSummary?.navigateToTab(1),
-                  ),
-                ],
               ),
             ],
           ),
         ),
-
-        // ── Patient list ────────────────────────────────────────────────────
+        _buildFilterChips(),
         Expanded(
           child: FutureBuilder<List<PasienModel>>(
             future: _future,
@@ -213,9 +215,9 @@ class _PasienTabContentState extends State<PasienTabContent> {
               final items = snapshot.data ?? const <PasienModel>[];
               if (items.isEmpty) {
                 return AppEmptyView(
-                  icon: AppIcons.person,
-                  title: 'Belum ada data pasien',
-                  message: 'Tambah pasien pertama Anda.',
+                  icon: AppSymbols.person,
+                  title: _emptyTitle,
+                  message: _emptyMessage,
                   color: cteal(context),
                 );
               }
@@ -224,61 +226,15 @@ class _PasienTabContentState extends State<PasienTabContent> {
                 onRefresh: _reload,
                 color: cteal(context),
                 child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   itemCount: items.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    final tanggal = item.tanggalJanjian == null
-                        ? '-'
-                        : asDate(item.tanggalJanjian!);
-                    return ModernListCard(
-                      title: item.namaPasien,
-                      subtitle:
-                          '${item.usia} Tahun  •  ${item.jenisKelaminLabel}\nJanjian: $tanggal',
-                      icon: AppIcons.person,
-                      accentColor: cteal(context),
+                    return _PasienCard(
+                      item: item,
                       onTap: () => _openDetail(item),
-                      trailingPopup: PopupMenuButton<_PasienListAction>(
-                        tooltip: 'Aksi',
-                        icon: HugeIcon(
-                          icon: AppIcons.more,
-                          color: ctextSecondary(context),
-                        ),
-                        onSelected: (action) async {
-                          if (action == _PasienListAction.detail) {
-                            await _openDetail(item);
-                            return;
-                          }
-                          if (action == _PasienListAction.edit) {
-                            await _openForm(item);
-                            return;
-                          }
-                          if (action == _PasienListAction.jadwalkanHadir) {
-                            await _jadwalkanHadir(item);
-                            return;
-                          }
-                          await _delete(item);
-                        },
-                        itemBuilder: (ctx) => const [
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.detail,
-                            child: Text('Detail'),
-                          ),
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.edit,
-                            child: Text('Edit'),
-                          ),
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.jadwalkanHadir,
-                            child: Text('Jadwalkan Hadir'),
-                          ),
-                          PopupMenuItem<_PasienListAction>(
-                            value: _PasienListAction.delete,
-                            child: Text('Hapus'),
-                          ),
-                        ],
-                      ),
+                      onAction: (action) => _handleAction(action, item),
                     );
                   },
                 ),
@@ -286,20 +242,75 @@ class _PasienTabContentState extends State<PasienTabContent> {
             },
           ),
         ),
-
-        // ── FAB ────────────────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            width: double.infinity,
-            child: GradientFAB(
-              icon: AppIcons.tambah,
-              label: 'Tambah Pasien',
-              onPressed: () => _openForm(),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: GradientFAB(
+                icon: AppSymbols.tambah,
+                label: 'Tambah Pasien',
+                onPressed: () => _openForm(),
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  String get _emptyTitle {
+    switch (_activeFilter) {
+      case _PasienFilter.total:
+        return 'Belum ada pasien';
+      case _PasienFilter.jadwal:
+        return 'Tidak ada pasien dijadwalkan';
+      case _PasienFilter.hadir:
+        return 'Belum ada pasien hadir';
+    }
+  }
+
+  String? get _emptyMessage {
+    switch (_activeFilter) {
+      case _PasienFilter.total:
+        return 'Tambah pasien pertama Anda.';
+      case _PasienFilter.jadwal:
+      case _PasienFilter.hadir:
+        return null;
+    }
+  }
+
+  Widget _buildFilterChips() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Row(
+        children: [
+          _FilterChip(
+            label: 'Data Pasien',
+            icon: AppSymbols.person,
+            isActive: _activeFilter == _PasienFilter.total,
+            color: LightColors.obatBlue,
+            onTap: () => _setFilter(_PasienFilter.total),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Jadwal Hari Ini',
+            icon: AppSymbols.kalender,
+            isActive: _activeFilter == _PasienFilter.jadwal,
+            color: LightColors.warning,
+            onTap: () => _setFilter(_PasienFilter.jadwal),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Hadir Hari Ini',
+            icon: AppSymbols.pasienHadir,
+            isActive: _activeFilter == _PasienFilter.hadir,
+            color: LightColors.pink,
+            onTap: () => _setFilter(_PasienFilter.hadir),
+          ),
+        ],
+      ),
     );
   }
 
@@ -313,128 +324,273 @@ class _PasienTabContentState extends State<PasienTabContent> {
   }
 }
 
-// ── Stat card widget ──────────────────────────────────────────────────────────
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
     required this.label,
-    required this.value,
     required this.icon,
-    required this.accentColor,
+    required this.isActive,
+    required this.color,
     required this.onTap,
   });
 
   final String label;
-  final String value;
-  final List<List<dynamic>> icon;
-  final Color accentColor;
+  final IconData icon;
+  final bool isActive;
+  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Soft tint color — derived from accent for background
-    final softBg = isDark
-        ? accentColor.withValues(alpha: 0.15)
-        : accentColor.withValues(alpha: 0.10);
-    final cardBg = isDark ? DarkColors.card : LightColors.card;
-    final shadowColor = isDark
-        ? DarkColors.shadowLight.withValues(alpha: 0.30)
-        : Colors.black.withValues(alpha: 0.05);
-    final dividerColor = isDark ? DarkColors.divider : LightColors.divider;
+    final activeBg = color;
+    final activeFg = Colors.white;
+    final activeBorder = color;
+
+    // Non-aktif: flat & netral — chip "mundur ke belakang", aktif yang menonjol
+    final inactiveBg = isDark ? DarkColors.surface : const Color(0xFFF1F5F9);
+    final inactiveFg = isDark ? DarkColors.textSecondary : const Color(0xFF475569);
+    final inactiveBorder = isDark ? DarkColors.borderActive : const Color(0xFFCBD5E1);
 
     return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: isActive ? activeBg : inactiveBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isActive ? activeBorder : inactiveBorder,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: isActive ? activeFg : inactiveFg, size: 14),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? activeFg : inactiveFg,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PasienCard extends StatelessWidget {
+  const _PasienCard({
+    required this.item,
+    required this.onTap,
+    required this.onAction,
+  });
+
+  final PasienModel item;
+  final VoidCallback onTap;
+  final ValueChanged<_PasienListAction> onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final tanggalJanjian = item.tanggalJanjian == null
+        ? 'Belum dijadwalkan'
+        : asMediumDate(item.tanggalJanjian!);
+    final alamat = item.alamat?.trim();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cdivider(context)),
+      ),
       child: Material(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
+        color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: dividerColor, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: shadowColor,
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon circle
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: softBg,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: HugeIcon(icon: icon, color: accentColor, size: 18),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Value
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? DarkColors.textPrimary
-                        : LightColors.textPrimary,
-                    height: 1.1,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Label
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? DarkColors.textSecondary
-                        : LightColors.textSecondary,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Accent dot indicator
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 6,
-                      height: 6,
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
-                        color: accentColor,
-                        shape: BoxShape.circle,
+                        color: cteal(context).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Icon(AppSymbols.person, color: cteal(context), size: 21),
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    Container(
-                      width: 24,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(2),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.namaPasien,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: ctextPrimary(context),
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'No. ${item.nomorPasien}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: cteal(context),
+                            ),
+                          ),
+                        ],
                       ),
+                    ),
+                    const SizedBox(width: 6),
+                    PopupMenuButton<_PasienListAction>(
+                      tooltip: 'Aksi',
+                      icon: Icon(AppSymbols.more, color: ctextSecondary(context)),
+                      onSelected: onAction,
+                      itemBuilder: (ctx) => const [
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.detail,
+                          child: Text('Detail'),
+                        ),
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.edit,
+                          child: Text('Edit'),
+                        ),
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.jadwalkanHadir,
+                          child: Text('Jadwalkan Hadir'),
+                        ),
+                        PopupMenuItem<_PasienListAction>(
+                          value: _PasienListAction.delete,
+                          child: Text('Hapus'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _InfoChip(
+                      icon: AppSymbols.person,
+                      label: '${item.usia} tahun',
+                    ),
+                    _InfoChip(
+                      icon: AppSymbols.peopleGroup,
+                      label: item.jenisKelaminLabel,
+                    ),
+                    _InfoChip(icon: AppSymbols.kalender, label: tanggalJanjian),
+                  ],
+                ),
+                if (alamat != null && alamat.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _AddressLine(text: alamat),
+                ],
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: csurface(context),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: cdivider(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: ctextMuted(context)),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: ctextSecondary(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressLine extends StatelessWidget {
+  const _AddressLine({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(AppSymbols.description, size: 15, color: ctextMuted(context)),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.35,
+              color: ctextSecondary(context),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

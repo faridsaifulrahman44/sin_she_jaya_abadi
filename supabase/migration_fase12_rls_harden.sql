@@ -18,7 +18,7 @@
 --   obat_masuk     → semua authenticated
 --   obat_keluar    → semua authenticated
 --   obat_keluar_item → semua authenticated
---   stock_opname    → semua authenticated
+--   sinkronisasi_stok → semua authenticated
 --   pasien         → semua authenticated
 --   kehadiran_pasien → semua authenticated
 
@@ -161,24 +161,27 @@ CREATE POLICY "authenticated can update obat_keluar_item"
   WITH CHECK (auth.uid() IS NOT NULL);
 
 -- ============================================================
--- G. stock_opname
+-- G. sinkronisasi_stok
 -- ============================================================
 
-DROP POLICY IF EXISTS "authenticated can manage stock_opname" ON public.stock_opname;
-CREATE POLICY "authenticated can read stock_opname"
-  ON public.stock_opname
+DROP POLICY IF EXISTS "authenticated can manage sinkronisasi_stok" ON public.sinkronisasi_stok;
+DROP POLICY IF EXISTS "authenticated can read sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can read sinkronisasi_stok"
+  ON public.sinkronisasi_stok
   FOR SELECT
   TO authenticated
   USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY "authenticated can insert stock_opname"
-  ON public.stock_opname
+DROP POLICY IF EXISTS "authenticated can insert sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can insert sinkronisasi_stok"
+  ON public.sinkronisasi_stok
   FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() IS NOT NULL);
 
-CREATE POLICY "authenticated can update stock_opname"
-  ON public.stock_opname
+DROP POLICY IF EXISTS "authenticated can update sinkronisasi_stok" ON public.sinkronisasi_stok;
+CREATE POLICY "authenticated can update sinkronisasi_stok"
+  ON public.sinkronisasi_stok
   FOR UPDATE
   TO authenticated
   USING (auth.uid() IS NOT NULL)

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -12,6 +12,7 @@ import '../data/models/obat_masuk_daily_summary.dart';
 import '../data/models/obat_masuk_model.dart';
 import '../data/repositories/obat_masuk_repository.dart';
 import '../features/obat_masuk/obat_masuk_grouping.dart';
+import '../features/stok/services/stock_service.dart';
 import 'obat_masuk_detail_page.dart';
 import 'obat_masuk_form_page.dart';
 import 'obat_masuk_tanggal_form_page.dart';
@@ -30,6 +31,7 @@ class ObatMasukPage extends StatefulWidget {
 
 class _ObatMasukPageState extends State<ObatMasukPage> {
   final ObatMasukRepository _repo = ObatMasukRepository();
+  final StockService _stockService = StockService();
   final TextEditingController _searchController = TextEditingController();
   late Future<List<ObatMasukModel>> _future;
   String _keyword = '';
@@ -102,7 +104,7 @@ class _ObatMasukPageState extends State<ObatMasukPage> {
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatMasukByTanggal(item.tanggal);
+      await _stockService.deleteStokMasukByTanggal(item.tanggal);
       if (!mounted) return;
       showModernSnackBar(context, 'Semua transaksi berhasil dihapus');
       await _reload();
@@ -196,7 +198,7 @@ class _ObatMasukPageState extends State<ObatMasukPage> {
 
               if (summaryItems.isEmpty) {
                 return AppEmptyView(
-                  icon: AppIcons.input,
+                  icon: AppSymbols.input,
                   title: _keyword.isEmpty
                       ? 'Belum ada transaksi masuk'
                       : 'Transaksi tidak ditemukan',
@@ -221,7 +223,7 @@ class _ObatMasukPageState extends State<ObatMasukPage> {
                       subtitle:
                           '${item.jumlahItem} item masuk  •  Total: ${item.totalJumlahMasuk} unit',
                       trailingText: '${item.totalJumlahMasuk}',
-                      icon: AppIcons.input,
+                      icon: AppSymbols.input,
                       accentColor: accentColor,
                       onTap: () => _openDetail(item.tanggal),
                       onDelete: () => _deleteTanggal(item),
@@ -235,11 +237,11 @@ class _ObatMasukPageState extends State<ObatMasukPage> {
 
         // ── FAB ────────────────────────────────────────────────────
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: SizedBox(
             width: double.infinity,
             child: _BlueFAB(
-              icon: AppIcons.tambah,
+              icon: AppSymbols.tambah,
               label: 'Tambah Obat Masuk',
               accentColor: accentColor,
               onPressed: _openTambahTanggal,
@@ -252,7 +254,7 @@ class _ObatMasukPageState extends State<ObatMasukPage> {
 
   Widget _buildLoading() {
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: 5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const SkeletonListCard(),
@@ -270,7 +272,7 @@ class _BlueFAB extends StatelessWidget {
     required this.onPressed,
   });
 
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String label;
   final Color accentColor;
   final VoidCallback onPressed;
@@ -280,7 +282,7 @@ class _BlueFAB extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: accentColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
             color: accentColor.withValues(alpha: 0.35),
@@ -293,14 +295,14 @@ class _BlueFAB extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: icon, color: Colors.white, size: 20),
+                Icon(icon, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   label,

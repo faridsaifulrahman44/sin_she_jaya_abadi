@@ -2,12 +2,48 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+String _policyBlock(String sql, String policyName, String tableName) {
+  final normalizedSql = sql.replaceAll('\r\n', '\n');
+  final marker = 'CREATE POLICY "$policyName"\n  ON $tableName';
+  final start = normalizedSql.indexOf(marker);
+  expect(start, isNonNegative, reason: 'Missing policy: $policyName');
+
+  final end = normalizedSql.indexOf(';', start);
+  expect(end, isNonNegative, reason: 'Policy is not terminated: $policyName');
+  return normalizedSql.substring(start, end + 1);
+}
+
+String _functionBlock(String sql, String functionName) {
+  final normalizedSql = sql.replaceAll('\r\n', '\n');
+  final marker = 'CREATE OR REPLACE FUNCTION $functionName';
+  final start = normalizedSql.indexOf(marker);
+  expect(start, isNonNegative, reason: 'Missing function: $functionName');
+
+  final next =
+      normalizedSql.indexOf('CREATE OR REPLACE FUNCTION public.', start + 1);
+  return normalizedSql.substring(
+    start,
+    next == -1 ? normalizedSql.length : next,
+  );
+}
+
 void main() {
   group('schema contract', () {
     late String schemaSql;
+    late String rlsP1Sql;
+    late String rlsP2Sql;
+    late String recalculateP2Sql;
 
     setUpAll(() {
       schemaSql = File('supabase/schema.sql').readAsStringSync();
+      rlsP1Sql = File('supabase/migration_fase20_rls_owner_admin_harden.sql')
+          .readAsStringSync();
+      rlsP2Sql =
+          File('supabase/migration_fase21_transaksi_history_owner_only.sql')
+              .readAsStringSync();
+      recalculateP2Sql = File(
+        'supabase/migration_fase22_recalculate_include_transaksi_items.sql',
+      ).readAsStringSync();
     });
 
     test('memiliki tabel inti domain klinik', () {
@@ -20,6 +56,10 @@ void main() {
         'public.sinkronisasi_stok',
         'public.pasien',
         'public.kehadiran_pasien',
+        'public.transaksi',
+        'public.transaksi_item',
+        'public.kunjungan_pasien',
+        'public.stock_movements',
       ];
 
       for (final table in tables) {
@@ -40,14 +80,23 @@ void main() {
       );
     });
 
-    test('tabel obat memiliki kolom foto_url', () {
+    test('tabel obat memiliki kolom foto aktif', () {
       expect(schemaSql, contains('foto_url text,'));
+      expect(schemaSql, contains('foto_key text,'));
+      expect(schemaSql, contains('foto_updated_at timestamptz,'));
+    });
+
+    test('tabel transaksi_item memiliki kolom satuan_terjual', () {
+      expect(schemaSql, contains('satuan_terjual varchar(30),'));
     });
 
     test('memiliki fungsi RPC atomic transaksi obat keluar/masuk/opname', () {
       const functions = [
         'public.fn_recalculate_obat_stok_single',
         'public.fn_recalculate_obat_stok_bulk',
+        'public.fn_transaksi_insert',
+        'public.fn_create_transaction',
+        'public.fn_obat_kurangi_stok',
         'public.fn_obat_keluar_refresh_totals',
         'public.fn_obat_keluar_insert_atomic',
         'public.fn_obat_keluar_update_atomic',
@@ -63,6 +112,13 @@ void main() {
         'public.fn_stock_opname_delete_by_tanggal_atomic',
         'public.fn_obat_delete_if_unused',
         'public.fn_pasien_delete_and_renumber',
+        'public.current_admin_id',
+        'public.current_admin_role',
+        'public.is_owner',
+        'public.is_petugas',
+        'public.is_clinic_staff',
+        'public.can_view_laporan',
+        'public.require_clinic_staff',
       ];
 
       for (final fn in functions) {
@@ -75,6 +131,18 @@ void main() {
     });
 
     test('grant execute tersedia untuk fungsi atomic utama', () {
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_create_transaction(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_transaksi_insert(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;',
+        ),
+      );
       expect(
         schemaSql,
         contains(
@@ -153,6 +221,200 @@ void main() {
           'GRANT EXECUTE ON FUNCTION public.fn_pasien_delete_and_renumber(bigint) TO authenticated;',
         ),
       );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_obat_kurangi_stok(int, int) TO authenticated;',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.current_admin_id() TO authenticated;',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.current_admin_role() TO authenticated;',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.require_clinic_staff(bigint) TO authenticated;',
+        ),
+      );
+    });
+
+    test('recalculate stok menghitung transaksi_item ready-stock', () {
+      final blocks = {
+        'schema.sql': _functionBlock(
+          schemaSql,
+          'public.fn_recalculate_obat_stok_single',
+        ),
+        'migration_fase22_recalculate_include_transaksi_items.sql':
+            _functionBlock(
+          recalculateP2Sql,
+          'public.fn_recalculate_obat_stok_single',
+        ),
+      };
+
+      for (final entry in blocks.entries) {
+        final block = entry.value;
+
+        expect(block, contains('FROM public.transaksi_item ti'),
+            reason: entry.key);
+        expect(block, contains('JOIN public.transaksi t'), reason: entry.key);
+        expect(
+          block,
+          contains('ON t.id_transaksi = ti.id_transaksi'),
+          reason: entry.key,
+        );
+        expect(block, contains('t.tanggal AS mutation_date'),
+            reason: entry.key);
+        expect(block, contains('2 AS priority'), reason: entry.key);
+        expect(block, contains('-ti.jumlah AS delta'), reason: entry.key);
+        expect(block, contains('false AS is_reset'), reason: entry.key);
+        expect(
+          block,
+          contains("t.jenis_transaksi = 'obat_ready_stock'"),
+          reason: entry.key,
+        );
+        expect(block, contains('so.tanggal_opname AS mutation_date'),
+            reason: entry.key);
+        expect(block, contains('3 AS priority'), reason: entry.key);
+      }
+    });
+
+    test('RLS P1 memakai role admin, bukan sekadar authenticated', () {
+      expect(
+        schemaSql,
+        isNot(contains('auth.uid() IS NOT NULL')),
+        reason: 'Final schema policy tidak boleh cuma cek authenticated.',
+      );
+      expect(
+        rlsP1Sql,
+        isNot(contains('auth.uid() IS NOT NULL')),
+        reason: 'Migration P1 policy tidak boleh cuma cek authenticated.',
+      );
+      expect(schemaSql, contains('USING (public.is_clinic_staff())'));
+      expect(schemaSql,
+          contains('WITH CHECK (public.current_admin_id() = id_admin)'));
+      expect(schemaSql, contains('WITH CHECK (public.is_owner())'));
+      expect(rlsP1Sql, contains('CREATE POLICY "clinic staff can read admin"'));
+      expect(rlsP1Sql, contains('CREATE POLICY "owner can update admin"'));
+      expect(
+          rlsP1Sql,
+          contains(
+              'CREATE POLICY "authenticated can delete kehadiran_pasien"'));
+    });
+
+    test('RLS P2 riwayat transaksi owner-only dan insert staff tetap ada', () {
+      final transaksiSelect = _policyBlock(
+        schemaSql,
+        'authenticated can read transaksi',
+        'public.transaksi',
+      );
+      final transaksiItemSelect = _policyBlock(
+        schemaSql,
+        'authenticated can read transaksi_item',
+        'public.transaksi_item',
+      );
+      final transaksiInsert = _policyBlock(
+        schemaSql,
+        'authenticated can insert transaksi',
+        'public.transaksi',
+      );
+      final transaksiItemInsert = _policyBlock(
+        schemaSql,
+        'authenticated can insert transaksi_item',
+        'public.transaksi_item',
+      );
+
+      expect(transaksiSelect, contains('FOR SELECT'));
+      expect(transaksiSelect, contains('USING (public.is_owner())'));
+      expect(transaksiSelect, isNot(contains('public.is_clinic_staff()')));
+      expect(transaksiItemSelect, contains('FOR SELECT'));
+      expect(transaksiItemSelect, contains('USING (public.is_owner())'));
+      expect(transaksiItemSelect, isNot(contains('public.is_clinic_staff()')));
+
+      expect(
+        transaksiInsert,
+        contains(
+          'WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin)',
+        ),
+      );
+      expect(
+        transaksiItemInsert,
+        contains(
+          'WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin)',
+        ),
+      );
+      expect(
+        schemaSql,
+        contains(
+          'GRANT EXECUTE ON FUNCTION public.fn_transaksi_insert(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;',
+        ),
+      );
+      expect(rlsP2Sql, contains('USING (public.is_owner())'));
+      expect(
+        rlsP2Sql,
+        contains('PERFORM public.require_clinic_staff(p_id_admin);'),
+      );
+    });
+
+    test('RPC SECURITY DEFINER memvalidasi admin login', () {
+      const guardedFunctions = [
+        'public.fn_create_transaction',
+        'public.fn_transaksi_insert',
+        'public.fn_obat_kurangi_stok',
+        'public.fn_obat_keluar_insert_atomic',
+        'public.fn_obat_keluar_update_atomic',
+        'public.fn_obat_keluar_delete_atomic',
+        'public.fn_obat_masuk_insert_atomic',
+        'public.fn_obat_masuk_update_atomic',
+        'public.fn_obat_masuk_delete_atomic',
+        'public.fn_stock_opname_insert_atomic',
+        'public.fn_stock_opname_update_atomic',
+        'public.fn_stock_opname_delete_atomic',
+        'public.fn_obat_delete_if_unused',
+        'public.fn_pasien_delete_and_renumber',
+      ];
+
+      for (final fn in guardedFunctions) {
+        final start = schemaSql.indexOf('CREATE OR REPLACE FUNCTION $fn');
+        expect(start, isNonNegative, reason: 'Missing guarded RPC: $fn');
+
+        final next =
+            schemaSql.indexOf('CREATE OR REPLACE FUNCTION public.', start + 1);
+        final block =
+            schemaSql.substring(start, next == -1 ? schemaSql.length : next);
+
+        expect(block, contains('SECURITY DEFINER'), reason: fn);
+        expect(block, contains('public.require_clinic_staff'), reason: fn);
+      }
+    });
+
+    test('SQL aktif tidak mereferensikan public.stock_opname', () {
+      final activeRefs = <String>[];
+      final sqlFiles = Directory('supabase')
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.sql'));
+
+      for (final file in sqlFiles) {
+        final lines = file.readAsLinesSync();
+        for (var i = 0; i < lines.length; i += 1) {
+          final line = lines[i];
+          if (line.trimLeft().startsWith('--')) continue;
+          if (line.contains('public.stock_opname')) {
+            activeRefs.add('${file.path}:${i + 1}: ${line.trim()}');
+          }
+        }
+      }
+
+      expect(activeRefs, isEmpty, reason: activeRefs.join('\n'));
     });
 
     test('kontrak delete pasien final tidak ambigu', () {

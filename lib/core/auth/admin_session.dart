@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../database/db_tables.dart';
 import '../error/app_exception.dart';
 import '../supabase/supabase_client_provider.dart';
 import '../utils/parsers.dart';
@@ -99,9 +100,9 @@ class AdminSession {
     Map<String, dynamic>? response;
     try {
       response = await SB.client
-          .from('admin')
-          .select('id_admin, role')
-          .eq('auth_user_id', user.id)
+          .from(DbTables.admin)
+          .select('${DbColumns.idAdmin}, ${DbColumns.role}')
+          .eq(DbColumns.authUserId, user.id)
           .maybeSingle();
     } on PostgrestException catch (error) {
       throw AdminMappingException(
@@ -113,11 +114,11 @@ class AdminSession {
       );
     }
 
-    final idAdmin = parseInt(response?['id_admin'], fallback: 0);
+    final idAdmin = parseInt(response?[DbColumns.idAdmin], fallback: 0);
     if (idAdmin > 0) {
       _cachedAdminId = idAdmin;
       _cachedAuthUserId = user.id;
-      _cachedRole = AdminRole.fromString(response?['role'] as String?);
+      _cachedRole = AdminRole.fromString(response?[DbColumns.role] as String?);
       return idAdmin;
     }
 

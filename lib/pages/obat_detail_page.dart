@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/obat_etalase.dart';
 import '../data/models/obat_model.dart';
@@ -53,7 +53,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -72,7 +72,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 ),
                 child: Row(
                   children: [
-                    HugeIcon(icon: AppIcons.warning, color: cdanger(context)),
+                    Icon(AppSymbols.warning, color: cdanger(context)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -91,10 +91,10 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
             ],
 
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: ccardBg(context),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(color: cdivider(context)),
               ),
               child: Column(
@@ -129,7 +129,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
             Container(
               decoration: BoxDecoration(
                 color: ccardBg(context),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -170,7 +170,7 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
               Container(
                 decoration: BoxDecoration(
                   color: ccardBg(context),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -186,8 +186,8 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
                       child: Row(
                         children: [
-                          HugeIcon(
-                            icon: AppIcons.payment,
+                          Icon(
+                            AppSymbols.payment,
                             color: cprimary(context),
                             size: 18,
                           ),
@@ -227,15 +227,15 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: ctextMuted(context).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
                     color: ctextMuted(context).withValues(alpha: 0.15),
                   ),
                 ),
                 child: Row(
                   children: [
-                    HugeIcon(
-                      icon: AppIcons.payment,
+                    Icon(
+                      AppSymbols.payment,
                       color: ctextMuted(context),
                       size: 18,
                     ),
@@ -252,6 +252,65 @@ class _ObatDetailPageState extends State<ObatDetailPage> {
                 ),
               ),
             ],
+            // ── Deskripsi ─────────────────────────────────────────────────────────
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: ccardBg(context),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          AppSymbols.description,
+                          color: cprimary(context),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Deskripsi',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: ctextPrimary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                    child: Text(
+                      _obat.deskripsi != null && _obat.deskripsi!.trim().isNotEmpty
+                          ? _obat.deskripsi!
+                          : 'Deskripsi belum tersedia.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _obat.deskripsi != null && _obat.deskripsi!.trim().isNotEmpty
+                            ? ctextPrimary(context)
+                            : ctextMuted(context),
+                        fontWeight: _obat.deskripsi != null && _obat.deskripsi!.trim().isNotEmpty
+                            ? FontWeight.w400
+                            : FontWeight.w400,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

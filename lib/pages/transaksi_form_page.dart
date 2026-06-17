@@ -1,14 +1,25 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:klinik_mobile_app/core/auth/admin_session.dart';
+import 'package:klinik_mobile_app/core/design_system/app_tokens.dart';
+import 'package:klinik_mobile_app/core/error/app_exception.dart';
+import 'package:klinik_mobile_app/core/feedback/app_feedback.dart';
 import 'package:klinik_mobile_app/core/theme/app_theme.dart';
+import 'package:klinik_mobile_app/core/ui/app_symbols.dart';
 import 'package:klinik_mobile_app/core/utils/formatters.dart';
 import 'package:klinik_mobile_app/core/utils/parsers.dart';
+import 'package:klinik_mobile_app/data/models/obat_etalase.dart';
 import 'package:klinik_mobile_app/data/models/obat_model.dart';
 import 'package:klinik_mobile_app/data/models/pasien_model.dart';
+import 'package:klinik_mobile_app/data/models/print_queue_model.dart';
 import 'package:klinik_mobile_app/data/models/transaksi_model.dart';
+import 'package:klinik_mobile_app/data/repositories/obat_repository.dart';
+import 'package:klinik_mobile_app/data/repositories/pasien_repository.dart';
+import 'package:klinik_mobile_app/data/repositories/print_queue_repository.dart';
 import 'package:klinik_mobile_app/data/repositories/transaksi_repository.dart';
+import 'package:klinik_mobile_app/features/transaksi/usecases/create_transaction_usecase.dart';
 import 'package:klinik_mobile_app/pages/transaksi/struk_pembayaran_page.dart';
 
 /// Halaman form tambah transaksi.
@@ -25,11 +36,21 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _repository = TransaksiRepository();
+  final _pasienRepository = PasienRepository();
+  final _obatRepository = ObatRepository();
+  final _printQueueRepository = PrintQueueRepository();
+  final _createTransactionUseCase = CreateTransactionUseCase();
+
+  // Filter etalase per tab (F10)
+  static const _obatTabEtalases = [Etalase.etalase1, Etalase.etalase2];
+  static const _praktekTabEtalases = [Etalase.etalase3];
 
   // Common state
   bool _loading = false;
+  int _activeTabIndex = 0;
   MetodeBayarTransaksi? _selectedMetodeBayar;
   int? _selectedPasienId;
+  PasienModel? _selectedPasien;
   final _catatanController = TextEditingController();
   final _durasiController = TextEditingController();
 
@@ -40,44 +61,109 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
   // Custom mode
   final _totalCustomController = TextEditingController();
 
-  // Patients
-  List<PasienModel> _pasienList = [];
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadInitialData();
+    _tabController.addListener(_handleTabChanged);
+    _loadAvailableObats(allowedEtalases: _obatTabEtalases);
   }
 
-  Future<void> _loadInitialData() async {
+  void _handleTabChanged() {
+    final nextIndex = _tabController.index;
+    if (nextIndex == _activeTabIndex) {
+      return;
+    }
+
+    // Jika ada item di cart, minta konfirmasi sebelum switch tab.
+    if (_selectedObats.isNotEmpty) {
+      _confirmCartClearBeforeTabSwitch(nextIndex);
+      return;
+    }
+
+    _applyTabSwitch(nextIndex);
+  }
+
+  Future<void> _confirmCartClearBeforeTabSwitch(int nextIndex) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ganti Tab?'),
+        content: const Text(
+          'Cart akan dikosongkan jika Anda mengganti tab. Lanjutkan?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Ganti Tab'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      // Kembalikan tab controller ke posisi sebelumnya.
+      _tabController.index = _activeTabIndex;
+      return;
+    }
+
+    if (!mounted) return;
+    _applyTabSwitch(nextIndex);
+  }
+
+  void _applyTabSwitch(int nextIndex) {
+    setState(() {
+      _activeTabIndex = nextIndex;
+      if (nextIndex == 0) {
+        _clearSelectedPasien();
+      }
+      // Kosongkan cart setiap ganti tab.
+      _selectedObats.clear();
+    });
+
+    final allowedEtalases = nextIndex == 0
+        ? _obatTabEtalases
+        : _praktekTabEtalases;
+    _loadAvailableObats(allowedEtalases: allowedEtalases);
+  }
+
+  void _clearSelectedPasien() {
+    _selectedPasienId = null;
+    _selectedPasien = null;
+  }
+
+  Future<void> _loadAvailableObats({List<Etalase>? allowedEtalases}) async {
     try {
       setState(() => _loading = true);
 
-      final obats = await _repository.getObatReadyStock();
-      final patients = await _repository.getAllPasien();
+      // F10: pakai filter etalase jika diberikan, fallback ke getObatReadyStock.
+      final obats = allowedEtalases != null
+          ? await _obatRepository.getObatsByEtalase(etalases: allowedEtalases)
+          : await _repository.getObatReadyStock();
 
       if (mounted) {
         setState(() {
           _availableObats = obats;
-          _pasienList = patients;
           _loading = false;
         });
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
         setState(() {
           _loading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat data: $e')),
-        );
+        AppFeedback.showError(context, error, stackTrace);
       }
     }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     _catatanController.dispose();
     _durasiController.dispose();
@@ -106,7 +192,32 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         _showError('Jumlah obat harus lebih dari 0');
         return;
       }
+      // F10: validasi etalase — semua item harus dari etalase yang diizinkan
+      // untuk tab aktif (Obat = 1&2, Praktek = 3).
+      final allowedEtalases = _obatTabEtalases;
+      final offenders = _selectedObats
+          .where((o) => !allowedEtalases.contains(o.obat.etalase))
+          .map((o) => o.obat.namaObat)
+          .toList();
+      if (offenders.isNotEmpty) {
+        _showError(
+          'Item berikut bukan dari Etalase 1/2: ${offenders.join(', ')}',
+        );
+        return;
+      }
     } else {
+      // Tab Praktek — tidak boleh ada item obat (hanya transaksi nominal).
+      if (_selectedObats.isNotEmpty) {
+        _showError(
+          'Transaksi Praktek tidak boleh memiliki item obat. '
+          'Kosongkan cart terlebih dahulu.',
+        );
+        return;
+      }
+      if (_selectedPasienId == null) {
+        _showError('Pilih pasien terlebih dahulu untuk transaksi praktek.');
+        return;
+      }
       final totalCustom = parseDouble(_totalCustomController.text, fallback: 0);
       if (totalCustom <= 0) {
         _showError('Total transaksi harus lebih dari 0');
@@ -133,7 +244,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         jenisTransaksi: jenis,
         total: total,
         metodeBayar: _selectedMetodeBayar,
-        idPasien: _selectedPasienId,
+        idPasien: isReadyStock ? null : _selectedPasienId,
         keterangan:
             _catatanController.text.isEmpty ? null : _catatanController.text,
         durasiHarian: durasi > 0 ? durasi : null,
@@ -156,13 +267,53 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           .toList();
 
       // Save and get inserted transaction with ID
-      final savedTransaksi = await _repository.insertTransaksi(
+      final savedTransaksi = await _createTransactionUseCase.execute(
         transaksi: transaksi,
         items: items,
         idAdmin: idAdmin,
       );
 
+      // F9: enqueue print job (best-effort, jangan block simpan jika gagal).
+      // Tangkap PrintQueueModel agar ID queue bisa dioper ke StrukPembayaranPage
+      // untuk update status (printed/failed) setelah proses cetak selesai —
+      // sehingga TIDAK terjadi double-enqueue di Struk page.
+      PrintQueueModel? printQueue;
+      try {
+        printQueue = await _printQueueRepository.enqueue(
+          idTransaksi: savedTransaksi.idTransaksi,
+        );
+      } catch (e) {
+        // ignore: avoid_print
+        debugPrint('Print queue enqueue failed (non-fatal): $e');
+      }
+
       if (mounted) {
+        final selectedNamaPasien =
+            isReadyStock ? null : _selectedPasien?.namaPasien;
+
+        String? namaAdmin;
+        try {
+          namaAdmin = await _repository.getNamaAdminById(idAdmin);
+        } catch (_) {
+          namaAdmin = null;
+        }
+
+        if (!mounted) return;
+
+        final receiptItems = items
+            .map((item) => TransaksiItemModel(
+                  idItem: item.idItem,
+                  idTransaksi: savedTransaksi.idTransaksi,
+                  idObat: item.idObat,
+                  namaObat: item.namaObat,
+                  jumlah: item.jumlah,
+                  hargaSatuan: item.hargaSatuan,
+                  subtotal: item.subtotal,
+                  idAdmin: item.idAdmin,
+                  satuanTerjual: item.satuanTerjual,
+                ))
+            .toList(growable: false);
+
         // Show success message first
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -177,29 +328,27 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           MaterialPageRoute(
             builder: (_) => StrukPembayaranPage(
               idTransaksi: savedTransaksi.idTransaksi,
+              printQueueId: printQueue?.id,
+              initialTransaksi: savedTransaksi,
+              initialItems: receiptItems,
+              initialNamaPasien: selectedNamaPasien,
+              initialNamaAdmin: namaAdmin,
             ),
           ),
         );
       }
-    } catch (e) {
+    } catch (error, stackTrace) {
       if (mounted) {
         setState(() {
           _loading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan: $e')),
-        );
+        AppFeedback.showError(context, error, stackTrace);
       }
     }
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: cdanger(context),
-      ),
-    );
+    AppFeedback.showError(context, ValidationException(msg));
   }
 
   @override
@@ -218,8 +367,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           tabs: const [
-            Tab(text: 'Obat Ready Stock'),
-            Tab(text: 'Praktek + Custom'),
+            Tab(text: 'Obat'),
+            Tab(text: 'Praktek'),
           ],
         ),
       ),
@@ -244,21 +393,40 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   Widget _buildReadyStockTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
+        // F10: Filter indicator
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: Row(
+            children: [
+              Icon(Icons.filter_list, size: AppSpacing.lg, color: ctextSecondary(context)),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                _activeTabIndex == 0
+                    ? 'Menampilkan: Etalase 1 & 2'
+                    : 'Menampilkan: Etalase 3',
+                style: TextStyle(
+                  fontSize: AppTextStyles.label.fontSize,
+                  color: ctextSecondary(context),
+                ),
+              ),
+            ],
+          ),
+        ),
         // Selected items
         if (_selectedObats.isNotEmpty) ...[
           Text(
             'Item Terpilih',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: AppTextStyles.body.fontSize,
               fontWeight: FontWeight.w600,
               color: ctextPrimary(context),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           ..._selectedObats.map((o) => _buildSelectedObatItem(o)),
-          const Divider(height: 24),
+          const Divider(height: AppSpacing.xxl),
         ],
 
         // Add item button
@@ -272,14 +440,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // Total
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: cteal(context).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -287,7 +455,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
               Text(
                 'Total',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: AppTextStyles.bodyLg.fontSize,
                   fontWeight: FontWeight.w600,
                   color: ctextPrimary(context),
                 ),
@@ -295,7 +463,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
               Text(
                 rupiah(_totalReadyStock),
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: AppTextStyles.heroMetric.fontSize,
                   fontWeight: FontWeight.w800,
                   color: cteal(context),
                 ),
@@ -309,9 +477,9 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   Widget _buildSelectedObatItem(_SelectedObat selected) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             Expanded(
@@ -325,7 +493,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                   Text(
                     '${selected.jumlah} ${selected.satuanTerjual} x ${rupiah(selected.hargaJual)}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppTextStyles.label.fontSize,
                       color: ctextSecondary(context),
                     ),
                   ),
@@ -339,7 +507,7 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                 color: cprimary(context),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () {
@@ -356,18 +524,18 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
 
   Widget _buildCustomTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         // Total input
         Text(
-          'Total Praktek + Obat Custom',
+          'Total Transaksi Praktek',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTextStyles.body.fontSize,
             fontWeight: FontWeight.w600,
             color: ctextPrimary(context),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _totalCustomController,
           keyboardType: TextInputType.number,
@@ -376,23 +544,23 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
             prefixText: 'Rp ',
             hintText: '0',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xxl),
 
         // Durasi (optional)
         Text(
           'Durasi Obat (hari) - Opsional',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTextStyles.body.fontSize,
             fontWeight: FontWeight.w600,
             color: ctextPrimary(context),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _durasiController,
           keyboardType: TextInputType.number,
@@ -400,30 +568,30 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
           decoration: InputDecoration(
             hintText: 'Misal: 5, 10',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xxl),
 
         // Catatan
         Text(
           'Catatan - Opsional',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTextStyles.body.fontSize,
             fontWeight: FontWeight.w600,
             color: ctextPrimary(context),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _catatanController,
           maxLines: 3,
           decoration: InputDecoration(
             hintText: 'Tambahkan catatan jika diperlukan',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
           ),
         ),
@@ -432,19 +600,19 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
   }
 
   Widget _buildBottomBar() {
-    final isReadyStock = _tabController.index == 0;
+    final isReadyStock = _activeTabIndex == 0;
     final total = isReadyStock
         ? _totalReadyStock
         : parseDouble(_totalCustomController.text, fallback: 0);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
+            blurRadius: AppSpacing.sm,
             offset: const Offset(0, -2),
           ),
         ],
@@ -458,12 +626,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
               Text(
                 'Metode Bayar:',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: AppTextStyles.body.fontSize,
                   fontWeight: FontWeight.w600,
                   color: ctextPrimary(context),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: SegmentedButton<MetodeBayarTransaksi>(
                   emptySelectionAllowed: true,
@@ -471,10 +639,12 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     ButtonSegment(
                       value: MetodeBayarTransaksi.cash,
                       label: Text('Tunai'),
+                      icon: Icon(AppSymbols.tunai, size: AppSpacing.lg),
                     ),
                     ButtonSegment(
                       value: MetodeBayarTransaksi.qris,
                       label: Text('QRIS'),
+                      icon: Icon(AppSymbols.qris, size: AppSpacing.lg),
                     ),
                   ],
                   selected: _selectedMetodeBayar != null
@@ -490,52 +660,25 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
-          // Pasien (optional)
-          Row(
-            children: [
-              Text(
-                'Pasien:',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: ctextPrimary(context),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<int?>(
-                  initialValue: _selectedPasienId,
-                  decoration: InputDecoration(
-                    hintText: 'Pilih pasien (opsional)',
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+          if (!isReadyStock) ...[
+            Row(
+              children: [
+                Text(
+                  'Pasien:',
+                  style: TextStyle(
+                    fontSize: AppTextStyles.body.fontSize,
+                    fontWeight: FontWeight.w600,
+                    color: ctextPrimary(context),
                   ),
-                  items: [
-                    const DropdownMenuItem<int?>(
-                      value: null,
-                      child: Text('Tanpa pasien'),
-                    ),
-                    ..._pasienList.map((p) => DropdownMenuItem<int?>(
-                          value: p.idPasien,
-                          child: Text(p.namaPasien),
-                        )),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _selectedPasienId = value);
-                  },
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: _buildPasienPickerField()),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
 
           // Total display & Save button
           Row(
@@ -547,14 +690,14 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                     Text(
                       'Total Transaksi',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTextStyles.label.fontSize,
                         color: ctextSecondary(context),
                       ),
                     ),
                     Text(
                       rupiah(total),
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: AppTextStyles.heroMetric.fontSize,
                         fontWeight: FontWeight.w800,
                         color: cteal(context),
                       ),
@@ -566,8 +709,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                 onPressed: _loading ? null : _saveTransaksi,
                 icon: _loading
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: AppSpacing.lg,
+                        height: AppSpacing.lg,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.save),
@@ -576,8 +719,8 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
                   backgroundColor: cteal(context),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 14,
+                    horizontal: AppSpacing.xxl,
+                    vertical: AppSpacing.md14,
                   ),
                 ),
               ),
@@ -586,6 +729,80 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         ],
       ),
     );
+  }
+
+  Widget _buildPasienPickerField() {
+    final selectedPasien = _selectedPasien;
+    final hasSelection = selectedPasien != null;
+
+    return InkWell(
+      onTap: _showPasienPickerSheet,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          hintText: 'Tanpa pasien',
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          suffixIcon: SizedBox(
+            width: hasSelection ? 88 : 44,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasSelection)
+                  IconButton(
+                    tooltip: 'Tanpa pasien',
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        _selectedPasienId = null;
+                        _selectedPasien = null;
+                      });
+                    },
+                  ),
+                const Icon(Icons.search),
+                const SizedBox(width: AppSpacing.sm10),
+              ],
+            ),
+          ),
+        ),
+        child: Text(
+          selectedPasien?.namaPasien ?? 'Tanpa pasien',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color:
+                hasSelection ? ctextPrimary(context) : ctextSecondary(context),
+            fontWeight: hasSelection ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPasienPickerSheet() async {
+    final result = await showModalBottomSheet<_PasienPickerResult>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _PasienPickerSheet(
+        repository: _pasienRepository,
+        selectedPasienId: _selectedPasienId,
+      ),
+    );
+
+    if (result == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedPasien = result.pasien;
+      _selectedPasienId = result.pasien?.idPasien;
+    });
   }
 
   Future<void> _showAddObatDialog() async {
@@ -604,6 +821,291 @@ class _TransaksiFormPageState extends State<TransaksiFormPage>
         _selectedObats.add(selected);
       });
     }
+  }
+}
+
+class _PasienPickerResult {
+  const _PasienPickerResult(this.pasien);
+
+  final PasienModel? pasien;
+}
+
+class _PasienPickerSheet extends StatefulWidget {
+  const _PasienPickerSheet({
+    required this.repository,
+    required this.selectedPasienId,
+  });
+
+  final PasienRepository repository;
+  final int? selectedPasienId;
+
+  @override
+  State<_PasienPickerSheet> createState() => _PasienPickerSheetState();
+}
+
+class _PasienPickerSheetState extends State<_PasienPickerSheet> {
+  static const int _limit = 20;
+
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  List<PasienModel> _items = const [];
+  bool _loading = true;
+  String? _errorMessage;
+  int _requestVersion = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitial();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    final query = parseString(value);
+    _debounce?.cancel();
+
+    if (query.isNotEmpty && query.length < 2) {
+      _requestVersion += 1;
+      setState(() {
+        _items = const [];
+        _loading = false;
+        _errorMessage = null;
+      });
+      return;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (query.isEmpty) {
+        _loadInitial();
+      } else {
+        _search(query);
+      }
+    });
+  }
+
+  Future<void> _loadInitial() {
+    return _loadItems(
+      () => widget.repository.getPasienPickerInitial(limit: _limit),
+    );
+  }
+
+  Future<void> _search(String query) {
+    return _loadItems(
+      () => widget.repository.searchPasien(query, limit: _limit),
+    );
+  }
+
+  Future<void> _loadItems(Future<List<PasienModel>> Function() loader) async {
+    final requestVersion = ++_requestVersion;
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final items = await loader();
+      if (!mounted || requestVersion != _requestVersion) {
+        return;
+      }
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted || requestVersion != _requestVersion) {
+        return;
+      }
+      setState(() {
+        _items = const [];
+        _loading = false;
+        _errorMessage = 'Gagal memuat pasien. Coba lagi.';
+      });
+    }
+  }
+
+  void _selectPasien(PasienModel? pasien) {
+    Navigator.pop(context, _PasienPickerResult(pasien));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final query = parseString(_searchController.text);
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+        child: SizedBox(
+          height: media.size.height * 0.82,
+          child: Column(
+            children: [
+              const SizedBox(height: AppSpacing.sm10),
+              Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cdivider(context),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Pilih Pasien',
+                        style: AppTextStyles.headline.copyWith(
+                          color: ctextPrimary(context),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Tutup',
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Cari nama, nomor, atau alamat pasien',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                  ),
+                  onChanged: _onSearchChanged,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ListTile(
+                leading: const Icon(Icons.person_off_outlined),
+                title: const Text('Tanpa pasien'),
+                subtitle: const Text('Simpan transaksi tanpa data pasien'),
+                trailing: widget.selectedPasienId == null
+                    ? Icon(Icons.check_circle, color: cteal(context))
+                    : null,
+                onTap: () => _selectPasien(null),
+              ),
+              const Divider(height: 1),
+              Expanded(child: _buildResultList(query)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultList(String query) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: ctextSecondary(context)),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              OutlinedButton.icon(
+                onPressed: () {
+                  if (query.length >= 2) {
+                    _search(query);
+                  } else {
+                    _loadInitial();
+                  }
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (query.isNotEmpty && query.length < 2) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Ketik minimal 2 karakter untuk mencari pasien.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: ctextSecondary(context)),
+          ),
+        ),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            query.isEmpty
+                ? 'Belum ada pasien untuk ditampilkan.'
+                : 'Pasien tidak ditemukan.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: ctextSecondary(context)),
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _items.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final pasien = _items[index];
+        final isSelected = pasien.idPasien == widget.selectedPasienId;
+        final detailParts = <String>[
+          if (pasien.nomorPasien.isNotEmpty) 'No. ${pasien.nomorPasien}',
+          if (pasien.tanggalJanjian != null)
+            'Janjian ${formatDateDb(pasien.tanggalJanjian!)}',
+          if ((pasien.alamat ?? '').isNotEmpty) pasien.alamat!,
+        ];
+
+        return ListTile(
+          title: Text(
+            pasien.namaPasien,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: detailParts.isEmpty
+              ? null
+              : Text(
+                  detailParts.join(' - '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+          trailing: isSelected
+              ? Icon(Icons.check_circle, color: cteal(context))
+              : null,
+          onTap: () => _selectPasien(pasien),
+        );
+      },
+    );
   }
 }
 
@@ -750,13 +1252,11 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
             children: [
               Text(
                 'Pilih Obat',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                style: AppTextStyles.headline.copyWith(
                   color: ctextPrimary(context),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
 
               // Search
               TextField(
@@ -765,13 +1265,13 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                   hintText: 'Cari obat...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
                 onChanged: _filter,
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
 
               // List
               Expanded(
@@ -796,12 +1296,11 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                               'Stok: ${obat.stokSaatIni} | Etalase: ${obat.etalase.label}',
                             ),
                             if (obat.hasHargaJual) ...[
-                              const SizedBox(height: 2),
+                              const SizedBox(height: AppSpacing.xxs),
                               Text(
                                 '${rupiah(obat.hargaJual!)} / ${obat.satuanJual ?? '-'}'
                                 '${obat.hasEceran ? '   |   Ecer: ${rupiah(obat.hargaEcer!)} / ${obat.satuanEcer}' : ''}',
-                                style: TextStyle(
-                                  fontSize: 11,
+                                style: AppTextStyles.caption.copyWith(
                                   color: cteal(context),
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -827,7 +1326,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                 // Tampilkan hanya jika obat bisa ecer
                 if (canEcer) ...[
                   _buildLabel('Satuan Jual', context),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs6),
                   _SatuanToggle(
                     satuanUtama: selected.satuanJual ?? 'Botol',
                     satuanEcer: selected.satuanEcer ?? 'Ecer',
@@ -836,7 +1335,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                     isEcer: _ecerMode,
                     onChanged: _toggleSatuan,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.sm10),
                 ],
 
                 // ── Jumlah + Harga ─────────────────────────────────────────
@@ -849,15 +1348,14 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                         decoration: InputDecoration(
                           labelText: 'Jumlah',
                           suffixText: canEcer ? _activeSatuanLabel : null,
-                          suffixStyle: TextStyle(
+                          suffixStyle: AppTextStyles.titleSm.copyWith(
                             color: ctextSecondary(context),
-                            fontSize: 13,
                           ),
                         ),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: TextField(
                         controller: _hargaController,
@@ -868,8 +1366,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                           helperText: selected.hasHargaJual
                               ? (_ecerMode ? 'Harga ecer' : 'Dari Master Obat')
                               : 'Input manual',
-                          helperStyle: TextStyle(
-                            fontSize: 10,
+                          helperStyle: AppTextStyles.labelXs.copyWith(
                             color: ctextSecondary(context),
                           ),
                         ),
@@ -881,29 +1378,25 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
 
                 // ── Real-time subtotal ──────────────────────────────────────
                 if (_liveSubtotal > 0) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: cteal(context).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Subtotal',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                          style: AppTextStyles.label.copyWith(
                             color: ctextSecondary(context),
                           ),
                         ),
                         Text(
                           rupiah(_liveSubtotal),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                          style: AppTextStyles.title.copyWith(
                             color: cteal(context),
                           ),
                         ),
@@ -912,7 +1405,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
 
                 // ── Tombol Tambah ───────────────────────────────────────────
                 SizedBox(
@@ -978,9 +1471,7 @@ class _ObatPickerSheetState extends State<_ObatPickerSheet> {
   Widget _buildLabel(String text, BuildContext context) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
+      style: AppTextStyles.label.copyWith(
         color: ctextSecondary(context),
       ),
     );
@@ -1019,7 +1510,7 @@ class _SatuanToggle extends StatelessWidget {
             onTap: () => onChanged(false),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: _SatuanOption(
             label: satuanEcer,
@@ -1057,7 +1548,7 @@ class _SatuanOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? color : ccardBg(context),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm10),
           border: Border.all(
             color: isSelected ? color : cdivider(context),
             width: isSelected ? 1.5 : 1,
@@ -1068,18 +1559,14 @@ class _SatuanOption extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+              style: AppTextStyles.titleSm.copyWith(
                 color: isSelected ? Colors.white : ctextPrimary(context),
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
               rupiah(harga),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+              style: AppTextStyles.caption.copyWith(
                 color: isSelected ? Colors.white70 : color,
               ),
             ),

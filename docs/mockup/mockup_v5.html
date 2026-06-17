@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SinShe Jaya Abadi — Mockup v5 (Final)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<style>
+/* ================================================
+   SIN SHE JAYA ABADI — MOCKUP V5
+   Mobile-first: 375px × 812px phone frame
+   29 Mei 2026 · Final Mockup
+   Bottom Nav: [Dashboard] [Riwayat Transaksi] [Akun]
+   ================================================ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --blue:#1565C0;--blue-dark:#0D47A1;--teal:#00897B;--teal-dark:#00695C;
+  --teal-light:#4DB6AC;--coral:#FF7043;--amber:#FFB300;--danger:#EF5350;
+  --danger-soft:#FFEBEE;--warning:#FF9800;--warning-soft:#FFF3E0;
+  --success:#66BB6A;--success-soft:#E8F5E9;--purple:#7B1FA2;
+  --purple-soft:#F3E5F5;--surface:#F5F7FA;--card:#FFFFFF;
+  --text:#1A1A2E;--text-sec:#6B7280;--text-muted:#9CA3AF;
+  --border:#E5E7EB;--shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 12px rgba(0,0,0,.1);--shadow-lg:0 8px 24px rgba(0,0,0,.15);
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-full:9999px;
+}
+
+body{
+  font-family:'Plus Jakarta Sans',-apple-system,sans-serif;
+  background:#0D1117;color:var(--text);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;
+}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,#0D1117 0%,#1A2332 100%);
+  border:1px solid rgba(255,255,255,.08);border-radius:20px;
+  padding:24px 28px;position:sticky;top:16px;z-index:100;
+  width:100%;max-width:1400px;
+}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.hero h1{color:#E8F5E9;font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px}
+.badge-tag{display:inline-block;background:var(--teal);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--r-full)}
+.hero p{color:rgba(255,255,255,.4);font-size:13px;margin-top:4px}
+.hero-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.hero-nav a{color:rgba(255,255,255,.5);text-decoration:none;font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--r-full);border:1px solid rgba(255,255,255,.1);transition:all .2s;cursor:pointer}
+.hero-nav a:hover,.hero-nav a.active{background:var(--teal);color:white;border-color:var(--teal)}
+
+.sl{color:rgba(255,255,255,.3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:32px 0 10px;padding-left:4px}
+.sl span{background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);font-size:10px;padding:2px 8px;border-radius:var(--r-full);margin-left:8px}
+.layout{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.col{display:flex;flex-direction:column}
+
+/* ── PHONE FRAME ── */
+.phone{
+  width:375px;min-height:812px;background:var(--surface);
+  border-radius:44px;overflow:hidden;
+  box-shadow:0 0 0 3px #2D3748,0 0 0 5px #1A202C,0 32px 64px rgba(0,0,0,.5);
+  position:relative;display:flex;flex-direction:column;
+}
+
+/* STATUS BAR */
+.sb{height:44px;background:var(--blue);display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;font-size:12px;font-weight:700;color:white;flex-shrink:0}
+.sb-teal{background:var(--teal)}
+.sb-green{background:var(--success)}
+
+/* APP BAR */
+.ab{background:var(--blue);padding:10px 16px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.ab.teal{background:var(--teal)}
+.ab.back{background:var(--teal-dark)}
+.ab .bb{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ab .pt{flex:1;font-size:18px;font-weight:700;color:white}
+.ab .cb{text-align:right}
+.ab .ct{color:white;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.ab .cd{color:rgba(255,255,255,.7);font-size:11px}
+
+/* DASHBOARD HEADER */
+.dh{background:linear-gradient(135deg,var(--blue) 0%,#1976D2 100%);padding:16px 20px 28px;position:relative;overflow:hidden;flex-shrink:0}
+.dh::after{content:'';position:absolute;bottom:-40px;right:-20px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06)}
+.dh .row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
+.dh .greet{color:rgba(255,255,255,.65);font-size:13px}
+.dh .clinic{color:white;font-size:17px;font-weight:800;margin-top:2px}
+.dh .role{color:rgba(255,255,255,.55);font-size:11px;margin-top:2px}
+.dh .sale{background:rgba(255,255,255,.15);border-radius:var(--r-md);padding:12px 16px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+.dh .slbl{color:rgba(255,255,255,.65);font-size:12px}
+.dh .samt{color:white;font-size:22px;font-weight:800;margin-top:2px}
+.dh .clkt{color:white;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.dh .clkd{color:rgba(255,255,255,.65);font-size:11px;margin-top:2px;text-align:right}
+
+/* DASHBOARD HEADER — ADMIN (no nominal) */
+.dh-admin{background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);padding:16px 20px 20px;position:relative;overflow:hidden;flex-shrink:0}
+.dh-admin::after{content:'';position:absolute;bottom:-40px;right:-20px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06)}
+.dh-admin .row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
+.dh-admin .greet{color:rgba(255,255,255,.65);font-size:13px}
+.dh-admin .clinic{color:white;font-size:17px;font-weight:800;margin-top:2px}
+.dh-admin .role{color:rgba(255,255,255,.55);font-size:11px;margin-top:2px}
+.dh-admin .stat-row{display:flex;gap:10px;margin-top:14px;position:relative;z-index:2}
+.dh-admin .stat-box{flex:1;background:rgba(255,255,255,.12);border-radius:var(--r-md);padding:10px 12px;text-align:center}
+.dh-admin .stat-box .val{color:white;font-size:20px;font-weight:800}
+.dh-admin .stat-box .lbl{color:rgba(255,255,255,.65);font-size:10px;margin-top:2px}
+.dh-admin .clkt{color:white;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.dh-admin .clkd{color:rgba(255,255,255,.65);font-size:11px;margin-top:2px;text-align:right}
+
+/* MENU GRID */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-top:-16px;position:relative;z-index:5}
+.mc{background:white;border-radius:var(--r-lg);padding:16px 14px 12px;box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:all .2s;border:none;text-align:left;position:relative}
+.mc:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.mc .ow{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:#E8F5E9;color:var(--teal)}
+.mc .bw{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:#E3F2FD;color:var(--blue)}
+.mc .gr{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:#FFF3E0;color:var(--coral)}
+.mc .pu{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:#F3E5F5;color:var(--purple)}
+.mc .ab{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:#E0F2F1;color:var(--teal-dark)}
+.mc .sk{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;background:#FFFDE7;color:var(--amber)}
+.mc .ttl{font-size:13px;font-weight:700;color:var(--text)}
+.mc .sub{font-size:10px;color:var(--text-sec)}
+.mc.owner-only{background:linear-gradient(135deg,#FFF8E1,#FFFDE7);border:1.5px solid var(--amber)}
+.mc.admin-locked{opacity:0.5}
+.mc .lock-badge{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--text-muted);color:white;font-size:10px;display:flex;align-items:center;justify-content:center}
+
+/* STOCK BADGE */
+.sb2{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:var(--r-full);background:var(--danger);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid white;z-index:3}
+.sb2.warn{background:var(--warning)}
+
+/* PAGE BODY */
+.pb{flex:1;overflow-y:auto;padding-bottom:8px}
+.pb::-webkit-scrollbar{width:0}
+
+/* BOTTOM NAV — 3 TAB */
+.bn{height:64px;background:white;border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;flex-shrink:0}
+.bi{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-muted);font-size:10px;font-weight:500;cursor:pointer;padding:4px 20px;transition:all .15s;position:relative}
+.bi.on{color:var(--teal)}
+.bi .ic{font-size:24px;font-family:'Material Symbols Outlined';font-weight:400}
+.bi .badge-dot{position:absolute;top:1px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--danger);border:1.5px solid white;display:none}
+.bi.notif .badge-dot{display:block}
+
+/* CHIPS */
+.chips{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.c{padding:5px 14px;border-radius:var(--r-full);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:white;color:var(--text-sec);cursor:pointer;white-space:nowrap;transition:all .15s}
+.c.on{background:var(--teal);color:white;border-color:var(--teal)}
+.c.on.blue{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* TABS */
+.tabs{display:flex;background:var(--surface);padding:5px;gap:4px;margin:10px 16px;border-radius:var(--r-md)}
+.tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:600;color:var(--text-sec);border-radius:var(--r-sm);cursor:pointer;border:none;background:none;transition:all .15s}
+.tab.on{background:white;color:var(--teal);box-shadow:var(--shadow-sm)}
+.tab.blue.on{background:var(--blue);color:white}
+
+/* LIST */
+.lst{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.li{background:white;border-radius:var(--r-md);padding:12px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-sm);cursor:pointer;transition:all .15s;border:1.5px solid transparent}
+.li:hover{border-color:var(--teal)}
+.li .ico{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.li .inf{flex:1;min-width:0}
+.li .ttl{font-size:13px;font-weight:600;color:var(--text)}
+.li .sub{font-size:11px;color:var(--text-muted);margin-top:1px}
+.li .right{text-align:right;flex-shrink:0}
+.li .amt{font-size:14px;font-weight:800;color:var(--teal)}
+.li .amt.danger{color:var(--danger)}
+.li .tag{display:inline-block;font-size:9px;font-weight:700;padding:1px 7px;border-radius:var(--r-full);margin-top:2px}
+.li .tag.praktek{background:var(--blue);color:white}
+.li .tag.obat{background:var(--teal);color:white}
+.li .tag.pending{background:var(--warning-soft);color:var(--warning)}
+.li .tag.done{background:var(--success-soft);color:var(--success)}
+.li .date{font-size:10px;color:var(--text-muted);margin-top:2px}
+
+/* SECTION HEADER */
+.sh{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:14px 16px 6px;display:flex;align-items:center;gap:6px}
+
+/* TRANSAKSI FORM */
+.jenis-tabs{display:flex;gap:8px;padding:12px 16px}
+.jenis-btn{flex:1;padding:12px;border-radius:var(--r-md);border:2px solid var(--border);background:white;color:var(--text-sec);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s}
+.jenis-btn.on{border-color:var(--teal);background:var(--teal);color:white}
+.jenis-btn.on.blue{border-color:var(--blue);background:var(--blue);color:white}
+.jenis-btn .ic{font-size:28px;font-family:'Material Symbols Outlined';font-weight:400;display:block;margin-bottom:4px}
+
+/* STOK TABS */
+.stok-tabs{display:flex;padding:0 16px;gap:0;border-bottom:2px solid var(--border)}
+.st{flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
+.st.on{color:var(--teal);border-bottom-color:var(--teal)}
+
+/* LOGIN */
+.login-bg{background:linear-gradient(180deg,#E8F5E9 0%,#C8E6C9 40%,#A5D6A7 100%);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.login-card{background:white;border-radius:24px;padding:32px 28px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.login-logo{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-dark));display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 4px 16px rgba(0,137,123,.3)}
+.login-logo .txt{color:white;font-size:32px;font-weight:800;text-align:center;line-height:1.1}
+.login-logo .sub{color:rgba(255,255,255,.8);font-size:10px;font-weight:600;display:block;margin-top:2px}
+.login-title{text-align:center;font-size:18px;font-weight:800;color:var(--text);margin-bottom:2px}
+.login-sub{text-align:center;font-size:12px;color:var(--text-muted);margin-bottom:24px}
+.login-inp{width:100%;padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--border);font-size:14px;font-family:inherit;margin-bottom:12px;outline:none;transition:border .15s}
+.login-inp:focus{border-color:var(--teal)}
+.login-inp::placeholder{color:var(--text-muted)}
+.login-btn{width:100%;padding:14px;border-radius:var(--r-md);background:var(--teal);color:white;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:8px;box-shadow:0 4px 12px rgba(0,137,123,.3)}
+.login-btn:hover{background:var(--teal-dark)}
+.login-divider{text-align:center;font-size:12px;color:var(--text-muted);margin:16px 0}
+.login-divider::before,.login-divider::after{content:'';display:inline-block;width:40px;height:1px;background:var(--border);vertical-align:middle;margin:0 8px}
+
+/* LAPORAN */
+.lap-card{background:white;border-radius:var(--r-md);margin:0 16px;padding:14px;box-shadow:var(--shadow-sm)}
+.lap-card .lc-hdr{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px}
+.lap-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+.lap-row:last-child{border-bottom:none}
+.lap-row .lr-lbl{font-size:13px;color:var(--text-sec)}
+.lap-row .lr-val{font-size:14px;font-weight:700}
+.lap-row .lr-val.green{color:var(--success)}
+.lap-row .lr-val.red{color:var(--danger)}
+.lap-row .lr-val.teal{color:var(--teal);font-size:16px}
+
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:60px;padding-top:8px}
+.bc{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bc .bar{width:100%;background:linear-gradient(to top,var(--teal),var(--teal-light));border-radius:3px 3px 0 0;min-height:3px}
+.bc .lbl{font-size:9px;color:var(--text-muted)}
+
+/* TOP OBAT */
+.top-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.to-item{background:white;border-radius:var(--r-md);padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-sm)}
+.to-item .rank{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0}
+.rank.gold{background:linear-gradient(135deg,#FFD700,#FFA500)}
+.rank.silver{background:linear-gradient(135deg,#C0C0C0,#9E9E9E)}
+.rank.bronze{background:linear-gradient(135deg,#CD7F32,#A0522D)}
+.rank.plain{background:var(--teal)}
+.to-item .info{flex:1;min-width:0}
+.to-item .nama{font-size:12px;font-weight:600}
+.to-item .sold{font-size:10px;color:var(--text-muted);margin-top:1px}
+.to-item .amount{font-size:13px;font-weight:800;color:var(--teal)}
+
+/* AKUN PAGE */
+.ak-header{background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);padding:24px 20px 40px;text-align:center;position:relative}
+.ak-avatar{width:72px;height:72px;border-radius:50%;background:white;border:3px solid rgba(255,255,255,.5);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}
+.ak-avatar .initial{font-size:28px;font-weight:800;color:var(--teal)}
+.ak-name{color:white;font-size:16px;font-weight:700;position:relative;z-index:2}
+.ak-role{color:rgba(255,255,255,.65);font-size:12px;position:relative;z-index:2;margin-top:2px}
+.ak-menu-card{background:white;border-radius:var(--r-lg);margin:-20px 16px 16px;padding:16px;box-shadow:var(--shadow-md);position:relative;z-index:2}
+.ak-menu-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--r-md);cursor:pointer;transition:background .15s}
+.ak-menu-item:hover{background:var(--surface)}
+.ak-menu-item .ami-ic{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ak-menu-item .ami-lbl{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.ak-menu-item .ami-sub{font-size:11px;color:var(--text-muted)}
+.ak-menu-item .ami-arrow{color:var(--text-muted);font-size:20px}
+
+/* RECEIPT */
+.rc{background:white;margin:16px;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-md);font-family:'Courier New',monospace}
+.rc-hdr{background:#1A1A2E;color:white;padding:10px 16px;text-align:center;font-size:11px;font-weight:700}
+.rc-body{padding:12px}
+.rc-ln{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;color:var(--text);border-bottom:1px dashed var(--border)}
+.rc-ln:last-child{border-bottom:none}
+.rc-ln .val{font-weight:700}
+.rc-sec{font-size:11px;font-weight:700;padding:4px 0 2px;margin-top:6px;border-bottom:1px dashed var(--border)}
+.rc-item{font-size:10px;padding:2px 0}
+.rc-item .name{font-weight:600}
+.rc-ftr{text-align:center;font-size:9px;color:var(--text-muted);padding:8px 12px;border-top:1px dashed var(--border)}
+
+/* PRINT QUEUE NOTIFICATION */
+.notif-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:white;margin:10px 16px;border-radius:var(--r-md);cursor:pointer;box-shadow:0 4px 12px rgba(0,137,123,.3)}
+.notif-bar .ni-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.notif-bar .ni-text{flex:1}
+.notif-bar .ni-title{font-size:13px;font-weight:700}
+.notif-bar .ni-sub{font-size:11px;opacity:.85;margin-top:1px}
+.notif-bar .ni-action{background:rgba(255,255,255,.2);border:none;color:white;font-size:11px;font-weight:700;padding:5px 12px;border-radius:var(--r-full);cursor:pointer}
+
+/* CLOCK SMALL */
+.clock-chip{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-sec);font-weight:600;padding:6px 12px;background:white;border-radius:var(--r-full);box-shadow:var(--shadow-sm)}
+
+/* PRINT BTN */
+.print-btn{margin:12px 16px 16px;background:var(--blue);color:white;border:none;border-radius:var(--r-md);padding:14px;font-size:14px;font-weight:700;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+
+/* STOCK MANAGEMENT */
+.stok-sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 16px}
+.sc{border-radius:var(--r-md);padding:12px;text-align:center}
+.sc.habis{background:var(--danger-soft)}
+.sc.menipis{background:var(--warning-soft)}
+.sc.aman{background:var(--success-soft)}
+.sc .n{font-size:22px;font-weight:800}
+.sc.habis .n{color:var(--danger)}
+.sc.menipis .n{color:var(--warning)}
+.sc.aman .n{color:var(--success)}
+.sc .l{font-size:9px;font-weight:700;text-transform:uppercase;margin-top:2px}
+.sc.habis .l{color:var(--danger)}
+.sc.menipis .l{color:var(--warning)}
+.sc.aman .l{color:var(--success)}
+
+.alert-card{background:white;border-radius:var(--r-md);padding:12px;margin:0 16px 8px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-sm);border-left:3px solid transparent}
+.alert-card.h{border-left-color:var(--danger)}
+.alert-card.m{border-left-color:var(--warning)}
+.alert-card .aci{width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-card .aci.h{background:var(--danger-soft);color:var(--danger)}
+.alert-card .aci.m{background:var(--warning-soft);color:var(--warning)}
+.alert-card .inf{flex:1}
+.alert-card .inf .nama{font-size:13px;font-weight:600;color:var(--text)}
+.alert-card .inf .eta{font-size:10px;color:var(--text-muted);margin-top:1px}
+.alert-card .stok{text-align:right}
+.alert-card .stok .val{font-size:14px;font-weight:700}
+.alert-card .stok.h .val{color:var(--danger)}
+.alert-card .stok.m .val{color:var(--warning)}
+.alert-card .stok .min{font-size:10px;color:var(--text-muted)}
+
+/* Ic material */
+.ic{font-family:'Material Symbols Outlined';font-weight:400;font-size:22px}
+.ic.sm{font-size:18px}
+.ic.lg{font-size:28px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div>
+    <h1>🏥 SinShe Jaya Abadi <span class="badge-tag">Mockup v5</span></h1>
+    <p>Final Design — Bottom Nav 3 Tab + Print Queue Flow</p>
+  </div>
+  <div class="hero-nav">
+    <a class="active" onclick="showSection('login')">Login</a>
+    <a onclick="showSection('owner-dash')">Owner Dashboard</a>
+    <a onclick="showSection('admin-dash')">Admin Dashboard</a>
+    <a onclick="showSection('transaksi')">Transaksi</a>
+    <a onclick="showSection('riwayat')">Riwayat Transaksi</a>
+    <a onclick="showSection('laporan')">Laporan Owner</a>
+    <a onclick="showSection('stok')">Manajemen Stok</a>
+    <a onclick="showSection('akun')">Akun</a>
+    <a onclick="showSection('struk')">Struk B/W</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LOGIN PAGE                                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-login" class="section-wrap">
+  <div class="sl">Login Page <span>Sumber: login_app.jpeg + logo_sinshe_login.jpeg</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="login-bg">
+          <div class="login-card">
+            <!-- Logo SinShe -->
+            <div class="login-logo">
+              <div class="txt">SS<br>JA</div>
+              <div class="sub">SIN SHE JAYA ABADI</div>
+            </div>
+            <div class="login-title">Selamat Datang</div>
+            <div class="login-sub">Masuk untuk melanjutkan</div>
+            <input class="login-inp" type="text" placeholder="Email atau Username" value="">
+            <input class="login-inp" type="password" placeholder="Password" value="">
+            <button class="login-btn">Masuk</button>
+            <div style="text-align:center;margin-top:12px">
+              <span style="font-size:11px;color:var(--text-muted)">Lupa password?</span>
+              <span style="font-size:11px;color:var(--teal);font-weight:600;cursor:pointer;margin-left:8px">Reset</span>
+            </div>
+          </div>
+        </div>
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span></div>
+          <div class="bi on"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- OWNER DASHBOARD                             -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-owner-dash" class="section-wrap" style="display:none">
+  <div class="sl">Dashboard — Owner <span>Home Base + 6 Shortcut Cards</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="dh">
+          <div class="row">
+            <div>
+              <div class="greet">Halo,</div>
+              <div class="clinic">SinShe Jaya Abadi</div>
+              <div class="role">👑 Owner</div>
+            </div>
+            <div class="clkt" style="color:white;font-size:14px;font-weight:700;padding-top:4px">15.25<br><span style="font-size:10px;font-weight:400;opacity:.7">Senin, 29 Mei 2026</span></div>
+          </div>
+          <div class="sale">
+            <div>
+              <div class="slbl">Penjualan Hari Ini:</div>
+              <div class="samt">Rp 1.250.000</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:rgba(255,255,255,.65)">Kemarin</div>
+              <div style="font-size:14px;font-weight:700;color:#81C784;margin-top:2px">↑ Rp 350.000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATION BAR — ada transaksi pending print -->
+        <div class="notif-bar" style="margin-top:12px">
+          <div class="ni-icon"><span class="ic">print</span></div>
+          <div class="ni-text">
+            <div class="ni-title">Struk Pending Cetak — 2</div>
+            <div class="ni-sub">Klik untuk preview dan cetak</div>
+          </div>
+          <button class="ni-action">Lihat</button>
+        </div>
+
+        <div class="pb">
+          <!-- MENU GRID — 6 cards -->
+          <div class="mg">
+            <button class="mc">
+              <div class="ow"><span class="ic sm">medication</span></div>
+              <div class="ttl">Obat</div>
+              <div class="sub">ETA 1, 2, 3</div>
+            </button>
+            <button class="mc">
+              <div class="bw"><span class="ic sm">group</span></div>
+              <div class="ttl">Pasien</div>
+              <div class="sub">Data &amp; kehadiran</div>
+            </button>
+            <button class="mc">
+              <div class="gr"><span class="ic sm">point_of_sale</span></div>
+              <div class="ttl">Transaksi</div>
+              <div class="sub">Jual obat &amp; praktik</div>
+            </button>
+            <button class="mc owner-only">
+              <span class="lock-badge" style="display:none"></span>
+              <div class="sk"><span class="ic sm">summarize</span></div>
+              <div class="ttl">Laporan</div>
+              <div class="sub">Harian / Bulanan / Tahunan</div>
+            </button>
+            <button class="mc">
+              <div class="ab"><span class="ic sm">inventory_2</span></div>
+              <div class="ttl">Stok</div>
+              <div class="sub">Masuk / Keluar / Keterangan</div>
+            </button>
+            <button class="mc">
+              <div class="pu"><span class="ic sm">calendar_month</span></div>
+              <div class="ttl">Jadwal</div>
+              <div class="sub">Praktik &amp; kontrol</div>
+            </button>
+          </div>
+
+          <!-- STAT OPERASIONAL -->
+          <div class="stok-sum" style="margin-top:16px">
+            <div class="sc habis">
+              <div class="n">2</div>
+              <div class="l">Habis</div>
+            </div>
+            <div class="sc menipis">
+              <div class="n">4</div>
+              <div class="l">Menipis</div>
+            </div>
+            <div class="sc aman">
+              <div class="n">19</div>
+              <div class="l">Aman</div>
+            </div>
+          </div>
+
+          <div style="padding:12px 16px 0;display:flex;justify-content:flex-end">
+            <div class="clock-chip">
+              <span class="ic sm" style="color:var(--teal)">schedule</span>
+              <span style="font-weight:700">15.25</span>
+              <span style="color:var(--text-muted)">|</span>
+              <span>Senin, 29 Mei 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi on"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- ADMIN DASHBOARD                             -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-admin-dash" class="section-wrap" style="display:none">
+  <div class="sl">Dashboard — Admin/Petugas <span>Tanpa nominal uang, tanpa Laporan</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb sb-teal"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="dh-admin">
+          <div class="row">
+            <div>
+              <div class="greet">Halo,</div>
+              <div class="clinic">SinShe Jaya Abadi</div>
+              <div class="role">🏥 Admin / Petugas</div>
+            </div>
+            <div style="text-align:right">
+              <div class="clkt">15.25</div>
+              <div class="clkd">Senin, 29 Mei 2026</div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="val">3</div>
+              <div class="lbl">Pasien Hari Ini</div>
+            </div>
+            <div class="stat-box">
+              <div class="val">8</div>
+              <div class="lbl">Transaksi</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATION BAR — struk dari owner -->
+        <div class="notif-bar">
+          <div class="ni-icon"><span class="ic">notifications_active</span></div>
+          <div class="ni-text">
+            <div class="ni-title">Struk Baru dari Owner</div>
+            <div class="ni-sub">Bpk. Hasan — Praktek — Rp 850.000</div>
+          </div>
+          <button class="ni-action">Cetak</button>
+        </div>
+
+        <div class="pb">
+          <!-- MENU GRID — Admin tidak bisa Laporan, tidak bisa etalase 3 -->
+          <div class="mg">
+            <button class="mc">
+              <div class="ow"><span class="ic sm">medication</span></div>
+              <div class="ttl">Obat</div>
+              <div class="sub">ETA 1 &amp; 2</div>
+            </button>
+            <button class="mc">
+              <div class="bw"><span class="ic sm">group</span></div>
+              <div class="ttl">Pasien</div>
+              <div class="sub">Data &amp; kehadiran</div>
+            </button>
+            <button class="mc">
+              <div class="gr"><span class="ic sm">point_of_sale</span></div>
+              <div class="ttl">Transaksi</div>
+              <div class="sub">Jual obat &amp; praktik</div>
+            </button>
+            <!-- Laporan: DISEMBUNYIKAN untuk Admin -->
+            <button class="mc admin-locked" style="opacity:0.3;cursor:not-allowed">
+              <div class="sk"><span class="ic sm">summarize</span></div>
+              <div class="ttl">Laporan</div>
+              <div class="sub">Owner only</div>
+              <span class="lock-badge" style="display:flex">🔒</span>
+            </button>
+            <button class="mc">
+              <div class="ab"><span class="ic sm">inventory_2</span></div>
+              <div class="ttl">Stok</div>
+              <div class="sub">Masuk / Keluar / Keterangan</div>
+            </button>
+            <button class="mc">
+              <div class="pu"><span class="ic sm">calendar_month</span></div>
+              <div class="ttl">Jadwal</div>
+              <div class="sub">Praktik &amp; kontrol</div>
+            </button>
+          </div>
+
+          <!-- Print Queue Indicator -->
+          <div style="padding:0 16px;margin-top:16px">
+            <div style="background:white;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:var(--r-sm);background:var(--warning-soft);display:flex;align-items:center;justify-content:center;color:var(--warning)">
+                <span class="ic">print</span>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Print Queue</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:1px">2 struk menunggu dicetak</div>
+              </div>
+              <div style="background:var(--warning);color:white;font-size:12px;font-weight:700;padding:4px 12px;border-radius:var(--r-full)">2</div>
+            </div>
+          </div>
+
+          <div style="padding:12px 16px 0;display:flex;justify-content:flex-end">
+            <div class="clock-chip">
+              <span class="ic sm" style="color:var(--teal)">schedule</span>
+              <span style="font-weight:700">15.25</span>
+              <span style="color:var(--text-muted)">|</span>
+              <span>Senin, 29 Mei 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi on"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi notif"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TRANSAKSI — FORM INPUT                      -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-transaksi" class="section-wrap" style="display:none">
+  <div class="sl">Transaksi <span>Owner input Praktek → Admin cetak. Admin input Jual Obat → cetak sendiri</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Transaksi Baru</div>
+          <div class="cb">
+            <div class="ct">15.25</div>
+            <div class="cd">29 Mei 2026</div>
+          </div>
+        </div>
+
+        <div class="pb">
+          <!-- PILIH JENIS -->
+          <div class="jenis-tabs">
+            <button class="jenis-btn on">
+              <span class="ic">medication</span>
+              Jual Obat
+              <div style="font-size:10px;font-weight:400;opacity:.8;margin-top:2px">ETA 1 &amp; 2</div>
+            </button>
+            <button class="jenis-btn">
+              <span class="ic">healing</span>
+              Praktek
+              <div style="font-size:10px;font-weight:400;opacity:.8;margin-top:2px">ETA 3 — Racikan</div>
+            </button>
+          </div>
+
+          <!-- ETALASE FILTER CHIPS -->
+          <div class="chips">
+            <button class="c on">Etalase 1</button>
+            <button class="c">Etalase 2</button>
+          </div>
+
+          <!-- DAFTAR OBAT -->
+          <div class="sh"><span class="ic sm">inventory_2</span> &nbsp;Pilih Obat</div>
+          <div class="lst">
+            <div class="li">
+              <div class="ico" style="background:#E8F5E9;color:var(--teal)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Die Da Tay Ping Yao Jing</div>
+                <div class="sub">Etalase 1 · Stok: 28</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--text)">Rp 250.000</div>
+                <div class="date">per box</div>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:#E8F5E9;color:var(--teal)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Sanjin Tablets</div>
+                <div class="sub">Etalase 1 · Stok: 15</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--text)">Rp 180.000</div>
+                <div class="date">per box</div>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:#E3F2FD;color:var(--blue)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Yun Nan Bai Yao</div>
+                <div class="sub">Etalase 2 · Stok: 5</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--text)">Rp 320.000</div>
+                <div class="date">per box</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- METODE BAYAR -->
+          <div class="sh"><span class="ic sm">payment</span> &nbsp;Metode Bayar</div>
+          <div style="padding:0 16px;display:flex;gap:8px">
+            <button class="c on" style="flex:1;text-align:center">💵 Tunai</button>
+            <button class="c" style="flex:1;text-align:center">📱 QRIS</button>
+          </div>
+
+          <!-- TOTAL -->
+          <div style="background:white;margin:16px;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">Total</div>
+                <div style="font-size:11px;color:var(--text-muted)">0 item dipilih</div>
+              </div>
+              <div style="font-size:22px;font-weight:800;color:var(--teal)">Rp 0</div>
+            </div>
+          </div>
+
+          <button class="print-btn" style="background:var(--teal)">
+            <span class="ic">check</span>&nbsp;Selesai &amp; Simpan
+          </button>
+        </div>
+
+        <div class="bn">
+          <div class="bi on"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRAKTEK VERSION -->
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Transaksi Praktek</div>
+          <div class="cb">
+            <div class="ct">15.25</div>
+            <div class="cd">29 Mei 2026</div>
+          </div>
+        </div>
+
+        <div class="pb">
+          <div class="jenis-tabs">
+            <button class="jenis-btn">
+              <span class="ic">medication</span>
+              Jual Obat
+              <div style="font-size:10px;font-weight:400;opacity:.8;margin-top:2px">ETA 1 &amp; 2</div>
+            </button>
+            <button class="jenis-btn on blue">
+              <span class="ic">healing</span>
+              Praktek
+              <div style="font-size:10px;font-weight:400;opacity:.8;margin-top:2px">ETA 3 — Racikan</div>
+            </button>
+          </div>
+
+          <!-- PILIH PASIEN (WAJIB) -->
+          <div class="sh"><span class="ic sm">person</span> &nbsp;Pilih Pasien <span style="color:var(--danger);font-size:10px">(WAJIB)</span></div>
+          <div style="padding:0 16px">
+            <div style="background:white;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm);border:2px solid var(--blue)">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700">B</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:700">Bpk. Hasan</div>
+                  <div style="font-size:11px;color:var(--text-muted)">KTP: 3201xxx · 8x kunjungan</div>
+                </div>
+                <div style="width:20px;height:20px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:14px">✓</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DAFTAR RACIKAN ETA 3 -->
+          <div class="sh"><span class="ic sm">healing</span> &nbsp;Pilih Racikan (Etalase 3)</div>
+          <div class="lst">
+            <div class="li">
+              <div class="ico" style="background:#FFF3E0;color:var(--warning)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Racikan #01 — Batuk & Demam</div>
+                <div class="sub">Etalase 3 · Stok: 20</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--text)">Rp 150.000</div>
+                <div class="date">per resep</div>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:#FFF3E0;color:var(--warning)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Racikan #02 — Maag</div>
+                <div class="sub">Etalase 3 · Stok: 15</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--text)">Rp 120.000</div>
+                <div class="date">per resep</div>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:#FFF3E0;color:var(--warning)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Racikan #03 — Asam Urat</div>
+                <div class="sub">Etalase 3 · Stok: 12</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--text)">Rp 180.000</div>
+                <div class="date">per resep</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BIAYA MANUAL -->
+          <div class="sh"><span class="ic sm">payments</span> &nbsp;Biaya (Input Manual)</div>
+          <div style="padding:0 16px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:white;border-radius:var(--r-md);padding:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm)">
+              <div style="font-size:13px;color:var(--text-sec)">Biaya Obat Racikan</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:14px;font-weight:700;color:var(--teal)">Rp 450.000</span>
+                <button style="width:28px;height:28px;border-radius:50%;background:var(--surface);border:none;color:var(--text-sec);cursor:pointer;font-size:16px">✎</button>
+              </div>
+            </div>
+            <div style="background:white;border-radius:var(--r-md);padding:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm)">
+              <div style="font-size:13px;color:var(--text-sec)">Biaya Konsultasi</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:14px;font-weight:700;color:var(--teal)">Rp 100.000</span>
+                <button style="width:28px;height:28px;border-radius:50%;background:var(--surface);border:none;color:var(--text-sec);cursor:pointer;font-size:16px">✎</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- METODE BAYAR -->
+          <div class="sh" style="padding-top:10px"><span class="ic sm">payment</span> &nbsp;Metode Bayar</div>
+          <div style="padding:0 16px;display:flex;gap:8px">
+            <button class="c on" style="flex:1;text-align:center">💵 Tunai</button>
+            <button class="c" style="flex:1;text-align:center">📱 QRIS</button>
+          </div>
+
+          <!-- TOTAL -->
+          <div style="background:white;margin:16px;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">Total</div>
+                <div style="font-size:11px;color:var(--teal);font-weight:600">Bpk. Hasan · 2 racikan</div>
+              </div>
+              <div style="font-size:22px;font-weight:800;color:var(--teal)">Rp 550.000</div>
+            </div>
+          </div>
+
+          <button class="print-btn" style="background:var(--blue)">
+            <span class="ic">check</span>&nbsp;Selesai — Kirim ke Admin
+          </button>
+          <div style="text-align:center;font-size:11px;color:var(--text-muted);padding:0 16px 8px">
+            ⬆️ Setelah simpan, admin akan dapat notifikasi untuk cetak struk
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi on"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- RIWAYAT TRANSAKSI                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-riwayat" class="section-wrap" style="display:none">
+  <div class="sl">Riwayat Transaksi <span>2 Tab: Transaksi Pasien | Riwayat Stok</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Riwayat Transaksi</div>
+        </div>
+
+        <div class="pb">
+          <div class="tabs">
+            <button class="tab on">Transaksi Pasien</button>
+            <button class="tab">Riwayat Stok</button>
+          </div>
+
+          <div class="chips">
+            <button class="c on">Semua</button>
+            <button class="c">Praktek</button>
+            <button class="c">Obat</button>
+          </div>
+
+          <!-- TRANSACTION LIST -->
+          <div class="lst" style="padding-top:4px">
+            <!-- Praktek -->
+            <div class="li">
+              <div class="ico" style="background:#E3F2FD;color:var(--blue)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Bpk. Hasan</div>
+                <div class="sub">Senin, 29 Mei 2026 · 10.30</div>
+              </div>
+              <div class="right">
+                <div class="amt">Rp 850.000</div>
+                <span class="tag praktik">Praktek</span>
+                <span class="tag done">Completed</span>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:#FFF3E0;color:var(--warning)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Ibu Sari</div>
+                <div class="sub">Senin, 29 Mei 2026 · 09.00</div>
+              </div>
+              <div class="right">
+                <div class="amt">Rp 620.000</div>
+                <span class="tag praktik">Praktek</span>
+                <span class="tag done">Completed</span>
+              </div>
+            </div>
+            <!-- Obat -->
+            <div class="li">
+              <div class="ico" style="background:#E8F5E9;color:var(--teal)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Tanpa Pasien</div>
+                <div class="sub">Senin, 29 Mei 2026 · 08.15</div>
+              </div>
+              <div class="right">
+                <div class="amt">Rp 430.000</div>
+                <span class="tag obat">Obat</span>
+                <span class="tag done">Completed</span>
+              </div>
+            </div>
+            <!-- Pending print -->
+            <div class="li" style="border-color:var(--warning)">
+              <div class="ico" style="background:#FFF3E0;color:var(--warning)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Bpk. Hasan</div>
+                <div class="sub">Senin, 29 Mei 2026 · 11.00</div>
+              </div>
+              <div class="right">
+                <div class="amt danger">Rp 550.000</div>
+                <span class="tag praktik">Praktek</span>
+                <span class="tag pending">Pending Print</span>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:#E8F5E9;color:var(--teal)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Tanpa Pasien</div>
+                <div class="sub">Minggu, 28 Mei 2026 · 14.20</div>
+              </div>
+              <div class="right">
+                <div class="amt">Rp 250.000</div>
+                <span class="tag obat">Obat</span>
+                <span class="tag done">Completed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi on notif"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: RIIWAYAT STOK -->
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Riwayat Transaksi</div>
+        </div>
+
+        <div class="pb">
+          <div class="tabs">
+            <button class="tab">Transaksi Pasien</button>
+            <button class="tab on">Riwayat Stok</button>
+          </div>
+
+          <div class="chips">
+            <button class="c on">Semua</button>
+            <button class="c">Restock</button>
+            <button class="c">Obat Keluar</button>
+          </div>
+
+          <!-- RESTOCK -->
+          <div class="sh" style="color:var(--success)"><span class="ic sm">add_box</span> &nbsp;Restock (Obat Masuk)</div>
+          <div class="lst">
+            <div class="li">
+              <div class="ico" style="background:var(--success-soft);color:var(--success)"><span class="ic sm">add_box</span></div>
+              <div class="inf">
+                <div class="ttl">Die Da Tay Ping Yao Jing</div>
+                <div class="sub">Etalase 1 · Admin: Sari</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--success)">+20</div>
+                <div class="date">29 Mei · 08.00</div>
+              </div>
+            </div>
+            <div class="li">
+              <div class="ico" style="background:var(--success-soft);color:var(--success)"><span class="ic sm">add_box</span></div>
+              <div class="inf">
+                <div class="ttl">Sanjin Tablets</div>
+                <div class="sub">Etalase 1 · Owner: SinShe</div>
+              </div>
+              <div class="right">
+                <div class="amt" style="color:var(--success)">+15</div>
+                <div class="date">28 Mei · 16.30</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OBAT KELUAR -->
+          <div class="sh" style="color:var(--danger)"><span class="ic sm">remove_circle</span> &nbsp;Obat Keluar (Non-Jual)</div>
+          <div class="lst">
+            <div class="li">
+              <div class="ico" style="background:var(--danger-soft);color:var(--danger)"><span class="ic sm">remove_circle</span></div>
+              <div class="inf">
+                <div class="ttl">Yun Nan Bai Yao</div>
+                <div class="sub">Etalase 2 · Kedaluwarsa</div>
+              </div>
+              <div class="right">
+                <div class="amt danger">-5</div>
+                <div class="date">27 Mei · 14.00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi on notif"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LAPORAN OWNER                               -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-laporan" class="section-wrap" style="display:none">
+  <div class="sl">Laporan Owner <span>Harian | Bulanan | Tahunan — Owner Only</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb sb-green"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab" style="background:var(--teal-dark)">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Laporan</div>
+          <div class="cb">
+            <div class="ct">15.25</div>
+            <div class="cd">29 Mei 2026</div>
+          </div>
+        </div>
+
+        <div class="pb">
+          <div class="tabs" style="background:white;margin:12px 16px">
+            <button class="tab on" style="color:var(--teal);border-bottom:2px solid var(--teal)">Harian</button>
+            <button class="tab">Bulanan</button>
+            <button class="tab">Tahunan</button>
+          </div>
+
+          <!-- STAT -->
+          <div style="padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="background:white;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm);text-align:center">
+              <div style="font-size:11px;color:var(--text-muted)">Total Penjualan</div>
+              <div style="font-size:22px;font-weight:800;color:var(--text);margin-top:4px">Rp 1.250.000</div>
+            </div>
+            <div style="background:white;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm);text-align:center">
+              <div style="font-size:11px;color:var(--text-muted)">vs Kemarin</div>
+              <div style="font-size:18px;font-weight:800;color:var(--success);margin-top:4px">↑ Rp 350.000</div>
+            </div>
+          </div>
+
+          <!-- BREAKDOWN -->
+          <div style="padding:0 16px;display:flex;gap:10px;margin-top:10px">
+            <div style="flex:1;background:var(--blue);border-radius:var(--r-md);padding:12px;text-align:center">
+              <div style="font-size:11px;color:rgba(255,255,255,.7)">Praktek</div>
+              <div style="font-size:16px;font-weight:800;color:white;margin-top:2px">5x</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:2px">Rp 850.000</div>
+            </div>
+            <div style="flex:1;background:var(--teal);border-radius:var(--r-md);padding:12px;text-align:center">
+              <div style="font-size:11px;color:rgba(255,255,255,.7)">Obat</div>
+              <div style="font-size:16px;font-weight:800;color:white;margin-top:2px">3x</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:2px">Rp 400.000</div>
+            </div>
+          </div>
+
+          <!-- GRAFIK -->
+          <div style="margin:12px 16px;background:white;border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)">
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">Grafik Penjualan Per Jam</div>
+            <div class="bar-chart">
+              <div class="bc"><div class="bar" style="height:15px"></div><div class="lbl">08</div></div>
+              <div class="bc"><div class="bar" style="height:35px"></div><div class="lbl">09</div></div>
+              <div class="bc"><div class="bar" style="height:55px"></div><div class="lbl">10</div></div>
+              <div class="bc"><div class="bar" style="height:40px"></div><div class="lbl">11</div></div>
+              <div class="bc"><div class="bar" style="height:20px"></div><div class="lbl">12</div></div>
+              <div class="bc"><div class="bar" style="height:30px"></div><div class="lbl">14</div></div>
+              <div class="bc"><div class="bar" style="height:45px"></div><div class="lbl">15</div></div>
+            </div>
+          </div>
+
+          <!-- OPERASIONAL -->
+          <div class="lap-card" style="margin-top:8px">
+            <div class="lc-hdr">📦 Operasional</div>
+            <div class="lap-row">
+              <div class="lr-lbl">Obat Masuk</div>
+              <div class="lr-val green">20 item</div>
+            </div>
+            <div class="lap-row">
+              <div class="lr-lbl">Obat Keluar (non-jual)</div>
+              <div class="lr-val red">5 item</div>
+            </div>
+            <div class="lap-row">
+              <div class="lr-lbl">Pasien Hadir</div>
+              <div class="lr-val teal">8 orang</div>
+            </div>
+          </div>
+
+          <!-- TOP 10 -->
+          <div style="font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;padding:14px 16px 6px">
+            <span class="ic sm">star</span>&nbsp;Top 10 Obat Terjual
+          </div>
+          <div class="top-list">
+            <div class="to-item">
+              <div class="rank gold">1</div>
+              <div class="info"><div class="nama">Die Da Tay Ping Yao Jing</div><div class="sold">12 terjual · ETA 1</div></div>
+              <div class="amount">Rp 3.000.000</div>
+            </div>
+            <div class="to-item">
+              <div class="rank silver">2</div>
+              <div class="info"><div class="nama">Yun Nan Bai Yao</div><div class="sold">10 terjual · ETA 2</div></div>
+              <div class="amount">Rp 3.200.000</div>
+            </div>
+            <div class="to-item">
+              <div class="rank bronze">3</div>
+              <div class="info"><div class="nama">Sanjin Tablets</div><div class="sold">9 terjual · ETA 1</div></div>
+              <div class="amount">Rp 1.620.000</div>
+            </div>
+            <div class="to-item">
+              <div class="rank plain">4</div>
+              <div class="info"><div class="nama">Xin Yi Qiao Pian</div><div class="sold">7 terjual · ETA 1</div></div>
+              <div class="amount">Rp 1.050.000</div>
+            </div>
+            <div class="to-item">
+              <div class="rank plain">5</div>
+              <div class="info"><div class="nama">Tong Ren Tang</div><div class="sold">6 terjual · ETA 1</div></div>
+              <div class="amount">Rp 900.000</div>
+            </div>
+            <div class="to-item">
+              <div class="rank plain" style="background:var(--text-muted)">6</div>
+              <div class="info"><div class="nama">Racikan #01 — Batuk &amp; Demam</div><div class="sold">5 terjual · ETA 3</div></div>
+              <div class="amount">Rp 750.000</div>
+            </div>
+          </div>
+
+          <!-- ACTION -->
+          <div style="display:flex;gap:8px;margin:16px">
+            <button style="flex:1;padding:12px;border-radius:var(--r-md);border:2px solid var(--blue);background:white;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer">
+              <span class="ic sm">download</span>&nbsp;Export CSV
+            </button>
+            <button class="print-btn" style="flex:1;margin:0;padding:12px">
+              <span class="ic">print</span>&nbsp;Cetak
+            </button>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MANAJEMEN STOK                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-stok" class="section-wrap" style="display:none">
+  <div class="sl">Manajemen Stok <span>5 Tab: Obat | Obat Masuk | Obat Keluar | Keterangan Stok | Sinkronisasi</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Manajemen Stok</div>
+          <div class="cb">
+            <div class="ct">15.25</div>
+            <div class="cd">29 Mei 2026</div>
+          </div>
+        </div>
+
+        <div class="pb">
+          <!-- STOK TABS -->
+          <div class="stok-tabs">
+            <div class="st on">Obat</div>
+            <div class="st">Obat Masuk</div>
+            <div class="st">Obat Keluar</div>
+            <div class="st">Keterangan</div>
+            <div class="st">Sinkron</div>
+          </div>
+
+          <!-- FILTER CHIPS -->
+          <div class="chips">
+            <button class="c on">Etalase 1</button>
+            <button class="c">Etalase 2</button>
+            <button class="c">Etalase 3</button>
+          </div>
+
+          <!-- OBAT LIST -->
+          <div class="lst" style="padding-top:4px">
+            <div class="li">
+              <div class="ico" style="background:#E8F5E9;color:var(--teal)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Die Da Tay Ping Yao Jing</div>
+                <div class="sub">Etalase 1 · Stok: 28</div>
+              </div>
+              <div class="right">
+                <div style="font-size:16px;font-weight:800;color:var(--success)">28</div>
+                <div class="date">stok</div>
+              </div>
+            </div>
+            <div class="li" style="border-color:var(--danger)">
+              <div class="ico" style="background:#E8F5E9;color:var(--danger)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Sanjin Tablets</div>
+                <div class="sub">Etalase 1 · Stok: 0</div>
+              </div>
+              <div class="right">
+                <div style="font-size:16px;font-weight:800;color:var(--danger)">0</div>
+                <span class="tag" style="background:var(--danger-soft);color:var(--danger);font-size:9px;padding:1px 6px;border-radius:var(--r-full)">HABIS</span>
+              </div>
+            </div>
+            <div class="li" style="border-color:var(--warning)">
+              <div class="ico" style="background:#E3F2FD;color:var(--warning)"><span class="ic sm">medication</span></div>
+              <div class="inf">
+                <div class="ttl">Yun Nan Bai Yao</div>
+                <div class="sub">Etalase 2 · Stok: 5</div>
+              </div>
+              <div class="right">
+                <div style="font-size:16px;font-weight:800;color:var(--warning)">5</div>
+                <span class="tag" style="background:var(--warning-soft);color:var(--warning);font-size:9px;padding:1px 6px;border-radius:var(--r-full)">MENIPIS</span>
+              </div>
+            </div>
+            <!-- ETA 3 -->
+            <div class="li">
+              <div class="ico" style="background:#FFF3E0;color:var(--warning)"><span class="ic sm">healing</span></div>
+              <div class="inf">
+                <div class="ttl">Racikan #01 — Batuk &amp; Demam</div>
+                <div class="sub">Etalase 3 · Stok: 20</div>
+              </div>
+              <div class="right">
+                <div style="font-size:16px;font-weight:800;color:var(--success)">20</div>
+                <div class="date">stok</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KETERANGAN STOK (STOK ALERT) -->
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Keterangan Stok Obat</div>
+        </div>
+
+        <div class="pb">
+          <!-- STOK TABS -->
+          <div class="stok-tabs">
+            <div class="st">Obat</div>
+            <div class="st">Obat Masuk</div>
+            <div class="st">Obat Keluar</div>
+            <div class="st on">Keterangan</div>
+            <div class="st">Sinkron</div>
+          </div>
+
+          <!-- SUMMARY -->
+          <div class="stok-sum" style="margin-top:12px">
+            <div class="sc habis"><div class="n">2</div><div class="l">Habis</div></div>
+            <div class="sc menipis"><div class="n">4</div><div class="l">Menipis</div></div>
+            <div class="sc aman"><div class="n">19</div><div class="l">Aman</div></div>
+          </div>
+
+          <!-- HABIS -->
+          <div class="sh" style="color:var(--danger)">⚠️ Obat Habis</div>
+          <div class="alert-card h">
+            <div class="aci h"><span class="ic sm">warning</span></div>
+            <div class="inf">
+              <div class="nama">Sanjin Tablets</div>
+              <div class="eta">Etalase 1 · Min: 5</div>
+            </div>
+            <div class="stok h">
+              <div class="val">0</div>
+              <div class="min">habis</div>
+            </div>
+          </div>
+          <div class="alert-card h">
+            <div class="aci h"><span class="ic sm">warning</span></div>
+            <div class="inf">
+              <div class="nama">Die Da Tay Ping Yao Jing</div>
+              <div class="eta">Etalase 1 · Min: 5</div>
+            </div>
+            <div class="stok h">
+              <div class="val">0</div>
+              <div class="min">habis</div>
+            </div>
+          </div>
+
+          <!-- MENIPIS -->
+          <div class="sh" style="color:var(--warning)">⚠️ Obat Menipis</div>
+          <div class="alert-card m">
+            <div class="aci m"><span class="ic sm">trending_down</span></div>
+            <div class="inf">
+              <div class="nama">Yun Nan Bai Yao</div>
+              <div class="eta">Etalase 2 · Min: 5</div>
+            </div>
+            <div class="stok m">
+              <div class="val">5</div>
+              <div class="min">min: 5</div>
+            </div>
+          </div>
+          <div class="alert-card m">
+            <div class="aci m"><span class="ic sm">trending_down</span></div>
+            <div class="inf">
+              <div class="nama">Xin Yi Qiao Pian</div>
+              <div class="eta">Etalase 1 · Min: 5</div>
+            </div>
+            <div class="stok m">
+              <div class="val">3</div>
+              <div class="min">min: 5</div>
+            </div>
+          </div>
+
+          <button class="print-btn" style="background:var(--teal)">
+            <span class="ic">print</span>&nbsp;Cetak Keterangan Stok
+          </button>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- AKUN PAGE                                   -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-akun" class="section-wrap" style="display:none">
+  <div class="sl">Akun <span>Profile, Settings, Dark Mode, Logout</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb sb-teal"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab teal">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Akun</div>
+        </div>
+
+        <div class="pb">
+          <div class="ak-header">
+            <div class="ak-avatar">
+              <div class="initial">S</div>
+            </div>
+            <div class="ak-name">SinShe / Owner</div>
+            <div class="ak-role">Owner · Klinik Sin She Jaya Abadi</div>
+          </div>
+
+          <div class="ak-menu-card">
+            <!-- Dark Mode Toggle -->
+            <div class="ak-menu-item">
+              <div class="ami-ic" style="background:var(--surface);color:var(--text)"><span class="ic sm">dark_mode</span></div>
+              <div>
+                <div class="ami-lbl">Dark Mode</div>
+                <div class="ami-sub">Aktifkan tema gelap</div>
+              </div>
+              <div style="width:40px;height:24px;border-radius:12px;background:var(--teal);display:flex;align-items:center;justify-content:flex-end;padding:3px;cursor:pointer">
+                <div style="width:18px;height:18px;border-radius:50%;background:white"></div>
+              </div>
+            </div>
+            <div style="height:1px;background:var(--border);margin:4px 0"></div>
+
+            <!-- Quick Access -->
+            <div class="ak-menu-item" style="background:var(--surface);border-radius:var(--r-md)">
+              <div class="ami-ic" style="background:#E8F5E9;color:var(--teal)"><span class="ic sm">medication</span></div>
+              <div>
+                <div class="ami-lbl">Obat</div>
+                <div class="ami-sub">ETA 1, 2 &amp; 3</div>
+              </div>
+              <div class="ami-arrow">›</div>
+            </div>
+            <div class="ak-menu-item" style="background:var(--surface);border-radius:var(--r-md);margin-top:4px">
+              <div class="ami-ic" style="background:#E3F2FD;color:var(--blue)"><span class="ic sm">group</span></div>
+              <div>
+                <div class="ami-lbl">Pasien</div>
+                <div class="ami-sub">Data &amp; kehadiran</div>
+              </div>
+              <div class="ami-arrow">›</div>
+            </div>
+            <div style="height:1px;background:var(--border);margin:8px 0"></div>
+
+            <!-- About -->
+            <div class="ak-menu-item">
+              <div class="ami-ic" style="background:var(--purple-soft);color:var(--purple)"><span class="ic sm">info</span></div>
+              <div>
+                <div class="ami-lbl">Tentang Aplikasi</div>
+                <div class="ami-sub">Versi 1.0.0</div>
+              </div>
+              <div class="ami-arrow">›</div>
+            </div>
+          </div>
+
+          <div style="padding:0 16px;margin-top:12px">
+            <button style="width:100%;padding:14px;border-radius:var(--r-md);background:var(--danger-soft);color:var(--danger);border:none;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+              <span class="ic sm">logout</span>&nbsp;Keluar / Logout
+            </button>
+          </div>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi on"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STRUK THERMAL — HITAM PUTIH                -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="section-struk" class="section-wrap" style="display:none">
+  <div class="sl">Struk Thermal — Hitam Putih <span>Preview + Hasil Cetak = Sama</span></div>
+  <div class="layout">
+    <div class="col">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><span class="ic sm">📶 📡 🔋</span></div>
+        <div class="ab">
+          <button class="bb"><span class="ic">arrow_back</span></button>
+          <div class="pt">Preview Cetak</div>
+        </div>
+
+        <div class="pb" style="background:#FAFAFA">
+          <div class="rc" style="margin:16px;font-size:11px">
+            <!-- STRUK HITAM PUTIH -->
+            <div style="background:white;padding:12px;font-family:'Courier New',monospace">
+              <div style="text-align:center;border-bottom:2px solid #1A1A2E;padding-bottom:8px;margin-bottom:8px">
+                <div style="font-size:14px;font-weight:800;letter-spacing:2px">SIN SHE JAYA ABADI</div>
+                <div style="font-size:9px;margin-top:2px">Jl. Klinik Sin She · Tlp: 08xxx</div>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>Tanggal</span><span>29/05/2026 10.30</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>No. Transaksi</span><span>#TRX-20260529001</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>Pasien</span><span>Bpk. Hasan</span>
+              </div>
+              <div style="border-bottom:2px solid #1A1A2E;padding:6px 0 4px;font-size:11px;font-weight:800">ITEM:</div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>Racikan #01 - Batuk & Demam</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:2px 0 4px 20px;font-size:10px;display:flex;justify-content:space-between">
+                <span>1x</span><span>Rp 150.000</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>Racikan #02 - Maag</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:2px 0 4px 20px;font-size:10px;display:flex;justify-content:space-between">
+                <span>1x</span><span>Rp 120.000</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>Biaya Konsultasi</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:2px 0 4px 20px;font-size:10px;display:flex;justify-content:space-between">
+                <span>1x</span><span>Rp 100.000</span>
+              </div>
+              <div style="border-bottom:2px solid #1A1A2E;padding:6px 0 4px;font-size:11px;display:flex;justify-content:space-between">
+                <span style="font-weight:800">TOTAL</span><span style="font-weight:800">Rp 550.000</span>
+              </div>
+              <div style="border-bottom:1px dashed #ccc;padding:4px 0;font-size:10px;display:flex;justify-content:space-between">
+                <span>Metode Bayar</span><span>TUNAI</span>
+              </div>
+              <div style="text-align:center;padding:8px 0 4px;font-size:10px;font-weight:700">
+                ======================================
+              </div>
+              <div style="text-align:center;padding:4px 0;font-size:11px;font-weight:700">
+                TERIMA KASIH
+              </div>
+              <div style="text-align:center;font-size:9px;color:#666;padding-top:4px">
+                --- KLINIK SIN SHE JAYA ABADI ---
+              </div>
+            </div>
+          </div>
+
+          <button class="print-btn" style="margin-top:4px">
+            <span class="ic">print</span>&nbsp;Cetak Struk
+          </button>
+        </div>
+
+        <div class="bn">
+          <div class="bi"><span class="ic">home</span><span>Dashboard</span></div>
+          <div class="bi"><span class="ic">receipt_long</span><span>Riwayat</span><div class="badge-dot"></div></div>
+          <div class="bi"><span class="ic">person</span><span>Akun</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section-wrap').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.hero-nav a').forEach(a => a.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('section-' + id).style.display = 'block';
+}
+</script>
+</body>
+</html>

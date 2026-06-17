@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
 import '../data/models/obat_keluar_model.dart';
 import '../data/repositories/obat_keluar_repository.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 import 'obat_keluar_form_page.dart';
 
@@ -24,6 +24,7 @@ class ObatKeluarDetailPage extends StatefulWidget {
 
 class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
   final ObatKeluarRepository _repo = ObatKeluarRepository();
+  final StockService _stockService = StockService();
   late DateTime _tanggal;
   late Future<List<ObatKeluarModel>> _future;
   bool _initialized = false;
@@ -74,15 +75,15 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
   Future<void> _deleteItem(ObatKeluarModel item) async {
     final confirm = await showModernConfirmDialog(
       context: context,
-      title: 'Hapus Transaksi',
-      message: 'Yakin ingin menghapus transaksi ini?',
+      title: 'Hapus Pengeluaran Stok',
+      message: 'Yakin ingin menghapus pengeluaran stok ini?',
     );
     if (confirm != true) return;
 
     try {
-      await _repo.deleteObatKeluar(item.idTerjual);
+      await _stockService.deleteStokKeluar(item.idTerjual);
       if (!mounted) return;
-      showModernSnackBar(context, 'Transaksi berhasil dihapus');
+      showModernSnackBar(context, 'Pengeluaran stok berhasil dihapus');
       await _reload();
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -97,16 +98,16 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
   Future<void> _deleteAllByTanggal() async {
     final confirm = await showModernConfirmDialog(
       context: context,
-      title: 'Hapus Semua Transaksi',
+      title: 'Hapus Semua Pengeluaran Stok',
       message:
-          'Yakin ingin menghapus semua transaksi pada ${asDate(_tanggal)}?\n\nTindakan ini tidak dapat dibatalkan.',
+          'Yakin ingin menghapus semua pengeluaran stok pada ${asDate(_tanggal)}?\n\nTindakan ini tidak dapat dibatalkan.',
     );
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatKeluarByTanggal(_tanggal);
+      await _stockService.deleteStokKeluarByTanggal(_tanggal);
       if (!mounted) return;
-      showModernSnackBar(context, 'Semua transaksi berhasil dihapus');
+      showModernSnackBar(context, 'Semua pengeluaran stok berhasil dihapus');
       Navigator.pop(context);
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -120,8 +121,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
 
   PopupMenuButton<int> _buildRowPopup(ObatKeluarModel item) {
     return PopupMenuButton<int>(
-      icon: HugeIcon(
-        icon: AppIcons.more,
+      icon: Icon(
+        AppSymbols.more,
         color: ctextSecondary(context),
         size: 20,
       ),
@@ -131,8 +132,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
           value: 0,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.editOutline,
+              Icon(
+                  AppSymbols.edit,
                   size: 18,
                   color: ctextSecondary(ctx)),
               const SizedBox(width: 10),
@@ -144,8 +145,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
           value: 1,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.deleteOutline, size: 18, color: cdanger(ctx)),
+              Icon(
+                  AppSymbols.hapus, size: 18, color: cdanger(ctx)),
               const SizedBox(width: 10),
               Text('Hapus', style: TextStyle(color: cdanger(ctx))),
             ],
@@ -167,16 +168,16 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
     return Scaffold(
       backgroundColor: cscaffoldBg(context),
       appBar: AppBar(
-        title: const Text('Detail Obat Keluar',
+        title: const Text('Detail Pengeluaran Stok',
             style: TextStyle(fontWeight: FontWeight.w700)),
         backgroundColor: cobatAmber(context),
         foregroundColor: conPrimary(context),
         elevation: 0,
         actions: [
           PopupMenuButton<int>(
-            icon: HugeIcon(
-                icon: AppIcons.deleteOutline, color: conPrimary(context)),
-            tooltip: 'Hapus semua transaksi',
+            icon: Icon(
+                AppSymbols.hapus, color: conPrimary(context)),
+            tooltip: 'Hapus semua pengeluaran stok',
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             itemBuilder: (ctx) => [
@@ -184,8 +185,8 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                 value: 0,
                 child: Row(
                   children: [
-                    HugeIcon(
-                        icon: AppIcons.hapusSweep,
+                    Icon(
+                        AppSymbols.hapus,
                         size: 18,
                         color: cdanger(ctx)),
                     const SizedBox(width: 10),
@@ -203,11 +204,11 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const PageHeader('Rincian Transaksi'),
+            const PageHeader('Rincian Pengeluaran Stok'),
             const SizedBox(height: 8),
             Center(
               child: Text(
-                'Tanggal Transaksi: ${asDate(_tanggal)}',
+                'Tanggal Pengeluaran: ${asDate(_tanggal)}',
                 style: TextStyle(
                   color: ctextSecondary(context),
                   fontWeight: FontWeight.w600,
@@ -244,9 +245,10 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                   final items = snapshot.data ?? const <ObatKeluarModel>[];
                   if (items.isEmpty) {
                     return AppEmptyView(
-                      icon: AppIcons.receipt,
-                      title: 'Belum ada transaksi',
-                      message: 'Tambahkan transaksi baru untuk tanggal ini.',
+                      icon: AppSymbols.receipt,
+                      title: 'Belum ada pengeluaran stok',
+                      message:
+                          'Tambahkan pengeluaran stok baru untuk tanggal ini.',
                       color: cwarning(context),
                     );
                   }
@@ -264,7 +266,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                           subtitle:
                               '${item.displayJumlahItem} item${item.isLegacyOnly ? ' (legacy)' : ''}',
                           trailingText: rupiah(item.displayTotalNominal),
-                          icon: AppIcons.receipt,
+                          icon: AppSymbols.receipt,
                           accentColor: cwarning(ctx),
                           onTap: () => _openForm(item),
                           trailingPopup: _buildRowPopup(item),
@@ -283,7 +285,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total ($_grandItemCount item dari ${_cachedItems.length} transaksi)',
+                      'Total ($_grandItemCount item dari ${_cachedItems.length} pengeluaran)',
                       style: TextStyle(
                         color: ctextSecondary(context),
                         fontWeight: FontWeight.w600,
@@ -314,7 +316,7 @@ class _ObatKeluarDetailPageState extends State<ObatKeluarDetailPage> {
                 ),
                 onPressed: () => _openForm(),
                 child: const Text(
-                  'Tambah Transaksi',
+                  'Tambah Pengeluaran Stok',
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),

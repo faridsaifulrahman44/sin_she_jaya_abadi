@@ -1,8 +1,12 @@
--- Migration FASE 6: jadikan obat_masuk & stock_opname atomik via RPC SQL
+-- Migration FASE 6: jadikan obat_masuk & sinkronisasi stok atomik via RPC SQL
 -- Cakupan atomik:
 -- 1) obat_masuk insert/update/delete (+ delete by tanggal)
--- 2) stock_opname insert/update/delete
+-- 2) sinkronisasi_stok insert/update/delete
 -- 3) setiap write langsung recalculate stok obat terkait dalam transaksi yang sama
+--
+-- Compatibility note:
+-- RPC names stay fn_stock_opname_* because Flutter still calls those names.
+-- The final data table is public.sinkronisasi_stok.
 
 CREATE OR REPLACE FUNCTION public.fn_obat_masuk_insert_atomic(
   p_id_obat bigint,
@@ -207,7 +211,7 @@ BEGIN
     RAISE EXCEPTION 'id_admin tidak valid';
   END IF;
 
-  INSERT INTO public.stock_opname (
+  INSERT INTO public.sinkronisasi_stok (
     id_obat,
     tanggal_opname,
     stok_sistem,
@@ -274,15 +278,15 @@ BEGIN
 
   SELECT so.id_obat
   INTO v_old_id_obat
-  FROM public.stock_opname so
+  FROM public.sinkronisasi_stok so
   WHERE so.id_opname = p_id_opname
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'stock opname tidak ditemukan: %', p_id_opname;
+    RAISE EXCEPTION 'sinkronisasi stok tidak ditemukan: %', p_id_opname;
   END IF;
 
-  UPDATE public.stock_opname
+  UPDATE public.sinkronisasi_stok
   SET
     id_obat = p_id_obat,
     tanggal_opname = p_tanggal_opname,
@@ -320,15 +324,15 @@ BEGIN
 
   SELECT so.id_obat
   INTO v_id_obat
-  FROM public.stock_opname so
+  FROM public.sinkronisasi_stok so
   WHERE so.id_opname = p_id_opname
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'stock opname tidak ditemukan: %', p_id_opname;
+    RAISE EXCEPTION 'sinkronisasi stok tidak ditemukan: %', p_id_opname;
   END IF;
 
-  DELETE FROM public.stock_opname
+  DELETE FROM public.sinkronisasi_stok
   WHERE id_opname = p_id_opname;
 
   PERFORM public.fn_recalculate_obat_stok_single(v_id_obat);

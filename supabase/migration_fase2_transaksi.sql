@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS public.transaksi_item (
   jumlah int NOT NULL CHECK (jumlah > 0),
   harga_satuan numeric(12, 2) NOT NULL CHECK (harga_satuan >= 0),
   subtotal numeric(12, 2) NOT NULL CHECK (subtotal >= 0),
+  satuan_terjual varchar(30),
   id_admin bigint REFERENCES public.admin(id_admin)
 );
 
@@ -77,6 +78,7 @@ DECLARE
   v_jumlah int;
   v_harga numeric(12, 2);
   v_subtotal numeric(12, 2);
+  v_satuan_terjual varchar(30);
 BEGIN
   -- Insert header transaksi
   INSERT INTO public.transaksi (
@@ -97,13 +99,16 @@ BEGIN
       v_jumlah := (v_item->>'jumlah')::int;
       v_harga := (v_item->>'harga_satuan')::numeric(12, 2);
       v_subtotal := (v_item->>'subtotal')::numeric(12, 2);
+      v_satuan_terjual := NULLIF(BTRIM(v_item->>'satuan_terjual'), '');
 
       -- Insert item
       INSERT INTO public.transaksi_item (
-        id_transaksi, id_obat, jumlah, harga_satuan, subtotal, id_admin
+        id_transaksi, id_obat, jumlah, harga_satuan, subtotal,
+        satuan_terjual, id_admin
       )
       VALUES (
-        v_transaksi.id_transaksi, v_id_obat, v_jumlah, v_harga, v_subtotal, p_id_admin
+        v_transaksi.id_transaksi, v_id_obat, v_jumlah, v_harga, v_subtotal,
+        v_satuan_terjual, p_id_admin
       );
 
       -- Kurangi stok (langsung UPDATE, bukan RPC untuk simplicity)

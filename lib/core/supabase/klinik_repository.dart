@@ -5,6 +5,7 @@ import '../../data/repositories/kehadiran_repository.dart';
 import '../../data/repositories/obat_keluar_repository.dart';
 import '../../data/repositories/obat_repository.dart';
 import '../../data/repositories/pasien_repository.dart';
+import '../../features/stok/services/stock_service.dart';
 
 @Deprecated(
     'Gunakan repository typed di lib/data/repositories secara langsung.')
@@ -14,15 +15,18 @@ class KlinikRepository {
     ObatKeluarRepository? obatKeluarRepository,
     PasienRepository? pasienRepository,
     KehadiranRepository? kehadiranRepository,
+    StockService? stockService,
   })  : _obatRepository = obatRepository ?? ObatRepository(),
         _obatKeluarRepository = obatKeluarRepository ?? ObatKeluarRepository(),
         _pasienRepository = pasienRepository ?? PasienRepository(),
-        _kehadiranRepository = kehadiranRepository ?? KehadiranRepository();
+        _kehadiranRepository = kehadiranRepository ?? KehadiranRepository(),
+        _stockService = stockService ?? StockService();
 
   final ObatRepository _obatRepository;
   final ObatKeluarRepository _obatKeluarRepository;
   final PasienRepository _pasienRepository;
   final KehadiranRepository _kehadiranRepository;
+  final StockService _stockService;
 
   DateTime _parseDateOrNow(String? value) {
     return parseNullableDate(value) ?? DateTime.now();
@@ -94,10 +98,10 @@ class KlinikRepository {
   }
 
   Future<void> deleteObatKeluar(int idTerjual) =>
-      _obatKeluarRepository.deleteObatKeluar(idTerjual);
+      _stockService.deleteStokKeluar(idTerjual);
 
   Future<void> deleteObatKeluarByTanggal(String tanggal) =>
-      _obatKeluarRepository.deleteObatKeluarByTanggal(_parseDateOrNow(tanggal));
+      _stockService.deleteStokKeluarByTanggal(_parseDateOrNow(tanggal));
 
   Future<List<Map<String, dynamic>>> getPasien({String? keyword}) async {
     final items = await _pasienRepository.getPasien(keyword: keyword);

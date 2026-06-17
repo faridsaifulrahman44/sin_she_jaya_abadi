@@ -1,0 +1,17 @@
+warning: in the working copy of 'lib/data/repositories/transaksi_repository.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_create_stock_opname.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase12_rls_harden.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase14_transaksi_oversell_guard.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase16_obat_image_storage.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase2_obat_keluar_atomic.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase2_transaksi.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase3_schema_cleanup.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase5_fix_stock_double_count.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase6_obat_masuk_stock_opname_atomic.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase7_stock_opname_delete_by_tanggal_atomic.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_fase8_obat_delete_guard.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_obat_keluar_item_final.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/migration_redesign_obat_keluar.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/schema.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'test/data/schema_contract_test.dart', LF will be replaced by CRLF the next time Git touches it

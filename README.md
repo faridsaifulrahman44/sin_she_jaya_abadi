@@ -8,11 +8,12 @@ Aplikasi pencatatan klinik herbal / pengobatan alternatif modern.
 - Dashboard
 - Data Obat (stok & etalase)
 - Obat Masuk (restock)
-- Obat Keluar (transaksi)
+- Pengeluaran Stok Non-Penjualan (obat rusak, kedaluwarsa, hilang, internal, atau koreksi)
 - Stock Opname
 - Data Pasien
 - Kehadiran Pasien
 - Laporan
+- Cetak struk pembayaran ke printer thermal ESC/POS Bluetooth
 
 ## Setup
 
@@ -59,6 +60,11 @@ flutter run
 
 ## Build Android
 
+Android package final:
+
+- Application ID: `id.sinshe.jayaabadi`
+- App label: `Sin She Jaya Abadi`
+
 ### Debug APK
 
 ```bash
@@ -67,11 +73,43 @@ flutter build apk --debug
 
 ### Release APK
 
+Release signing membaca file lokal `android/key.properties` jika tersedia. File ini di-ignore dan tidak boleh berisi password asli di repo. Salin contoh berikut lalu isi di mesin build:
+
+```powershell
+Copy-Item android/key.properties.example android/key.properties
+```
+
+Isi `android/key.properties`:
+
+```properties
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=C:/path/outside/repo/upload-keystore.jks
+```
+
+Setelah keystore dan `android/key.properties` siap:
+
 ```bash
 flutter build apk --release
 ```
 
+Jika `android/key.properties` belum ada, release build tidak memakai debug signing.
+
 File APK hasil build ada di `build/app/outputs/flutter-apk/`.
+
+## Cetak Struk Bluetooth
+
+Cetak struk pembayaran tersedia dari halaman `Struk Pembayaran` lewat tombol `Cetak Struk`.
+
+Untuk test printer thermal 58mm:
+
+1. Pairing printer dari pengaturan Bluetooth Android.
+2. Buka transaksi, lalu masuk ke halaman struk.
+3. Tekan `Cetak Struk`.
+4. Pilih printer dari daftar perangkat Bluetooth yang sudah dipairing.
+
+Jika printer belum siap, gunakan tombol `Preview Teks Struk` di dialog printer untuk melihat fallback teks yang akan dicetak.
 
 ## Catatan Build Android
 

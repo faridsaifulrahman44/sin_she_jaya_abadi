@@ -13,13 +13,15 @@ class ObatKeluarAtomicPayloadBuilder {
     final payload = <Map<String, dynamic>>[];
     for (final item in nonLegacyItems) {
       if (item.idObat <= 0) {
-        throw Exception('Item obat keluar memiliki id_obat tidak valid.');
+        throw Exception('Item pengeluaran stok memiliki id_obat tidak valid.');
       }
       if (item.jumlah <= 0) {
-        throw Exception('Item obat keluar memiliki jumlah tidak valid.');
+        throw Exception('Item pengeluaran stok memiliki jumlah tidak valid.');
       }
       if (item.hargaSatuan < 0) {
-        throw Exception('Item obat keluar memiliki harga_satuan tidak valid.');
+        throw Exception(
+          'Item pengeluaran stok memiliki harga_satuan tidak valid.',
+        );
       }
 
       payload.add({

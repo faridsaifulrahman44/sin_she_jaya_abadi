@@ -1,14 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../core/error/app_exception.dart';
 import '../core/error/app_error_mapper.dart';
+import '../core/services/foto_obat_upload_service.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../data/models/obat_etalase.dart';
 import '../data/models/obat_model.dart';
 import '../data/repositories/obat_repository.dart';
@@ -25,9 +23,6 @@ class ObatFormPage extends StatefulWidget {
 
 class _ObatFormPageState extends State<ObatFormPage> {
   static const int _maxFotoSizeBytes = 5 * 1024 * 1024;
-  static const int _targetFotoMaxDimension = 1280;
-  static const int _targetJpegQuality = 82;
-  static const int _pngKeepThresholdBytes = 350 * 1024;
   static const Set<String> _allowedFotoExtensions = {
     'jpg',
     'jpeg',
@@ -37,6 +32,7 @@ class _ObatFormPageState extends State<ObatFormPage> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ObatRepository _repo = ObatRepository();
+  final FotoObatUploadService _uploadService = FotoObatUploadService();
   final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _stokSaatIniController = TextEditingController();
@@ -57,11 +53,10 @@ class _ObatFormPageState extends State<ObatFormPage> {
   Etalase _etalase = Etalase.etalase1;
   Uint8List? _selectedFotoBytes;
   String? _selectedFotoFileName;
-  // TODO(farid): Setelah upload ke foto_key selesai, aktifkan kembali _existingFotoKey + _existingFotoUpdatedAt
-  // dan hapus _existingFotoUrl. fields ini siap dipakai saat migrsi upload selesai.
-  // ignore: unused_field
+  // ── Foto Obat — Source of Truth (FASE 2, 2026-05-12) ──────────────────
+  // Upload fix: uploadFotoObat() sekarang menulis ke foto_key + foto_updated_at.
+  // Field ini sudah aktif dan dipakai resolver saat render foto obat.
   String? _existingFotoKey;
-  // ignore: unused_field
   DateTime? _existingFotoUpdatedAt;
   String? _existingFotoUrl;
   bool _hapusFoto = false;
@@ -185,16 +180,23 @@ class _ObatFormPageState extends State<ObatFormPage> {
 
       if (_selectedFotoBytes != null) {
         try {
-          final uploadedFotoUrl = await _repo.uploadFotoObat(
-            idObat: savedObat.idObat,
+          final uploadResult = await _uploadService.uploadFoto(
             bytes: _selectedFotoBytes!,
-            fileName: _resolveUploadFileName(),
-            previousFotoUrl: previousFotoUrl,
+            fileName: _selectedFotoFileName ?? 'obat.jpg',
+            etalaseLabel: _etalase.value,
+            namaObat: _namaController.text.trim(),
           );
-          _existingFotoUrl = uploadedFotoUrl;
-          _existingFotoKey =
-              null; // upload masih ke foto_url — naik ke foto_key nanti
-          _existingFotoUpdatedAt = null;
+          // Tulis foto_key + foto_updated_at ke DB (F12.3 step)
+          await _repo.updateFotoKey(
+            idObat: savedObat.idObat,
+            fotoKey: uploadResult.fotoKey,
+          );
+          // Hapus foto lama di Storage (best effort, ignore 404)
+          await _uploadService.deleteOldFoto(_existingFotoKey);
+          // Update state dengan nilai baru setelah upload sukses
+          _existingFotoKey = uploadResult.fotoKey;
+          _existingFotoUpdatedAt = DateTime.now().toUtc();
+          _existingFotoUrl = uploadResult.publicUrl;
           _hapusFoto = false;
         } catch (error, stackTrace) {
           warningMessage =
@@ -261,14 +263,11 @@ class _ObatFormPageState extends State<ObatFormPage> {
       final sourceBytes = await picked.readAsBytes();
       final sourceFileName = _normalizeFileName(picked.name);
 
-      final preparedFoto = await _prepareFotoForUpload(
-        sourceFileName: sourceFileName,
-        sourceBytes: sourceBytes,
-      );
-
+      // Validasi cepat di sisi UI — kompresi akhir & path Storage
+      // diurus oleh FotoObatUploadService saat simpan.
       final errorMessage = _validatePickedFoto(
-        fileName: preparedFoto.fileName,
-        sizeInBytes: preparedFoto.bytes.length,
+        fileName: sourceFileName,
+        sizeInBytes: sourceBytes.length,
       );
       if (errorMessage != null) {
         if (!mounted) return;
@@ -277,10 +276,10 @@ class _ObatFormPageState extends State<ObatFormPage> {
       }
 
       setState(() {
-        _selectedFotoBytes = preparedFoto.bytes;
-        _selectedFotoFileName = preparedFoto.fileName;
+        _selectedFotoBytes = sourceBytes;
+        _selectedFotoFileName = sourceFileName;
         _hapusFoto = false;
-        _fotoCompressionInfo = preparedFoto.compressionInfo;
+        _fotoCompressionInfo = null; // service yang akan isi setelah simpan
       });
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -298,74 +297,6 @@ class _ObatFormPageState extends State<ObatFormPage> {
     }
   }
 
-  Future<_PreparedObatFoto> _prepareFotoForUpload({
-    required String sourceFileName,
-    required Uint8List sourceBytes,
-  }) async {
-    final sourceExtension = _extractFileExtension(sourceFileName);
-    final shouldKeepPng = sourceExtension == 'png' &&
-        sourceBytes.length <= _pngKeepThresholdBytes;
-
-    final targetFormat =
-        shouldKeepPng ? CompressFormat.png : CompressFormat.jpeg;
-    final targetExtension = shouldKeepPng ? 'png' : 'jpg';
-    final targetFileName = _replaceFileExtension(
-      sourceFileName,
-      targetExtension,
-    );
-    final targetQuality = shouldKeepPng ? 100 : _targetJpegQuality;
-
-    try {
-      final compressed = await FlutterImageCompress.compressWithList(
-        sourceBytes,
-        minWidth: _targetFotoMaxDimension,
-        minHeight: _targetFotoMaxDimension,
-        quality: targetQuality,
-        format: targetFormat,
-        autoCorrectionAngle: true,
-        keepExif: false,
-      );
-
-      if (compressed.isEmpty) {
-        throw const FormatException('Foto hasil kompresi kosong.');
-      }
-
-      final selectedBytes = Uint8List.fromList(compressed);
-      final selectedFileName = targetFileName;
-
-      return _PreparedObatFoto(
-        fileName: selectedFileName,
-        bytes: selectedBytes,
-        compressionInfo: _buildCompressionInfo(
-          originalSize: sourceBytes.length,
-          processedSize: selectedBytes.length,
-          usedCompressed: true,
-          targetExtension: targetExtension,
-        ),
-      );
-    } catch (error, stackTrace) {
-      final fallbackExtension = _extractFileExtension(sourceFileName);
-      if (fallbackExtension == null) {
-        throw ValidationException(
-          'Kompresi foto gagal dan nama file tidak valid. Coba pilih foto lain.',
-        );
-      }
-      if (!_allowedFotoExtensions.contains(fallbackExtension)) {
-        throw ValidationException(
-          'Format asli ${fallbackExtension.toUpperCase()} belum didukung. '
-          'Silakan pilih foto JPG, PNG, atau WEBP.',
-        );
-      }
-
-      return _PreparedObatFoto(
-        fileName: sourceFileName,
-        bytes: sourceBytes,
-        compressionInfo:
-            '${_mapCompressionErrorMessage(error, stackTrace)} File asli dipakai sebagai fallback.',
-      );
-    }
-  }
-
   String _normalizeFileName(String rawFileName) {
     final trimmed = rawFileName.trim();
     final safeBaseName = 'obat_${DateTime.now().millisecondsSinceEpoch}';
@@ -380,78 +311,6 @@ class _ObatFormPageState extends State<ObatFormPage> {
     }
 
     return trimmed;
-  }
-
-  String _replaceFileExtension(String fileName, String extension) {
-    final trimmed = fileName.trim();
-    final dotIndex = trimmed.lastIndexOf('.');
-    final base = dotIndex > 0 ? trimmed.substring(0, dotIndex) : trimmed;
-    final safeBase = base.trim().isEmpty
-        ? 'obat_${DateTime.now().millisecondsSinceEpoch}'
-        : base;
-    return '$safeBase.$extension';
-  }
-
-  String _buildCompressionInfo({
-    required int originalSize,
-    required int processedSize,
-    required bool usedCompressed,
-    required String targetExtension,
-  }) {
-    final originalLabel = _formatFileSize(originalSize);
-    final processedLabel = _formatFileSize(processedSize);
-
-    if (!usedCompressed) {
-      return 'Ukuran foto tetap $processedLabel (file asli dipakai).';
-    }
-
-    final savedBytes = originalSize - processedSize;
-    if (savedBytes <= 0) {
-      return 'Foto diproses ke format ${targetExtension.toUpperCase()} ($processedLabel).';
-    }
-
-    final savedPercent =
-        (savedBytes * 100 / originalSize).clamp(0, 100).toDouble();
-    return 'Foto dikompresi: $originalLabel -> $processedLabel '
-        '(${savedPercent.toStringAsFixed(0)}% lebih kecil).';
-  }
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) {
-      return '$bytes B';
-    }
-    final kiloBytes = bytes / 1024;
-    if (kiloBytes < 1024) {
-      return '${kiloBytes.toStringAsFixed(0)} KB';
-    }
-    final megaBytes = kiloBytes / 1024;
-    return '${megaBytes.toStringAsFixed(2)} MB';
-  }
-
-  String _mapCompressionErrorMessage(Object error, StackTrace stackTrace) {
-    final raw = error.toString().toLowerCase();
-    if (raw.contains('unsupported') || raw.contains('format')) {
-      return 'Format foto tidak didukung untuk kompresi.';
-    }
-    if (raw.contains('memory')) {
-      return 'Memori perangkat tidak cukup saat memproses foto.';
-    }
-    return 'Kompresi foto gagal. ${AppErrorMapper.toMessage(error, stackTrace)}';
-  }
-
-  String _resolveUploadFileName() {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final raw = _selectedFotoFileName?.trim() ?? '';
-    if (raw.isEmpty) {
-      return 'obat_$now.jpg';
-    }
-
-    final extension = _extractFileExtension(raw);
-    if (extension != null && _allowedFotoExtensions.contains(extension)) {
-      return raw;
-    }
-
-    return _replaceFileExtension(raw, 'jpg');
   }
 
   Future<void> _showFotoActionSheet() async {
@@ -564,12 +423,13 @@ class _ObatFormPageState extends State<ObatFormPage> {
     }
 
     final existingFotoUrl = _hapusFoto ? null : _existingFotoUrl;
+    final existingFotoKey = _hapusFoto ? null : _existingFotoKey;
+    final existingFotoUpdatedAt = _hapusFoto ? null : _existingFotoUpdatedAt;
     return ObatImage(
       namaObat:
           _namaController.text.trim().isEmpty ? 'Obat' : _namaController.text,
-      fotoKey:
-          null, // upload masih pakai foto_url legacy — naik ke foto_key nanti
-      fotoUpdatedAt: null,
+      fotoKey: existingFotoKey,
+      fotoUpdatedAt: existingFotoUpdatedAt,
       fotoUrl: existingFotoUrl,
       width: 96,
       height: 96,
@@ -689,8 +549,8 @@ class _ObatFormPageState extends State<ObatFormPage> {
                                 onPressed: (_loading || _processingFoto)
                                     ? null
                                     : _showFotoActionSheet,
-                                icon: HugeIcon(
-                                  icon: AppIcons.pills,
+                                icon: Icon(
+                                  AppSymbols.pills,
                                   size: 16,
                                   color: cprimary(context),
                                 ),
@@ -992,16 +852,4 @@ class _ObatFormPageState extends State<ObatFormPage> {
       ),
     );
   }
-}
-
-class _PreparedObatFoto {
-  const _PreparedObatFoto({
-    required this.fileName,
-    required this.bytes,
-    required this.compressionInfo,
-  });
-
-  final String fileName;
-  final Uint8List bytes;
-  final String? compressionInfo;
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
@@ -342,8 +342,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        icon: HugeIcon(
-          icon: AppIcons.sort,
+        icon: Icon(
+          AppSymbols.sort,
           color: isOperational ? accent : ctextSecondary(context),
           size: 14,
         ),
@@ -504,6 +504,20 @@ class _ObatTabContentState extends State<ObatTabContent> {
                           ],
                         ),
                       ],
+                      // ── Deskripsi Preview (dengan emoji support) ──────────────
+                      if (item.deskripsi != null && item.deskripsi!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          item.deskripsi!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ctextSecondary(context),
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -515,8 +529,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
                       tooltip: 'Edit obat',
                       visualDensity: VisualDensity.compact,
                       onPressed: () => _openForm(item),
-                      icon: HugeIcon(
-                          icon: AppIcons.editOutline,
+                      icon: Icon(
+                          AppSymbols.edit,
                           color: cprimary(context),
                           size: 18),
                     ),
@@ -524,8 +538,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
                       tooltip: 'Hapus obat',
                       visualDensity: VisualDensity.compact,
                       onPressed: () => _delete(item),
-                      icon: HugeIcon(
-                          icon: AppIcons.deleteOutline,
+                      icon: Icon(
+                          AppSymbols.hapus,
                           color: cdanger(context),
                           size: 18),
                     ),
@@ -547,9 +561,11 @@ class _ObatTabContentState extends State<ObatTabContent> {
       child: Row(
         children: [
           _StatusChip(
-              label: 'Semua',
-              isActive: _filterStatus == null,
-              onTap: () => _setStatusFilter(null)),
+              label: 'Habis',
+              isActive: _filterStatus == StokStatus.habis,
+              color: cdanger(context),
+              showDot: _hasHabis,
+              onTap: () => _setStatusFilter(StokStatus.habis)),
           const SizedBox(width: 6),
           _StatusChip(
               label: 'Menipis',
@@ -559,11 +575,15 @@ class _ObatTabContentState extends State<ObatTabContent> {
               onTap: () => _setStatusFilter(StokStatus.menipis)),
           const SizedBox(width: 6),
           _StatusChip(
-              label: 'Habis',
-              isActive: _filterStatus == StokStatus.habis,
-              color: cdanger(context),
-              showDot: _hasHabis,
-              onTap: () => _setStatusFilter(StokStatus.habis)),
+              label: 'Aman',
+              isActive: _filterStatus == StokStatus.aman,
+              color: csuccess(context),
+              onTap: () => _setStatusFilter(StokStatus.aman)),
+          const SizedBox(width: 6),
+          _StatusChip(
+              label: 'Semua',
+              isActive: _filterStatus == null,
+              onTap: () => _setStatusFilter(null)),
         ],
       ),
     );
@@ -574,7 +594,7 @@ class _ObatTabContentState extends State<ObatTabContent> {
   Widget _buildEmpty(List<ObatModel> allItems) {
     if (allItems.isEmpty) {
       return AppEmptyView(
-        icon: AppIcons.pills,
+        icon: AppSymbols.pills,
         title: 'Belum ada data obat',
         message: 'Tambah obat pertama Anda.',
         color: cobatBlue(context),
@@ -586,8 +606,8 @@ class _ObatTabContentState extends State<ObatTabContent> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(
-                icon: AppIcons.filter, color: ctextMuted(context), size: 40),
+            Icon(
+                AppSymbols.filter, color: ctextMuted(context), size: 40),
             const SizedBox(height: 12),
             Text('Tidak ada obat sesuai filter',
                 style: TextStyle(
@@ -767,7 +787,7 @@ class _PrimaryTambahObatButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: AppIcons.tambah, color: Colors.white, size: 20),
+                Icon(AppSymbols.tambah, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 const Text(
                   'Tambah Obat Baru',
@@ -885,11 +905,11 @@ class _EtalaseLabel extends StatelessWidget {
   Color get _color {
     switch (etalase) {
       case Etalase.etalase1:
-        return const Color(0xFF2563EB);
+        return AppColors.info;
       case Etalase.etalase2:
-        return const Color(0xFF10B981);
+        return AppColors.positive;
       case Etalase.etalase3:
-        return const Color(0xFFF59E0B);
+        return AppColors.warning;
     }
   }
 

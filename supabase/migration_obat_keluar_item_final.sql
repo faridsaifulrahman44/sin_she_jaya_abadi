@@ -130,7 +130,7 @@ WHERE NOT EXISTS (
 
 COMMENT ON COLUMN public.obat.stok_saat_ini IS E
   'stok_saat_ini dihitung dari stok_awal + mutasi masuk/keluar '
-  'dan reset stock_opname. Di-maintain oleh aplikasi via recalculateStok().';
+  'dan reset sinkronisasi_stok. Di-maintain oleh aplikasi via recalculateStok().';
 
 -- ─────────────────────────────────────────────
 -- CATATAN UNTUK PHASE SELANJUTNYA (opsional):

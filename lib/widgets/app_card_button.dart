@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
 
 class AppCardButton extends StatelessWidget {
@@ -23,7 +24,7 @@ class AppCardButton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.3),
@@ -36,9 +37,9 @@ class AppCardButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

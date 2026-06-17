@@ -49,6 +49,7 @@ class ObatModel {
     this.bisaEcer = false,
     this.hargaEcer,
     this.satuanEcer,
+    this.deskripsi,
   });
 
   final int idObat;
@@ -93,6 +94,9 @@ class ObatModel {
 
   /// Satuan eceran. Contoh: kapsul, tablet, ml.
   final String? satuanEcer;
+
+  /// Deskripsi lengkap obat (manfaat, cara pakai, dosis, peringatan).
+  final String? deskripsi;
   // ────────────────────────────────────────────────────────────────────────
 
   /// Status stok saat ini (aman/menipis/habis).
@@ -136,6 +140,7 @@ class ObatModel {
       bisaEcer: _parseBool(map['bisa_ecer']),
       hargaEcer: parseNullableNum(map['harga_ecer']),
       satuanEcer: parseNullableString(map['satuan_ecer']),
+      deskripsi: parseNullableString(map['deskripsi']),
     );
   }
 
@@ -159,7 +164,51 @@ class ObatModel {
       'bisa_ecer': bisaEcer,
       'harga_ecer': hargaEcer,
       'satuan_ecer': satuanEcer,
+      'deskripsi': deskripsi,
     };
+  }
+
+  /// Creates a copy of this [ObatModel] with the given fields replaced.
+  ObatModel copyWith({
+    int? idObat,
+    String? namaObat,
+    int? stokSaatIni,
+    int? stokMinimum,
+    Etalase? etalase,
+    String? satuan,
+    String? keterangan,
+    String? fotoKey,
+    DateTime? fotoUpdatedAt,
+    String? fotoUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    num? hargaJual,
+    String? satuanJual,
+    bool? bisaEcer,
+    num? hargaEcer,
+    String? satuanEcer,
+    String? deskripsi,
+  }) {
+    return ObatModel(
+      idObat: idObat ?? this.idObat,
+      namaObat: namaObat ?? this.namaObat,
+      stokSaatIni: stokSaatIni ?? this.stokSaatIni,
+      stokMinimum: stokMinimum ?? this.stokMinimum,
+      etalase: etalase ?? this.etalase,
+      satuan: satuan ?? this.satuan,
+      keterangan: keterangan ?? this.keterangan,
+      fotoKey: fotoKey ?? this.fotoKey,
+      fotoUpdatedAt: fotoUpdatedAt ?? this.fotoUpdatedAt,
+      fotoUrl: fotoUrl ?? this.fotoUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      hargaJual: hargaJual ?? this.hargaJual,
+      satuanJual: satuanJual ?? this.satuanJual,
+      bisaEcer: bisaEcer ?? this.bisaEcer,
+      hargaEcer: hargaEcer ?? this.hargaEcer,
+      satuanEcer: satuanEcer ?? this.satuanEcer,
+      deskripsi: deskripsi ?? this.deskripsi,
+    );
   }
 
   static bool _parseBool(dynamic value) {

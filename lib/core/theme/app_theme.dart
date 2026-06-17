@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../design_system/app_tokens.dart';
 import 'app_colors.dart';
 export 'app_colors.dart' show LightColors, DarkColors;
 export 'app_widgets.dart';
+
+// F0.5: Global font family override — Stitch KEEP pakai Plus Jakarta Sans.
+// Di-apply di ThemeData level agar semua DefaultTextStyle mewarisi.
+// TextStyle eksplisit di TextTheme yang tidak set fontFamily juga ikut inherit.
+const String _kFontFamily = 'Plus Jakarta Sans';
 
 // ============================================================================
 // LIGHT THEME DATA
@@ -11,6 +17,7 @@ ThemeData buildLightTheme() {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    fontFamily: _kFontFamily,
 
     // ── Colors ──────────────────────────────────────────────
     colorScheme: const ColorScheme.light(
@@ -359,6 +366,7 @@ ThemeData buildDarkTheme() {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    fontFamily: _kFontFamily,
 
     // ── Colors ──────────────────────────────────────────────
     colorScheme: const ColorScheme.dark(
@@ -876,3 +884,39 @@ Color conDanger(BuildContext context) => Colors.white;
 /// Whether the current theme is dark mode.
 bool cisDark(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark;
+
+// ── F0.5 #8: Stitch KEEP #8 (laporan_eksekutif_owner) helpers ───────────────
+
+/// Stitch teal primary (#006565) — used for the solid teal insight callout
+/// and the active period chip on the executive report page.
+Color cprimaryStitch(BuildContext context) {
+  return cisDark(context) ? const Color(0xFF93F2F2) : AppColors.tealStitchPrimary;
+}
+
+/// Stitch surface-container (#EBEFEE in light, M3 dark surface in dark).
+/// Distinct from `csurface` (between scaffold and card) and `ccardBg` (white).
+Color csurfaceContainer(BuildContext context) {
+  return cisDark(context) ? DarkColors.surfaceHigh : AppColors.surfaceContainerStitch;
+}
+
+/// Stitch scaffold background (#F6FAF9).
+Color cscaffoldBgStitch(BuildContext context) {
+  return cisDark(context) ? DarkColors.scaffold : AppColors.scaffoldBgStitch;
+}
+
+/// Stitch outline-variant (#BDC9C8) for thin 1px borders under the AppBar.
+Color coutlineVariantStitch(BuildContext context) {
+  return cisDark(context) ? DarkColors.borderActive : AppColors.outlineVariantStitch;
+}
+
+/// M3 primaryContainer — used as the active period chip background
+/// and avatar circle fill in the Stitch KEEP #8 header.
+Color cprimaryContainer(BuildContext context) {
+  return cisDark(context) ? DarkColors.primaryDark : LightColors.primaryLight;
+}
+
+/// M3 onPrimaryContainer — used as text/icon color over [cprimaryContainer]
+/// (e.g. the avatar circle and active period chip label).
+Color conPrimaryContainer(BuildContext context) {
+  return cisDark(context) ? LightColors.primaryLight : LightColors.primaryDark;
+}

@@ -108,6 +108,21 @@ class DarkColors {
   static const Color surface = Color(0xFF1E2535);
   static const Color surfaceHigh = Color(0xFF252D3F);
 
+  // F0.5 #5: Material 3 surface scale — parity with AppColors.surfaceContainer*
+  // (kept dark so dashboard card on dark theme reads correctly).
+  static const Color surfaceContainerLowest = Color(0xFF0D1117);
+  static const Color surfaceContainerLow = Color(0xFF161B26);
+  static const Color surfaceContainer = Color(0xFF1E2535);
+  static const Color surfaceContainerHigh = Color(0xFF252D3F);
+  static const Color surfaceContainerHighest = Color(0xFF2C3344);
+
+  // F0.5 #5: inverse surface — for dark SliverAppBar background.
+  static const Color inverseSurface = Color(0xFFEDF2F1);
+
+  // F0.5 #5: error container palette parity with AppColors.errorContainer.
+  static const Color onErrorContainer = Color(0xFFFFDAD6);
+  static const Color errorContainer = Color(0xFF93000A);
+
   // Primary — electric indigo / sapphire
   static const Color primary = Color(0xFF6C63FF);
   static const Color primaryLight = Color(0xFF8B85FF);

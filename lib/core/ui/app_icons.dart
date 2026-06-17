@@ -1,17 +1,25 @@
 import 'package:hugeicons/hugeicons.dart';
 
-/// Type alias untuk ikon Hugeicons di aplikasi ini.
+/// ⚠️ DEPRECATED — Jangan gunakan di kode baru.
+/// File ini dipertahankan sebagai backward compatibility untuk kode lama.
+/// Semua ikon sudah dimigrasikan ke [AppSymbols] di `app_symbols.dart`.
+///
+/// Migrasi: ganti `HugeIcon(icon: AppIcons.xxx, ...)` → `Icon(AppSymbols.xxx, ...)`
 ///
 /// HugeIcons tidak implements IconData — selalu gunakan [HugeIcon] widget.
 typedef AppHugeIconData = List<List<dynamic>>;
 
-/// Registry ikon pusat aplikasi.
-/// Semua ikon Hugeicons diakses dari sini.
+/// Registry ikon Hugeicons (DEPRECATED).
+///
+/// ⚠️ DEPRECATED — Kode baru HARUS menggunakan [AppSymbols].
 ///
 /// Gunakan dengan widget [HugeIcon]:
 /// ```dart
 /// HugeIcon(icon: AppIcons.klinik, size: 24, color: Colors.blue)
 /// ```
+///
+/// Untuk migrasi: gunakan [AppSymbols] yang sudah menggunakan
+/// [material_symbols_icons](https://pub.dev/packages/material_symbols_icons).
 class AppIcons {
   AppIcons._();
 
@@ -261,11 +269,31 @@ class AppIcons {
   /// Payment / tagihan
   static const AppHugeIconData payment = HugeIcons.strokeRoundedWallet01;
 
+  /// Tunai / cash payment
+  static const AppHugeIconData tunai = HugeIcons.strokeRoundedMoney02;
+
+  /// QRIS / QR code payment
+  static const AppHugeIconData qris = HugeIcons.strokeRoundedQrCode;
+
   /// Computer / system
   static const AppHugeIconData computer = HugeIcons.strokeRoundedComputer;
 
   /// Compare / selisih
   static const AppHugeIconData compare = HugeIcons.strokeRoundedGitCompare;
+
+  // ─── Dashboard Summary ─────────────────────────────────────────────────────
+
+  /// Wallet / omzet — untuk ringkasan omzet hari ini
+  static const AppHugeIconData wallet = HugeIcons.strokeRoundedWallet01;
+
+  /// Calendar / jadwal — untuk ringkasan jadwal hari ini
+  static const AppHugeIconData jadwalSummary = HugeIcons.strokeRoundedCalendar03;
+
+  /// Receipt / transaksi — untuk ringkasan transaksi hari ini
+  static const AppHugeIconData receiptSummary = HugeIcons.strokeRoundedInvoice;
+
+  /// User check / hadir — untuk ringkasan hadir hari ini
+  static const AppHugeIconData hadirSummary = HugeIcons.strokeRoundedUserCheck01;
 
   /// Check circle
   static const AppHugeIconData checkCircle =

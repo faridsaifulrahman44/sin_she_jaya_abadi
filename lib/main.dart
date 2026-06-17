@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
+import 'core/supabase/schema_guard.dart';
 import 'core/supabase/supabase_config.dart';
 
 Future<void> main() async {
@@ -30,5 +32,11 @@ Future<void> main() async {
     anonKey: SupabaseConfig.supabaseAnonKey,
   );
 
-  runApp(const KlinikApp());
+  const verifySchema =
+      bool.fromEnvironment('VERIFY_SCHEMA_CONTRACT', defaultValue: false);
+  if (verifySchema) {
+    await SchemaGuard().verifyCriticalContracts();
+  }
+
+  runApp(const ProviderScope(child: KlinikApp()));
 }

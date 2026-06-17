@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/design_system/app_tokens.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/ui/app_icons.dart';
+import '../../../../core/ui/app_symbols.dart';
 
 class StockSystemInfoCard extends StatelessWidget {
   const StockSystemInfoCard({
@@ -19,17 +19,17 @@ class StockSystemInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: cteal(context).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: cteal(context).withValues(alpha: 0.2),
         ),
       ),
       child: Row(
         children: [
-          HugeIcon(icon: AppIcons.computer, color: cteal(context), size: 20),
+          Icon(AppSymbols.computer, color: cteal(context), size: 20),
           const SizedBox(width: 10),
           Text(
             'Stok Sistem:',
@@ -76,10 +76,10 @@ class StockDifferencePreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _selisihColor(context, selisih);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: color.withValues(alpha: 0.25),
         ),
@@ -87,8 +87,8 @@ class StockDifferencePreviewCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          HugeIcon(
-            icon: selisih == 0 ? AppIcons.checkCircle : AppIcons.compare,
+          Icon(
+            selisih == 0 ? AppSymbols.checkCircle : AppSymbols.compare,
             color: color,
             size: 20,
           ),

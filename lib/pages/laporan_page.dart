@@ -1,17 +1,21 @@
+import 'dart:typed_data';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:printing/printing.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/utils/csv_exporter.dart';
 import '../core/utils/date_range_validator.dart';
 import '../core/utils/formatters.dart';
-import '../core/widgets/app_empty_view.dart';
+import '../core/utils/pdf_exporter.dart';
 import '../core/widgets/app_error_view.dart';
-import '../core/widgets/app_loading_view.dart';
+import '../data/models/obat_etalase.dart';
 import '../data/models/obat_model.dart';
+import '../data/models/transaksi_model.dart';
 import '../data/repositories/laporan_repository.dart';
 import '../features/laporan/laporan_aggregator.dart';
 import '../features/laporan/laporan_summary.dart';
@@ -26,23 +30,63 @@ class LaporanPage extends StatefulWidget {
   State<LaporanPage> createState() => _LaporanPageState();
 }
 
-class _LaporanPageState extends State<LaporanPage> {
+class _LaporanPageState extends State<LaporanPage>
+    with SingleTickerProviderStateMixin {
   final LaporanRepository _repository = LaporanRepository();
 
   bool _isLoading = true;
   bool _accessDenied = false;
   String? _errorMessage;
-  String _selectedFilter = 'bulan_ini';
-  late DateTime _startDate;
-  late DateTime _endDate;
+  LaporanDataBundle? _bundle;
   LaporanSummary? _summary;
-  List<FlSpot> _chartSpots = const <FlSpot>[];
-  double _maxChartY = 0;
+
+  late TabController _tabController;
+  int _activeTab = 0;
+
+  // Date range per tab
+  late DateTime _tabStartDate;
+  late DateTime _tabEndDate;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _initDefaultDateRange();
     _checkAccess();
+  }
+
+  void _initDefaultDateRange() {
+    final now = DateTime.now();
+    _tabStartDate = DateTime(now.year, now.month, now.day);
+    _tabEndDate = DateTime(now.year, now.month, now.day);
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    final tab = _tabController.index;
+    if (tab == _activeTab) return;
+    setState(() => _activeTab = tab);
+    _updateDateRangeForTab(tab);
+    _loadData();
+  }
+
+  void _updateDateRangeForTab(int tab) {
+    final now = DateTime.now();
+    switch (tab) {
+      case 0: // Harian
+        _tabStartDate = DateTime(now.year, now.month, now.day);
+        _tabEndDate = DateTime(now.year, now.month, now.day);
+        break;
+      case 1: // Bulanan
+        _tabStartDate = DateTime(now.year, now.month, 1);
+        _tabEndDate = DateTime(now.year, now.month + 1, 0);
+        break;
+      case 2: // Tahunan
+        _tabStartDate = DateTime(now.year, 1, 1);
+        _tabEndDate = DateTime(now.year, 12, 31);
+        break;
+    }
   }
 
   Future<void> _checkAccess() async {
@@ -57,8 +101,6 @@ class _LaporanPageState extends State<LaporanPage> {
         }
         return;
       }
-
-      _initDateRange(_selectedFilter);
       _loadData();
     } catch (_) {
       if (mounted) {
@@ -70,30 +112,10 @@ class _LaporanPageState extends State<LaporanPage> {
     }
   }
 
-  void _initDateRange(String filter) {
-    final now = DateTime.now();
-    switch (filter) {
-      case 'hari_ini':
-        _startDate = DateTime(now.year, now.month, now.day);
-        _endDate = DateTime(now.year, now.month, now.day);
-        break;
-      case 'minggu_ini':
-        final weekStart = now.subtract(Duration(days: now.weekday - 1));
-        _startDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
-        _endDate = DateTime(now.year, now.month, now.day);
-        break;
-      case 'bulan_ini':
-      default:
-        _startDate = DateTime(now.year, now.month, 1);
-        _endDate = DateTime(now.year, now.month + 1, 0);
-        break;
-    }
-  }
-
   Future<void> _loadData() async {
     final validation = validateDateRange(
-      startDate: _startDate,
-      endDate: _endDate,
+      startDate: _tabStartDate,
+      endDate: _tabEndDate,
     );
 
     if (!validation.isValid) {
@@ -112,48 +134,31 @@ class _LaporanPageState extends State<LaporanPage> {
     });
 
     try {
-      final data = await _repository.getReportData(
-        startDate: _startDate,
-        endDate: _endDate,
+      final bundle = await _repository.getReportData(
+        startDate: _tabStartDate,
+        endDate: _tabEndDate,
       );
 
       final summary = buildLaporanSummary(
-        startDate: _startDate,
-        endDate: _endDate,
-        transaksiPeriode: data.transaksiPeriode,
-        transaksiAllTime: data.transaksiAllTime,
-        transaksiItemsAllTime: data.transaksiItemsAllTime,
-        pasienPeriode: data.pasienPeriode,
-        pasienAllTime: data.pasienAllTime,
-        kehadiranPeriode: data.kehadiranPeriode,
-        obatAllTime: data.obatAllTime,
+        startDate: _tabStartDate,
+        endDate: _tabEndDate,
+        transaksiPeriode: bundle.transaksiPeriode,
+        transaksiAllTime: bundle.transaksiAllTime,
+        transaksiItemsAllTime: bundle.transaksiItemsAllTime,
+        pasienPeriode: bundle.pasienPeriode,
+        pasienAllTime: bundle.pasienAllTime,
+        kehadiranPeriode: bundle.kehadiranPeriode,
+        obatAllTime: bundle.obatAllTime,
       );
 
-      final spots = summary.chartPoints
-          .asMap()
-          .entries
-          .map(
-              (entry) => FlSpot(entry.key.toDouble(), entry.value.totalNominal))
-          .toList(growable: false);
-
-      final maxChartY = spots.fold<double>(
-        0,
-        (double current, FlSpot item) => item.y > current ? item.y : current,
-      );
-
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
+        _bundle = bundle;
         _summary = summary;
-        _chartSpots = spots;
-        _maxChartY = maxChartY;
         _isLoading = false;
       });
     } catch (error, stackTrace) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _errorMessage = AppErrorMapper.toMessage(error, stackTrace);
         _isLoading = false;
@@ -161,100 +166,312 @@ class _LaporanPageState extends State<LaporanPage> {
     }
   }
 
-  void _onFilterChanged(String filter) {
-    if (filter == 'custom') {
-      _showCustomDatePicker();
-      return;
+  // ─── Export handlers ───────────────────────────────────────────────
+
+  Future<void> _exportCsv() async {
+    if (_summary == null) return;
+    String csv;
+    switch (_activeTab) {
+      case 0:
+        csv = CsvExporter.exportLaporanHarian(
+          _bundle!.transaksiPeriode,
+          formatDateRangeLabel(_tabStartDate, _tabEndDate),
+        );
+        break;
+      case 1:
+        csv = CsvExporter.exportLaporanBulanan(
+          _summary!,
+          formatDateRangeLabel(_tabStartDate, _tabEndDate),
+        );
+        break;
+      default:
+        csv = CsvExporter.exportLaporanTahunan(
+          _summary!,
+          _tabStartDate.year.toString(),
+        );
     }
 
-    setState(() => _selectedFilter = filter);
-    _initDateRange(filter);
-    _loadData();
+    try {
+      await Printing.sharePdf(
+        bytes: Uint8List.fromList(csv.codeUnits),
+        filename: 'laporan_${DateTime.now().millisecondsSinceEpoch}.csv',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal export CSV: $e')),
+        );
+      }
+    }
   }
 
-  Future<void> _showCustomDatePicker() async {
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      initialDateRange: DateTimeRange(start: _startDate, end: _endDate),
-      builder: (ctx, child) {
-        return Theme(
-          data: Theme.of(ctx).copyWith(
-            colorScheme: ColorScheme.light(primary: cprimary(ctx)),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (range == null) {
-      return;
-    }
-
-    final validation = validateDateRange(
-      startDate: range.start,
-      endDate: range.end,
-    );
-
-    if (!validation.isValid) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(validation.message ?? 'Range tanggal tidak valid'),
-        ),
+  Future<void> _exportPdf() async {
+    if (_summary == null) return;
+    try {
+      final doc = _activeTab == 2
+          ? await PdfExporter.exportLaporanTahunan(
+              _summary!,
+              _tabStartDate.year.toString(),
+            )
+          : await PdfExporter.exportLaporanBulanan(
+              _summary!,
+              formatDateRangeLabel(_tabStartDate, _tabEndDate),
+            );
+      await Printing.sharePdf(
+        bytes: await doc.save(),
+        filename: 'laporan_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );
-      return;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal export PDF: $e')),
+        );
+      }
     }
+  }
 
+  // ─── Date pickers per tab ─────────────────────────────────────────
+
+  Future<void> _pickDateHarian() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _tabStartDate,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: ColorScheme.light(primary: cprimary(ctx)),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
     setState(() {
-      _selectedFilter = 'custom';
-      _startDate = range.start;
-      _endDate = range.end;
+      _tabStartDate = picked;
+      _tabEndDate = picked;
     });
     _loadData();
   }
 
+  Future<void> _pickDateBulanan() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _tabStartDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDatePickerMode: DatePickerMode.year,
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: ColorScheme.light(primary: cprimary(ctx)),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
+    final start = DateTime(picked.year, picked.month, 1);
+    final end = DateTime(picked.year, picked.month + 1, 0);
+    setState(() {
+      _tabStartDate = start;
+      _tabEndDate = end;
+    });
+    _loadData();
+  }
+
+  Future<void> _pickDateTahunan() async {
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (ctx) => _YearPickerDialog(initialYear: _tabStartDate.year),
+    );
+    if (picked == null) return;
+    setState(() {
+      _tabStartDate = DateTime(picked, 1, 1);
+      _tabEndDate = DateTime(picked, 12, 31);
+    });
+    _loadData();
+  }
+
+  // ─── Build ─────────────────────────────────────────────────────────
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_accessDenied) {
-      return _buildAccessDenied(context);
-    }
+    if (_accessDenied) return _buildAccessDenied(context);
 
     return Scaffold(
-      backgroundColor: cscaffoldBg(context),
-      appBar: AppBar(
-        title: const Text(
-          'Laporan',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        backgroundColor: cindigo(context),
-        foregroundColor: conPrimary(context),
+      backgroundColor: cscaffoldBgStitch(context),
+      appBar: _buildStitchHeader(context),
+      body: Column(
+        children: [
+          _buildGreetingBanner(context),
+          _buildPeriodChips(context),
+          Expanded(
+            child: _isLoading
+                ? _buildLoading()
+                : _errorMessage != null
+                    ? AppErrorView(
+                        message: _errorMessage!,
+                        onRetry: _loadData,
+                      )
+                    : TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _TabHarian(
+                            bundle: _bundle!,
+                            summary: _summary!,
+                            startDate: _tabStartDate,
+                            endDate: _tabEndDate,
+                            onPickDate: _pickDateHarian,
+                            onExportCsv: _exportCsv,
+                            onExportPdf: _exportPdf,
+                          ),
+                          _TabBulanan(
+                            bundle: _bundle!,
+                            summary: _summary!,
+                            startDate: _tabStartDate,
+                            endDate: _tabEndDate,
+                            onPickDate: _pickDateBulanan,
+                            onExportCsv: _exportCsv,
+                            onExportPdf: _exportPdf,
+                          ),
+                          _TabTahunan(
+                            summary: _summary!,
+                            startDate: _tabStartDate,
+                            endDate: _tabEndDate,
+                            onPickYear: _pickDateTahunan,
+                            onExportCsv: _exportCsv,
+                            onExportPdf: _exportPdf,
+                          ),
+                        ],
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Stitch KEEP #8 (laporan_eksekutif_owner) header ──────────────────
+
+  /// White AppBar dengan 3-section layout (avatar · center title+subtitle · 2
+  /// action icons). 1px outline-variant border under app bar per spec.
+  PreferredSizeWidget _buildStitchHeader(BuildContext context) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: AppBar(
+        backgroundColor: ccardBg(context),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 0,
+        leadingWidth: 56,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.md),
+          child: _stitchAvatarCircle(
+            bg: csurfaceContainer(context),
+            fg: ctextPrimary(context),
+          ),
+        ),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Klinik Sin She Jaya Abadi',
+              style: AppTextStyles.labelSm.copyWith(
+                color: ctextSecondary(context),
+                letterSpacing: 0.2,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Laporan',
+              style: AppTextStyles.headlineMd.copyWith(
+                color: ctextPrimary(context),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        actions: [
+          _stitchIconAction(
+            icon: Icons.notifications_none,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notifikasi segera hadir.')),
+              );
+            },
+          ),
+          _stitchIconAction(
+            icon: Icons.health_and_safety_outlined,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Status klinik: Operasional.')),
+              );
+            },
+          ),
+          const SizedBox(width: AppSpacing.sm),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: Colors.white.withValues(alpha: 0.12),
+            color: coutlineVariantStitch(context),
             height: 1,
           ),
         ),
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: _isLoading
-            ? AppLoadingView(
-                key: const ValueKey('loading'),
-                child: _buildLoading(),
-              )
-            : _errorMessage != null
-                ? AppErrorView(
-                    key: const ValueKey('error'),
-                    message: _errorMessage!,
-                    onRetry: _loadData,
-                  )
-                : _buildContent(),
+    );
+  }
+
+  /// Greeting banner: "Klinik Jaya Abadi" sebagai headline-lg di bawah header.
+  Widget _buildGreetingBanner(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.sm,
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          'Klinik Jaya Abadi',
+          style: AppTextStyles.headlineLg.copyWith(
+            color: ctextPrimary(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Period chips (Hari Ini / 7H / 30H style) — replaces TabBar visual
+  /// while keeping the existing 3-tab data flow (Harian / Bulanan / Tahunan).
+  Widget _buildPeriodChips(BuildContext context) {
+    const labels = ['Harian', 'Bulanan', 'Tahunan'];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final selected = i == _activeTab;
+          return Padding(
+            padding: EdgeInsets.only(
+              right: i < labels.length - 1 ? AppSpacing.sm : 0,
+            ),
+            child: _stitchPeriodChip(
+              label: labels[i],
+              selected: selected,
+              onTap: () {
+                if (i == _activeTab) return;
+                _tabController.animateTo(i);
+              },
+            ),
+          );
+        }),
       ),
     );
   }
@@ -263,695 +480,23 @@ class _LaporanPageState extends State<LaporanPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: const [
-        LaporanLoadingBox(height: 150),
-        SizedBox(height: 16),
-        LaporanLoadingBox(height: 46),
-        SizedBox(height: 16),
+        LaporanLoadingBox(height: 100),
+        SizedBox(height: 12),
+        LaporanLoadingBox(height: 160),
+        SizedBox(height: 12),
         LaporanLoadingBox(height: 220),
-        SizedBox(height: 16),
-        LaporanLoadingBox(height: 260),
       ],
     );
-  }
-
-  Widget _buildContent() {
-    final summary = _summary;
-    if (summary == null) {
-      return const AppEmptyView(
-        title: 'Data laporan belum tersedia',
-        message: 'Silakan tarik ulang untuk memuat laporan.',
-        icon: AppIcons.laporan,
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      color: cindigo(context),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHero(summary),
-            const SizedBox(height: 16),
-            _buildFilterRow(),
-            const SizedBox(height: 16),
-            _buildPrimarySummary(summary),
-            const SizedBox(height: 16),
-            _buildPendapatanSection(summary),
-            const SizedBox(height: 16),
-            _buildTransaksiSection(summary),
-            const SizedBox(height: 16),
-            _buildPasienKehadiranSection(summary),
-            const SizedBox(height: 16),
-            _buildStokSection(summary),
-            const SizedBox(height: 16),
-            _buildChartSection(summary),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHero(LaporanSummary summary) {
-    final heroColor =
-        cisDark(context) ? DarkColors.navy : const Color(0xFF1E3A8A);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: heroColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: heroColor.withValues(alpha: 0.30),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: heroColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: HugeIcon(
-                  icon: AppIcons.laporan,
-                  color: conPrimary(context),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Laporan Klinik',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: conPrimary(context),
-                      ),
-                    ),
-                    Text(
-                      formatDateRangeLabel(_startDate, _endDate),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: ctextSecondary(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            rupiah(summary.pendapatanPeriodeAktif),
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: conPrimary(context),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Pendapatan periode aktif',
-            style: TextStyle(
-              fontSize: 12,
-              color: ctextSecondary(context),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Total seluruh waktu: ${rupiah(summary.totalPendapatanKeseluruhan)}',
-            style: TextStyle(
-              fontSize: 12,
-              color: ctextSecondary(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterRow() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          LaporanFilterChip(
-            label: 'Hari Ini',
-            selected: _selectedFilter == 'hari_ini',
-            onTap: () => _onFilterChanged('hari_ini'),
-          ),
-          const SizedBox(width: 8),
-          LaporanFilterChip(
-            label: 'Minggu Ini',
-            selected: _selectedFilter == 'minggu_ini',
-            onTap: () => _onFilterChanged('minggu_ini'),
-          ),
-          const SizedBox(width: 8),
-          LaporanFilterChip(
-            label: 'Bulan Ini',
-            selected: _selectedFilter == 'bulan_ini',
-            onTap: () => _onFilterChanged('bulan_ini'),
-          ),
-          const SizedBox(width: 8),
-          LaporanFilterChip(
-            label: 'Custom',
-            selected: _selectedFilter == 'custom',
-            onTap: () => _onFilterChanged('custom'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrimarySummary(LaporanSummary summary) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.35,
-      children: [
-        _buildKpiCard(
-          title: 'Pendapatan',
-          value: rupiah(summary.pendapatanPeriodeAktif),
-          subtitle: 'Periode aktif',
-          icon: AppIcons.payment,
-          accentColor: csuccess(context),
-        ),
-        _buildKpiCard(
-          title: 'Transaksi',
-          value: '${summary.jumlahTransaksi}',
-          subtitle: 'Ready + custom',
-          icon: AppIcons.receipt,
-          accentColor: cindigo(context),
-        ),
-        _buildKpiCard(
-          title: 'Kehadiran',
-          value: '${summary.jumlahHadir}/${summary.jumlahKehadiran}',
-          subtitle: 'Hadir / total kehadiran',
-          icon: AppIcons.event,
-          accentColor: cteal(context),
-        ),
-        _buildKpiCard(
-          title: 'Stok Kritis',
-          value: '${summary.jumlahStokKritis}',
-          subtitle:
-              'Menipis ${summary.jumlahStokMenipis} • Habis ${summary.jumlahStokHabis}',
-          icon: AppIcons.inventory,
-          accentColor: summary.jumlahStokKritis == 0
-              ? csuccess(context)
-              : cdanger(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildKpiCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required List<List<dynamic>> icon,
-    required Color accentColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: ccardBg(context),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: HugeIcon(icon: icon, color: accentColor, size: 18),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: ctextSecondary(context),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Expanded(
-            child: Text(
-              value,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: ctextPrimary(context),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 11,
-              color: ctextMuted(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPendapatanSection(LaporanSummary summary) {
-    return LaporanSectionCard(
-      title: 'Ringkasan Pendapatan',
-      subtitle: formatDateRangeLabel(_startDate, _endDate),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMetricRow(
-            label: 'Total Pendapatan (Semua Waktu)',
-            value: rupiah(summary.totalPendapatanKeseluruhan),
-          ),
-          _buildMetricRow(
-            label: 'Pendapatan Periode Aktif',
-            value: rupiah(summary.pendapatanPeriodeAktif),
-            highlight: true,
-          ),
-          const SizedBox(height: 8),
-          Divider(color: cdivider(context)),
-          const SizedBox(height: 8),
-          _buildMetricRow(
-            label: 'Ready Stock',
-            value: rupiah(summary.pendapatanReadyStock),
-          ),
-          _buildMetricRow(
-            label: 'Praktek + Custom (Bundled)',
-            value: rupiah(summary.pendapatanPraktekCustomBundled),
-          ),
-          const SizedBox(height: 8),
-          Divider(color: cdivider(context)),
-          const SizedBox(height: 8),
-          Text(
-            'Breakdown Etalase',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: ctextPrimary(context),
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildMetricRow(
-            label: 'Etalase 1',
-            value: rupiah(summary.pendapatanEtalase1),
-          ),
-          _buildMetricRow(
-            label: 'Etalase 2',
-            value: rupiah(summary.pendapatanEtalase2),
-          ),
-          _buildMetricRow(
-            label: 'Etalase 3 / Custom',
-            value: rupiah(summary.pendapatanEtalase3Custom),
-          ),
-          if (summary.hasSelisihEtalase) ...[
-            _buildMetricRow(
-              label: 'Belum Terpetakan',
-              value: _signedRupiah(summary.selisihPendapatanBelumTerpetakan),
-              valueColor: cwarning(context),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: cwarning(context).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                'Sebagian pendapatan belum terpetakan ke etalase (biasanya karena detail item ready stock tidak lengkap).',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: ctextSecondary(context),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransaksiSection(LaporanSummary summary) {
-    return LaporanSectionCard(
-      title: 'Ringkasan Transaksi',
-      subtitle: 'Total transaksi dan metode bayar pada periode aktif',
-      child: Column(
-        children: [
-          _buildMetricRow(
-            label: 'Jumlah transaksi',
-            value: '${summary.jumlahTransaksi}',
-            highlight: true,
-          ),
-          _buildMetricRow(
-            label: 'Transaksi ready stock',
-            value: '${summary.jumlahTransaksiReadyStock}',
-          ),
-          _buildMetricRow(
-            label: 'Transaksi praktek/custom',
-            value: '${summary.jumlahTransaksiPraktekCustom}',
-          ),
-          const SizedBox(height: 8),
-          Divider(color: cdivider(context)),
-          const SizedBox(height: 8),
-          _buildMetricRow(
-            label: 'Pembayaran cash',
-            value:
-                '${summary.jumlahTransaksiCash} transaksi • ${rupiah(summary.nominalCash)}',
-          ),
-          _buildMetricRow(
-            label: 'Pembayaran QRIS',
-            value:
-                '${summary.jumlahTransaksiQris} transaksi • ${rupiah(summary.nominalQris)}',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPasienKehadiranSection(LaporanSummary summary) {
-    return LaporanSectionCard(
-      title: 'Pasien dan Kehadiran',
-      subtitle: 'Kehadiran dihitung dari status hadir / tidak_hadir',
-      child: Column(
-        children: [
-          _buildMetricRow(
-            label: 'Jumlah pasien terdaftar',
-            value: '${summary.jumlahPasienTerdaftar}',
-          ),
-          _buildMetricRow(
-            label: 'Pasien dijadwalkan periode aktif',
-            value: '${summary.jumlahPasienTerjadwalPeriode}',
-          ),
-          const SizedBox(height: 8),
-          Divider(color: cdivider(context)),
-          const SizedBox(height: 8),
-          _buildMetricRow(
-            label: 'Hadir',
-            value: '${summary.jumlahHadir}',
-            valueColor: csuccess(context),
-          ),
-          _buildMetricRow(
-            label: 'Tidak hadir',
-            value: '${summary.jumlahTidakHadir}',
-            valueColor: cdanger(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStokSection(LaporanSummary summary) {
-    return LaporanSectionCard(
-      title: 'Stok Kritis',
-      subtitle:
-          'Menipis: ${summary.jumlahStokMenipis} • Habis: ${summary.jumlahStokHabis}',
-      child: summary.stokKritis.isEmpty
-          ? const AppEmptyView(
-              title: 'Tidak ada stok kritis',
-              message: 'Semua stok berada pada kondisi aman.',
-              icon: AppIcons.inventory,
-            )
-          : Column(
-              children: [
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: summary.stokKritis.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) =>
-                      _buildStokItem(summary.stokKritis[index]),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildStokItem(ObatModel item) {
-    final isHabis = item.statusStok == StokStatus.habis;
-    final statusColor = isHabis ? cdanger(context) : cwarning(context);
-    final satuanSuffix = item.satuan == null ? '' : ' ${item.satuan}';
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: cscaffoldBg(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cdivider(context)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: HugeIcon(
-              icon: AppIcons.inventory,
-              color: statusColor,
-              size: 16,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.namaObat,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: ctextPrimary(context),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${item.etalase.label} • Stok ${item.stokSaatIni}$satuanSuffix • Min ${item.stokMinimum}$satuanSuffix',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: ctextSecondary(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              isHabis ? 'Habis' : 'Menipis',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: statusColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChartSection(LaporanSummary summary) {
-    return LaporanSectionCard(
-      title: 'Tren Pendapatan Harian',
-      subtitle: '${summary.chartPoints.length} hari hingga ${asDate(_endDate)}',
-      child: SizedBox(
-        height: 220,
-        child: Builder(
-          builder: (ctx) {
-            final chartColor = cindigo(ctx);
-            final divColor = cdivider(ctx);
-            final mutedColor = ctextMuted(ctx);
-            return LineChart(
-              LineChartData(
-                minY: 0,
-                maxY: _maxChartY <= 0 ? 100000 : _maxChartY * 1.2,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: divColor,
-                    strokeWidth: 1,
-                  ),
-                  checkToShowHorizontalLine: (value) => value == 0,
-                ),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 44,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          value >= 1000000
-                              ? '${(value / 1000000).toStringAsFixed(1)}jt'
-                              : value >= 1000
-                                  ? '${(value / 1000).toStringAsFixed(0)}rb'
-                                  : value.toStringAsFixed(0),
-                          style: TextStyle(
-                            color: mutedColor,
-                            fontSize: 10,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.toInt();
-                        if (index < 0 || index >= summary.chartPoints.length) {
-                          return const SizedBox.shrink();
-                        }
-                        final item = summary.chartPoints[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            item.date.day.toString().padLeft(2, '0'),
-                            style: TextStyle(
-                              color: mutedColor,
-                              fontSize: 10,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: _chartSpots,
-                    isCurved: true,
-                    color: chartColor,
-                    barWidth: 3,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          chartColor.withValues(alpha: 0.25),
-                          chartColor.withValues(alpha: 0.05),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetricRow({
-    required String label,
-    required String value,
-    bool highlight = false,
-    Color? valueColor,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
-                color: ctextSecondary(context),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: highlight ? FontWeight.w800 : FontWeight.w700,
-              color: valueColor ?? ctextPrimary(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _signedRupiah(double value) {
-    final absValue = rupiah(value.abs());
-    if (value > 0) {
-      return '+$absValue';
-    }
-    if (value < 0) {
-      return '-$absValue';
-    }
-    return absValue;
   }
 
   Widget _buildAccessDenied(BuildContext context) {
     return Scaffold(
       backgroundColor: cscaffoldBg(context),
       appBar: AppBar(
-        title: const Text(
-          'Laporan',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
+        title: const Text('Laporan', style: TextStyle(fontWeight: FontWeight.w700)),
         backgroundColor: cindigo(context),
         foregroundColor: conPrimary(context),
         elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.white.withValues(alpha: 0.12),
-            height: 1,
-          ),
-        ),
       ),
       body: Center(
         child: Padding(
@@ -965,29 +510,21 @@ class _LaporanPageState extends State<LaporanPage> {
                   color: cdanger(context).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.lock_outline,
-                  size: 48,
-                  color: cdanger(context),
-                ),
+                child: Icon(Icons.lock_outline, size: 48, color: cdanger(context)),
               ),
               const SizedBox(height: 24),
               Text(
                 'Akses Ditolak',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                style: AppTextStyles.headlineLg.copyWith(
                   color: ctextPrimary(context),
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 'Anda tidak memiliki akses untuk melihat halaman laporan.\nHanya owner yang dapat mengakses fitur ini.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: ctextSecondary(context),
-                ),
+                style: AppTextStyles.body.copyWith(color: ctextSecondary(context)),
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
@@ -997,10 +534,7 @@ class _LaporanPageState extends State<LaporanPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cprimary(context),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 14,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 ),
               ),
             ],
@@ -1009,4 +543,1088 @@ class _LaporanPageState extends State<LaporanPage> {
       ),
     );
   }
+
+  // ─── Stitch KEEP #13 mini widgets (header bits) ──────────────────────────
+
+  Widget _stitchAvatarCircle({required Color bg, required Color fg}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: bg,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Icon(Icons.person_outline, color: fg, size: 22),
+    );
+  }
+
+  Widget _stitchIconAction({required IconData icon, required VoidCallback onTap}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: InkResponse(
+        onTap: onTap,
+        radius: 22,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: coutlineVariantStitch(context)),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 20, color: ctextPrimary(context)),
+        ),
+      ),
+    );
+  }
+
+  Widget _stitchPeriodChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final teal = cprimaryStitch(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm10,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? teal : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          border: Border.all(
+            color: selected ? teal : coutlineVariantStitch(context),
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.labelLg.copyWith(
+            color: selected ? Colors.white : ctextPrimary(context),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Tab: Harian ─────────────────────────────────────────────────────────────
+
+class _TabHarian extends StatelessWidget {
+  const _TabHarian({
+    required this.bundle,
+    required this.summary,
+    required this.startDate,
+    required this.endDate,
+    required this.onPickDate,
+    required this.onExportCsv,
+    required this.onExportPdf,
+  });
+
+  final LaporanDataBundle bundle;
+  final LaporanSummary summary;
+  final DateTime startDate;
+  final DateTime endDate;
+  final VoidCallback onPickDate;
+  final VoidCallback onExportCsv;
+  final VoidCallback onExportPdf;
+
+  @override
+  Widget build(BuildContext context) {
+    final transaksi = bundle.transaksiPeriode;
+    final totalNominal = transaksi.fold<double>(0, (s, t) => s + t.total);
+    final totalObat = transaksi
+        .where((t) => t.jenisTransaksi == JenisTransaksi.obatReadyStock)
+        .fold<double>(0, (s, t) => s + t.total);
+    final totalPraktek = transaksi
+        .where((t) => t.jenisTransaksi == JenisTransaksi.praktekCustom)
+        .fold<double>(0, (s, t) => s + t.total);
+    final totalTunai = transaksi
+        .where((t) => t.metodeBayar == MetodeBayarTransaksi.cash)
+        .fold<double>(0, (s, t) => s + t.total);
+    final totalQris = transaksi
+        .where((t) => t.metodeBayar == MetodeBayarTransaksi.qris)
+        .fold<double>(0, (s, t) => s + t.total);
+
+    // Best day = today (only one day for harian)
+    final bestDay = totalNominal;
+    final bestDayLabel = asDate(startDate);
+
+    return RefreshIndicator(
+      onRefresh: () async {},
+      color: cindigo(context),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _DatePickerRow(
+              label: formatDateRangeLabel(startDate, endDate),
+              onTap: onPickDate,
+            ),
+            const SizedBox(height: 12),
+            _StatGrid(
+              items: [
+                _StatItem(label: 'Total Penjualan', value: rupiah(totalNominal)),
+                _StatItem(label: 'Jumlah Transaksi', value: '${transaksi.length}'),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _StatGrid(
+              items: [
+                _StatItem(label: 'Obat', value: rupiah(totalObat)),
+                _StatItem(label: 'Praktek', value: rupiah(totalPraktek)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildHourlyChart(context, transaksi),
+            const SizedBox(height: 12),
+            _BdRow(label: 'Tunai', value: rupiah(totalTunai)),
+            _BdRow(label: 'QRIS', value: rupiah(totalQris)),
+            _BdRow(label: 'Best Day', value: '$bestDayLabel — ${rupiah(bestDay)}'),
+            const SizedBox(height: 12),
+            _ExportRow(onExportCsv: onExportCsv, onExportPdf: onExportPdf),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHourlyChart(BuildContext context, List<TransaksiModel> transaksi) {
+    // Group by hour
+    final hourly = <int, double>{};
+    for (final t in transaksi) {
+      hourly[t.tanggal.hour] = (hourly[t.tanggal.hour] ?? 0) + t.total;
+    }
+    if (hourly.isEmpty) {
+      return _LapCard(
+        title: 'Tren Per Jam',
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('Tidak ada transaksi', style: TextStyle(color: Colors.grey)),
+          ),
+        ),
+      );
+    }
+
+    // Show max 8 bars (most active hours)
+    final sortedHours = hourly.keys.toList()..sort();
+    final displayHours = sortedHours.length > 8
+        ? (sortedHours..sort((a, b) => hourly[b]!.compareTo(hourly[a]!))).take(8).toList()
+        : sortedHours;
+
+    final maxY = hourly.values.reduce((a, b) => a > b ? a : b) * 1.2;
+
+    return _LapCard(
+      title: 'Tren Per Jam',
+      child: SizedBox(
+        height: 180,
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxY,
+            barTouchData: BarTouchData(enabled: false),
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, _) {
+                    final hour = displayHours[value.toInt()];
+                    return Text(
+                      hour.toString().padLeft(2, '0'),
+                      style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
+                    );
+                  },
+                  reservedSize: 20,
+                ),
+              ),
+              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            ),
+            borderData: FlBorderData(show: false),
+            gridData: const FlGridData(show: false),
+            barGroups: displayHours.toList().asMap().entries.map((e) {
+              final idx = e.key;
+              final hour = e.value;
+              final val = hourly[hour]!;
+              return BarChartGroupData(
+                x: idx,
+                barRods: [
+                  BarChartRodData(
+                    toY: val,
+                    color: cteal(context),
+                    width: 10,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(3),
+                      topRight: Radius.circular(3),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Tab: Bulanan ─────────────────────────────────────────────────────────────
+
+class _TabBulanan extends StatelessWidget {
+  const _TabBulanan({
+    required this.bundle,
+    required this.summary,
+    required this.startDate,
+    required this.endDate,
+    required this.onPickDate,
+    required this.onExportCsv,
+    required this.onExportPdf,
+  });
+
+  final LaporanDataBundle bundle;
+  final LaporanSummary summary;
+  final DateTime startDate;
+  final DateTime endDate;
+  final VoidCallback onPickDate;
+  final VoidCallback onExportCsv;
+  final VoidCallback onExportPdf;
+
+  @override
+  Widget build(BuildContext context) {
+    final transaksi = bundle.transaksiPeriode;
+    final totalNominal = transaksi.fold<double>(0, (s, t) => s + t.total);
+    final totalObat = transaksi
+        .where((t) => t.jenisTransaksi == JenisTransaksi.obatReadyStock)
+        .fold<double>(0, (s, t) => s + t.total);
+    final totalPraktek = transaksi
+        .where((t) => t.jenisTransaksi == JenisTransaksi.praktekCustom)
+        .fold<double>(0, (s, t) => s + t.total);
+    final totalTunai = transaksi
+        .where((t) => t.metodeBayar == MetodeBayarTransaksi.cash)
+        .fold<double>(0, (s, t) => s + t.total);
+    final totalQris = transaksi
+        .where((t) => t.metodeBayar == MetodeBayarTransaksi.qris)
+        .fold<double>(0, (s, t) => s + t.total);
+
+    // Best day in the month
+    final dailyTotals = <DateTime, double>{};
+    for (final t in transaksi) {
+      final key = DateTime(t.tanggal.year, t.tanggal.month, t.tanggal.day);
+      dailyTotals[key] = (dailyTotals[key] ?? 0) + t.total;
+    }
+    DateTime? bestDayKey;
+    double bestDayVal = 0;
+    dailyTotals.forEach((k, v) {
+      if (v > bestDayVal) {
+        bestDayVal = v;
+        bestDayKey = k;
+      }
+    });
+
+    // Top 10 obat
+    final topObat = _computeTopObat(bundle.transaksiItemsAllTime, bundle.obatAllTime);
+
+    return RefreshIndicator(
+      onRefresh: () async {},
+      color: cindigo(context),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _DatePickerRow(
+              label: formatDateRangeLabel(startDate, endDate),
+              onTap: onPickDate,
+            ),
+            const SizedBox(height: 12),
+            _StatGrid(
+              items: [
+                _StatItem(label: 'Total Penjualan', value: rupiah(totalNominal)),
+                _StatItem(label: 'Jumlah Transaksi', value: '${transaksi.length}'),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _StatGrid(
+              items: [
+                _StatItem(label: 'Obat', value: rupiah(totalObat)),
+                _StatItem(label: 'Praktek', value: rupiah(totalPraktek)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildDailyChart(context, transaksi),
+            const SizedBox(height: 12),
+            _BdRow(label: 'Tunai', value: rupiah(totalTunai)),
+            _BdRow(label: 'QRIS', value: rupiah(totalQris)),
+            if (bestDayKey != null)
+              _BdRow(
+                label: 'Best Day',
+                value: '${asDate(bestDayKey!)} — ${rupiah(bestDayVal)}',
+              ),
+            const SizedBox(height: 12),
+            if (topObat.isNotEmpty) ...[
+              _LapCard(
+                title: 'Top 10 Obat',
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: topObat.length,
+                  itemBuilder: (ctx, i) => _TopObatRow(item: topObat[i]),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            _LapCard(
+              title: 'Operasional — ${_monthName(startDate.month)} ${startDate.year}',
+              child: Column(
+                children: [
+                  _OpRow(label: 'Obat Masuk', value: 'N/A', valueColor: ctextSecondary(context)),
+                  _OpRow(label: 'Obat Keluar', value: 'N/A', valueColor: ctextSecondary(context)),
+                  _OpRow(label: 'Sinkronisasi Stok', value: 'N/A', valueColor: ctextSecondary(context)),
+                  _OpRow(
+                    label: 'Pasien Baru',
+                    value: '${bundle.pasienPeriode.length}',
+                    valueColor: csuccess(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ExportRow(onExportCsv: onExportCsv, onExportPdf: onExportPdf),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyChart(BuildContext context, List<TransaksiModel> transaksi) {
+    final dailyMap = <int, double>{};
+    for (final t in transaksi) {
+      dailyMap[t.tanggal.day] = (dailyMap[t.tanggal.day] ?? 0) + t.total;
+    }
+    if (dailyMap.isEmpty) {
+      return _LapCard(
+        title: 'Tren Harian',
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('Tidak ada transaksi', style: TextStyle(color: Colors.grey)),
+          ),
+        ),
+      );
+    }
+
+    final days = dailyMap.keys.toList()..sort();
+    final maxY = dailyMap.values.reduce((a, b) => a > b ? a : b) * 1.2;
+
+    return _LapCard(
+      title: 'Tren Harian',
+      child: SizedBox(
+        height: 180,
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxY,
+            barTouchData: BarTouchData(enabled: false),
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, _) {
+                    final dayLabels = [1, 5, 10, 15, 20, 25];
+                    final day = days[value.toInt()];
+                    if (dayLabels.contains(day)) {
+                      return Text(
+                        '$day',
+                        style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                  reservedSize: 20,
+                ),
+              ),
+              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            ),
+            borderData: FlBorderData(show: false),
+            gridData: const FlGridData(show: false),
+            barGroups: days.asMap().entries.map((e) {
+              return BarChartGroupData(
+                x: e.key,
+                barRods: [
+                  BarChartRodData(
+                    toY: e.value.toDouble(),
+                    color: cindigo(context),
+                    width: 16,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(3),
+                      topRight: Radius.circular(3),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<_TopObatData> _computeTopObat(
+    List<TransaksiItemModel> items,
+    List<ObatModel> obatList,
+  ) {
+    final obatById = {for (final o in obatList) o.idObat: o};
+    final grouped = <int, _TopObatData>{};
+
+    for (final item in items) {
+      final obat = obatById[item.idObat];
+      if (obat == null) continue;
+      if (obat.etalase != Etalase.etalase1 && obat.etalase != Etalase.etalase2) {
+        continue;
+      }
+      final existing = grouped[item.idObat];
+      if (existing != null) {
+        grouped[item.idObat] = _TopObatData(
+          idObat: item.idObat,
+          namaObat: obat.namaObat,
+          jumlahTerjual: existing.jumlahTerjual + item.jumlah,
+          totalNominal: existing.totalNominal + item.subtotal,
+        );
+      } else {
+        grouped[item.idObat] = _TopObatData(
+          idObat: item.idObat,
+          namaObat: obat.namaObat,
+          jumlahTerjual: item.jumlah,
+          totalNominal: item.subtotal,
+        );
+      }
+    }
+
+    final sorted = grouped.values.toList()
+      ..sort((a, b) => b.totalNominal.compareTo(a.totalNominal));
+
+    return sorted.take(10).toList();
+  }
+}
+
+class _TopObatData {
+  _TopObatData({
+    required this.idObat,
+    required this.namaObat,
+    required this.jumlahTerjual,
+    required this.totalNominal,
+  });
+  final int idObat;
+  final String namaObat;
+  final int jumlahTerjual;
+  final double totalNominal;
+}
+
+// ─── Tab: Tahunan ─────────────────────────────────────────────────────────────
+
+class _TabTahunan extends StatelessWidget {
+  const _TabTahunan({
+    required this.summary,
+    required this.startDate,
+    required this.endDate,
+    required this.onPickYear,
+    required this.onExportCsv,
+    required this.onExportPdf,
+  });
+
+  final LaporanSummary summary;
+  final DateTime startDate;
+  final DateTime endDate;
+  final VoidCallback onPickYear;
+  final VoidCallback onExportCsv;
+  final VoidCallback onExportPdf;
+
+  @override
+  Widget build(BuildContext context) {
+    final year = startDate.year;
+    final chartPoints = summary.chartPoints;
+
+    // Group by month
+    final monthlyMap = <int, double>{};
+    for (final p in chartPoints) {
+      monthlyMap[p.date.month] = (monthlyMap[p.date.month] ?? 0) + p.totalNominal;
+    }
+
+    // Stok overview
+    final obatList = summary.stokKritis;
+    final stokHabis = obatList.where((o) => o.statusStok == StokStatus.habis).length;
+    final stokMenipis = obatList.where((o) => o.statusStok == StokStatus.menipis).length;
+    final stokAman = summary.jumlahStokKritis == 0
+        ? 'Semua stok aman'
+        : '${summary.jumlahStokKritis} item kritis';
+
+    return RefreshIndicator(
+      onRefresh: () async {},
+      color: cindigo(context),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _DatePickerRow(
+              label: 'Tahun $year',
+              onTap: onPickYear,
+            ),
+            const SizedBox(height: 12),
+            _StatGrid(
+              items: [
+                _StatItem(
+                  label: 'Total Penjualan YTD',
+                  value: rupiah(summary.totalPendapatanKeseluruhan),
+                ),
+                _StatItem(
+                  label: 'Total Transaksi',
+                  value: '${summary.jumlahTransaksi}',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _StatGrid(
+              items: [
+                _StatItem(
+                  label: 'Transaksi Obat',
+                  value: '${summary.jumlahTransaksiReadyStock}',
+                ),
+                _StatItem(
+                  label: 'Transaksi Praktek',
+                  value: '${summary.jumlahTransaksiPraktekCustom}',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildMonthlyChart(context, monthlyMap),
+            const SizedBox(height: 12),
+            _BdRow(label: 'Etalase 1', value: rupiah(summary.pendapatanEtalase1)),
+            _BdRow(label: 'Etalase 2', value: rupiah(summary.pendapatanEtalase2)),
+            _BdRow(label: 'Etalase 3 / Praktek', value: rupiah(summary.pendapatanEtalase3Custom)),
+            _BdRow(label: 'Pasien Baru', value: '${summary.jumlahPasienTerdaftar}'),
+            const SizedBox(height: 12),
+            _LapCard(
+              title: 'Stok Overview',
+              child: Column(
+                children: [
+                  _OpRow(
+                    label: 'Habis',
+                    value: '$stokHabis item',
+                    valueColor: cdanger(context),
+                  ),
+                  _OpRow(
+                    label: 'Menipis',
+                    value: '$stokMenipis item',
+                    valueColor: cwarning(context),
+                  ),
+                  _OpRow(
+                    label: 'Status',
+                    value: stokAman,
+                    valueColor: csuccess(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ExportRow(onExportCsv: onExportCsv, onExportPdf: onExportPdf),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMonthlyChart(BuildContext context, Map<int, double> monthlyMap) {
+    final months = List.generate(12, (i) => i + 1);
+    final maxY = monthlyMap.values.isEmpty
+        ? 100000.0
+        : monthlyMap.values.reduce((a, b) => a > b ? a : b) * 1.2;
+
+    return _LapCard(
+      title: 'Tren Bulanan',
+      child: SizedBox(
+        height: 180,
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxY,
+            barTouchData: BarTouchData(enabled: false),
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, _) {
+                    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+                      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    return Text(
+                      labels[value.toInt()],
+                      style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
+                    );
+                  },
+                  reservedSize: 20,
+                ),
+              ),
+              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            ),
+            borderData: FlBorderData(show: false),
+            gridData: const FlGridData(show: false),
+            barGroups: months.map((m) {
+              return BarChartGroupData(
+                x: m - 1,
+                barRods: [
+                  BarChartRodData(
+                    toY: monthlyMap[m] ?? 0,
+                    color: cteal(context),
+                    width: 16,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(3),
+                      topRight: Radius.circular(3),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Shared widgets ──────────────────────────────────────────────────────────
+
+class _DatePickerRow extends StatelessWidget {
+  const _DatePickerRow({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.size12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: ccardBg(context),
+          borderRadius: BorderRadius.circular(AppRadius.size12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, size: 16, color: ctextSecondary(context)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.titleSm.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: ctextPrimary(context),
+                ),
+              ),
+            ),
+            Icon(Icons.arrow_drop_down, color: ctextSecondary(context)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatItem {
+  const _StatItem({required this.label, required this.value});
+  final String label;
+  final String value;
+}
+
+class _StatGrid extends StatelessWidget {
+  const _StatGrid({required this.items});
+
+  final List<_StatItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      childAspectRatio: 1.5,
+      children: items.map((item) => _StatCard(item: item)).toList(),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.item});
+
+  final _StatItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(AppRadius.lg14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            item.label,
+            style: AppTextStyles.caption.copyWith(color: ctextSecondary(context)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyLg.copyWith(
+              color: ctextPrimary(context),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LapCard extends StatelessWidget {
+  const _LapCard({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: ccardBg(context),
+        borderRadius: BorderRadius.circular(AppRadius.lg14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: cisDark(context)
+                  ? DarkColors.surface
+                  : AppColors.legacySlate100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
+              ),
+            ),
+            child: Text(
+              title,
+              style: AppTextStyles.labelLg.copyWith(
+                color: ctextPrimary(context),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Padding(padding: const EdgeInsets.all(12), child: child),
+        ],
+      ),
+    );
+  }
+}
+
+class _BdRow extends StatelessWidget {
+  const _BdRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: cdivider(context),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.labelSm.copyWith(color: ctextSecondary(context)),
+          ),
+          Text(
+            value,
+            style: AppTextStyles.labelSm.copyWith(
+              color: ctextPrimary(context),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpRow extends StatelessWidget {
+  const _OpRow({
+    required this.label,
+    required this.value,
+    Color? valueColor,
+  }) : _valueColor = valueColor;
+
+  final String label;
+  final String value;
+  final Color? _valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: cisDark(context)
+            ? DarkColors.surface
+            : AppColors.legacySlate50,
+        borderRadius: BorderRadius.circular(AppRadius.sm10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.labelSm.copyWith(color: ctextSecondary(context)),
+          ),
+          Text(
+            value,
+            style: AppTextStyles.titleSm.copyWith(
+              color: _valueColor ?? ctextPrimary(context),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExportRow extends StatelessWidget {
+  const _ExportRow({
+    required this.onExportCsv,
+    required this.onExportPdf,
+  });
+
+  final VoidCallback onExportCsv;
+  final VoidCallback onExportPdf;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onExportCsv,
+            icon: const Icon(Icons.download, size: 16),
+            label: const Text('Export CSV'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: cteal(context),
+              side: BorderSide(color: cteal(context)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onExportPdf,
+            icon: const Icon(Icons.print, size: 16),
+            label: const Text('Export PDF'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: ctextSecondary(context),
+              side: BorderSide(color: cdivider(context)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TopObatRow extends StatelessWidget {
+  const _TopObatRow({required this.item});
+
+  final _TopObatData item;
+
+  @override
+  Widget build(BuildContext context) {
+    Color rankColor;
+    if (item.totalNominal > 0) {
+      rankColor = cteal(context);
+    } else {
+      rankColor = ctextMuted(context);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: cisDark(context)
+            ? DarkColors.surface
+            : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.sm10),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: rankColor,
+              borderRadius: BorderRadius.circular(AppRadius.sm10),
+            ),
+            child: Text(
+              '•',
+              style: AppTextStyles.caption.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.namaObat,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: ctextPrimary(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '${item.jumlahTerjual} terjual',
+                  style: AppTextStyles.labelXs.copyWith(color: ctextMuted(context)),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            rupiah(item.totalNominal),
+            style: AppTextStyles.titleSm.copyWith(
+              color: cteal(context),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Year Picker Dialog ─────────────────────────────────────────────────────
+
+class _YearPickerDialog extends StatefulWidget {
+  const _YearPickerDialog({required this.initialYear});
+
+  final int initialYear;
+
+  @override
+  State<_YearPickerDialog> createState() => _YearPickerDialogState();
+}
+
+class _YearPickerDialogState extends State<_YearPickerDialog> {
+  late int _selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = widget.initialYear;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentYear = DateTime.now().year;
+    final years = List.generate(currentYear - 2019, (i) => currentYear - i);
+
+    return AlertDialog(
+      title: const Text('Pilih Tahun'),
+      content: SizedBox(
+        width: 200,
+        height: 300,
+        child: ListView.builder(
+          itemCount: years.length,
+          itemBuilder: (ctx, i) {
+            final year = years[i];
+            final isSelected = year == _selectedYear;
+            return ListTile(
+              title: Text(
+                '$year',
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.normal,
+                  color: isSelected ? cprimary(context) : ctextPrimary(context),
+                ),
+              ),
+              onTap: () => Navigator.pop(context, year),
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+String _monthName(int month) {
+  const names = [
+    '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+  return names[month];
 }

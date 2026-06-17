@@ -69,6 +69,28 @@ class ObatRepository extends BaseRepository {
   Future<List<ObatModel>> getLowStock({int limit = 10}) =>
       getStokMenipis(limit: limit);
 
+  /// Ambil obat yang DISPLAY saja (etalase 1 & 2 = Obat tab, etalase 3 = Praktek tab).
+  /// Parameter [etalases] = null berarti tampilkan semua.
+  /// Digunakan di TransaksiFormPage untuk memfilter berdasarkan tab aktif.
+  Future<List<ObatModel>> getObatsByEtalase({List<Etalase>? etalases}) {
+    return guard(() async {
+      final response = await _client
+          .from('obat')
+          .select()
+          .order('nama_obat', ascending: true);
+
+      final allObat = List<Map<String, dynamic>>.from(response)
+          .map(ObatModel.fromMap)
+          .toList();
+
+      if (etalases == null || etalases.isEmpty) {
+        return allObat;
+      }
+
+      return allObat.where((o) => etalases.contains(o.etalase)).toList();
+    });
+  }
+
   /// Meminta DB menghitung ulang stok untuk 1 obat.
   ///
   /// Source of truth stok ada di SQL function:
@@ -114,10 +136,10 @@ class ObatRepository extends BaseRepository {
     String? satuan,
     String? keterangan,
     String? fotoUrl,
-    // ── Harga Source of Truth (FASE 1, 2026-04-27) ────────────────────
+    // ── Harga Source of Truth (FASE 1) ────────────────────────────────────
     num? hargaJual,
     String? satuanJual,
-    bool bisaEcer = false,
+    bool? bisaEcer,
     num? hargaEcer,
     String? satuanEcer,
   }) {
@@ -134,11 +156,11 @@ class ObatRepository extends BaseRepository {
             'satuan': parseNullableString(satuan),
             'keterangan': parseNullableString(keterangan),
             'foto_url': parseNullableString(fotoUrl),
-            // ── Harga ────────────────────────────────────────────────────
-            if (hargaJual != null) 'harga_jual': hargaJual,
+            // ── Harga ────────────────────────────────────────────────────────
+            'harga_jual': hargaJual,
             'satuan_jual': parseNullableString(satuanJual),
-            'bisa_ecer': bisaEcer,
-            if (hargaEcer != null) 'harga_ecer': hargaEcer,
+            'bisa_ecer': bisaEcer ?? false,
+            'harga_ecer': hargaEcer,
             'satuan_ecer': parseNullableString(satuanEcer),
           })
           .select()
@@ -156,10 +178,10 @@ class ObatRepository extends BaseRepository {
     String? satuan,
     String? keterangan,
     String? fotoUrl,
-    // ── Harga Source of Truth (FASE 1, 2026-04-27) ────────────────────
+    // ── Harga Source of Truth (FASE 1) ────────────────────────────────────
     num? hargaJual,
     String? satuanJual,
-    bool bisaEcer = false,
+    bool? bisaEcer,
     num? hargaEcer,
     String? satuanEcer,
   }) {
@@ -173,11 +195,11 @@ class ObatRepository extends BaseRepository {
             'satuan': parseNullableString(satuan),
             'keterangan': parseNullableString(keterangan),
             if (fotoUrl != null) 'foto_url': parseNullableString(fotoUrl),
-            // ── Harga ────────────────────────────────────────────────────
-            if (hargaJual != null) 'harga_jual': hargaJual,
+            // ── Harga ──────────────────────────────────────────────────────
+            'harga_jual': hargaJual,
             'satuan_jual': parseNullableString(satuanJual),
-            'bisa_ecer': bisaEcer,
-            if (hargaEcer != null) 'harga_ecer': hargaEcer,
+            'bisa_ecer': bisaEcer ?? false,
+            'harga_ecer': hargaEcer,
             'satuan_ecer': parseNullableString(satuanEcer),
           })
           .eq('id_obat', idObat)
@@ -209,7 +231,7 @@ class ObatRepository extends BaseRepository {
         idObat: idObat,
       );
       final usedInSinkronisasiStok = await _existsUsage(
-        table: 'sinkronisasi_stok',
+        table: 'stock_opname',
         idColumn: 'id_opname',
         idObat: idObat,
       );
@@ -298,12 +320,22 @@ class ObatRepository extends BaseRepository {
     return raw == 'true' || raw == '1' || raw == 't' || raw == 'yes';
   }
 
-  /// Upload foto obat ke Supabase Storage lalu simpan public URL ke tabel obat.
+  /// Upload foto obat ke Supabase Storage lalu simpan ke tabel obat.
+  ///
+  /// Menulis ke kolom: `foto_key` + `foto_updated_at` (source of truth).
+  /// Fallback: `foto_url` untuk backward compatibility data lama.
+  ///
+  /// Jika [etalase] dan [namaObat] supplied, pathStorage di-generate
+  /// sebagai `etalase-value/nama_obat_snake_case.webp`.
+  /// Jika tidak supplied, fallback ke format lama `obat/{idObat}/{timestamp}.{ext}`.
   Future<String> uploadFotoObat({
     required int idObat,
     required Uint8List bytes,
     required String fileName,
     String? previousFotoUrl,
+    // ── Foto Source of Truth (FASE 2) ─────────────────────────────────────
+    Etalase? etalase,
+    String? namaObat,
   }) {
     return guard(() async {
       if (idObat <= 0) {
@@ -331,9 +363,12 @@ class ObatRepository extends BaseRepository {
         );
       }
 
-      final objectPath = _buildFotoObjectPath(
+      // ── Build object path (FASE 2: etalase-format, fallback legacy) ──────
+      final objectPath = _buildUploadObjectPath(
         idObat: idObat,
         extension: extension,
+        etalase: etalase,
+        namaObat: namaObat,
       );
 
       try {
@@ -355,13 +390,16 @@ class ObatRepository extends BaseRepository {
         );
       }
 
-      final publicUrl = _client.storage.from(_fotoBucket).getPublicUrl(
-            objectPath,
-          );
+      final fotoUpdatedAt = DateTime.now().toUtc();
 
-      await _client
-          .from('obat')
-          .update({'foto_url': publicUrl}).eq('id_obat', idObat);
+      // ── Write to foto_key + foto_updated_at (source of truth FASE 2) ─────
+      await _client.from('obat').update({
+        'foto_key': objectPath,
+        'foto_updated_at': fotoUpdatedAt.toIso8601String(),
+      }).eq('id_obat', idObat);
+
+      // Legacy: juga tulis foto_url agar data lama tetap bisa resolve
+      final publicUrl = _client.storage.from(_fotoBucket).getPublicUrl(objectPath);
 
       final oldPath = _extractStoragePathFromFotoUrl(previousFotoUrl);
       if (oldPath != null && oldPath != objectPath) {
@@ -381,6 +419,31 @@ class ObatRepository extends BaseRepository {
     });
   }
 
+  /// Update hanya kolom `foto_key` + `foto_updated_at` untuk 1 row obat.
+  ///
+  /// Dipakai oleh [FotoObatUploadService] setelah upload Storage sukses.
+  /// Tidak menyentuh kolom lain — minimal update untuk cache busting.
+  Future<ObatModel> updateFotoKey({
+    required int idObat,
+    required String fotoKey,
+  }) {
+    return guard(() async {
+      if (idObat <= 0) {
+        throw const ValidationException('Data obat tidak valid.');
+      }
+      final response = await _client
+          .from('obat')
+          .update({
+            'foto_key': fotoKey,
+            'foto_updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id_obat', idObat)
+          .select()
+          .single();
+      return ObatModel.fromMap(Map<String, dynamic>.from(response));
+    });
+  }
+
   /// Hapus foto produk obat.
   Future<void> deleteFotoObat(
     int idObat, {
@@ -390,10 +453,10 @@ class ObatRepository extends BaseRepository {
       String? currentFotoUrl = parseNullableString(fotoUrl);
       currentFotoUrl ??= await getFotoObat(idObat);
 
-      // Clear foto_url in obat record
+      // Clear foto_key and foto_url in obat record
       await _client
           .from('obat')
-          .update({'foto_url': null}).eq('id_obat', idObat);
+          .update({'foto_key': null, 'foto_url': null}).eq('id_obat', idObat);
 
       await _removeFotoObjectIfExists(currentFotoUrl, swallowErrors: false);
     });
@@ -413,12 +476,26 @@ class ObatRepository extends BaseRepository {
     });
   }
 
-  String _buildFotoObjectPath({
+  String _buildUploadObjectPath({
     required int idObat,
     required String extension,
+    Etalase? etalase,
+    String? namaObat,
   }) {
+    if (etalase != null && (namaObat ?? '').trim().isNotEmpty) {
+      final snakeCase = namaObat!
+          .trim()
+          .toLowerCase()
+          .replaceAll(RegExp(r'[\s\-]+'), '_')
+          .replaceAll(RegExp(r'[^a-z0-9_]'), '')
+          .replaceAll(RegExp(r'_+'), '_')
+          .replaceAll(RegExp(r'^_|_$'), '');
+      return '${etalase.value}/$snakeCase.webp';
+    }
+    // Legacy fallback: obat/{idObat}/{timestamp}.{ext}
     final timestamp = DateTime.now().microsecondsSinceEpoch;
-    final randomSuffix = Random.secure().nextInt(0x7fffffff).toRadixString(16);
+    final randomSuffix =
+        Random.secure().nextInt(0x7fffffff).toRadixString(16);
     return 'obat/$idObat/$timestamp-$randomSuffix.$extension';
   }
 

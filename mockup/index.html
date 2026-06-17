@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SinShe Jaya Abadi — Mockup v7</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    padding: 20px;
+  }
+  .header-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 12px 20px;
+    background: #16213e;
+    border-radius: 12px;
+  }
+  .header-bar h1 { font-size: 18px; color: #e94560; flex: 1; }
+  .header-bar button {
+    padding: 8px 16px;
+    border: 1px solid #e94560;
+    background: transparent;
+    color: #e94560;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .header-bar button.active {
+    background: #e94560;
+    color: #fff;
+  }
+  .screens {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .screen-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .screen-label {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    padding: 4px 0;
+  }
+
+  /* ===== PHONE FRAME ===== */
+  .phone {
+    width: 290px;
+    height: 600px;
+    background: #0f0f23;
+    border-radius: 36px;
+    border: 3px solid #2a2a4a;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .notch {
+    width: 80px;
+    height: 24px;
+    background: #0f0f23;
+    border-radius: 0 0 16px 16px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .notch::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: #333;
+    border-radius: 50%;
+  }
+  .notch::after {
+    content: '';
+    width: 60px; height: 6px;
+    background: #222;
+    border-radius: 3px;
+  }
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 20px 4px;
+    font-size: 10px;
+    color: #888;
+  }
+  .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .safe-bottom {
+    height: 24px;
+    background: #0f0f23;
+    flex-shrink: 0;
+  }
+
+  /* ===== LOGIN SCREEN ===== */
+  .login-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0f0f23 0%, #16213e 100%);
+  }
+  .login-logo-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 24px 16px;
+  }
+  .login-logo {
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, #e94560, #c23152);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    box-shadow: 0 8px 32px rgba(233,69,96,0.3);
+  }
+  .login-logo-text {
+    text-align: center;
+  }
+  .login-logo-text h2 {
+    font-size: 18px;
+    color: #e94560;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .login-logo-text span {
+    font-size: 11px;
+    color: #666;
+  }
+  .login-form {
+    padding: 0 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .login-input {
+    background: #16213e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #ccc;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .login-input:focus { border-color: #e94560; }
+  .login-input::placeholder { color: #555; }
+  .login-btn {
+    background: linear-gradient(135deg, #e94560, #c23152);
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(233,69,96,0.3);
+  }
+  .login-link {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    padding-bottom: 16px;
+  }
+  .login-link a { color: #e94560; text-decoration: none; }
+
+  /* ===== TOP APP BAR ===== */
+  .app-bar {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .app-bar-icon {
+    width: 36px; height: 36px;
+    background: rgba(233,69,96,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .app-bar-title {
+    flex: 1;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .app-bar-badge {
+    width: 8px; height: 8px;
+    background: #e94560;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px; right: 58px;
+  }
+  .app-bar-action {
+    width: 36px; height: 36px;
+    background: transparent;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav {
+    display: flex;
+    background: #0f1629;
+    border-top: 1px solid #1e2a4a;
+    padding: 6px 8px 10px;
+    flex-shrink: 0;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .nav-item.active .nav-icon-wrap {
+    background: rgba(233,69,96,0.2);
+    color: #e94560;
+  }
+  .nav-item.active .nav-label { color: #e94560; }
+  .nav-icon-wrap {
+    width: 32px; height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 18px;
+    color: #555;
+    transition: all 0.2s;
+  }
+  .nav-label {
+    font-size: 10px;
+    color: #555;
+    font-weight: 500;
+  }
+
+  /* ===== CARD COMPONENTS ===== */
+  .section-title {
+    font-size: 13px;
+    color: #888;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 16px 16px 8px;
+  }
+  .metric-card {
+    margin: 0 16px 8px;
+    background: #16213e;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid #1e2a4a;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .metric-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .metric-info { flex: 1; }
+  .metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .metric-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+  }
+  .metric-trend {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .trend-up { background: rgba(46,213,115,0.15); color: #2ed573; }
+  .trend-down { background: rgba(255,66,66,0.15); color: #ff4242; }
+  .trend-neutral { background: rgba(255,193,7,0.15); color: #ffc107; }
+
+  /* ===== DASHBOARD OWNER ===== */
+  .owner-header {
+    background: linear-gradient(135deg, #e94560, #c23152);
+    padding: 20px 16px 24px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .owner-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .owner-greeting { color: rgba(255,255,255,0.8); font-size: 13px; }
+  .owner-name { color: #fff; font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .owner-clinic { color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 2px; }
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .header-clock {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .header-date {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    text-align: right;
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .header-icon-btn {
+    width: 34px; height: 34px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+  }
+
+  /* ===== TAB STRIP ===== */
+  .tab-strip {
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .tab-strip::-webkit-scrollbar { display: none; }
+  .tab-chip {
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #2a2a4a;
+    background: #16213e;
+    color: #666;
+    flex-shrink: 0;
+  }
+  .tab-chip.active {
+    background: rgba(233,69,96,0.2);
+    border-color: #e94560;
+    color: #e94560;
+  }
+
+  /* ===== LIST ITEMS ===== */
+  .list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #16213e;
+    cursor: pointer;
+  }
+  .list-item:last-child { border-none; }
+  .list-thumb {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: #16213e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .list-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .list-info { flex: 1; min-width: 0; }
+  .list-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .list-sub {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+  }
+  .list-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .list-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e94560;
+  }
+  .stok-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .stok-ok { background: rgba(46,213,115,0.15); color: #2ed573; }
+  .stok-low { background: rgba(255,193,7,0.15); color: #ffc107; }
+  .stok-critical { background: rgba(255,66,66,0.15); color: #ff4242; }
+
+  /* ===== TRANSAKSI ===== */
+  .transaksi-header {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+  .type-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #2a2a4a;
+    background: #16213e;
+    color: #666;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .type-btn.active {
+    background: rgba(233,69,96,0.2);
+    border-color: #e94560;
+    color: #e94560;
+  }
+  .etalase-select {
+    display: flex;
+    gap: 6px;
+    padding: 0 16px 10px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .etalase-pill {
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #2a2a4a;
+    background: #16213e;
+    color: #555;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .etalase-pill.active {
+    background: rgba(233,69,96,0.2);
+    border-color: #e94560;
+    color: #e94560;
+  }
+  .etalase-pill.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .search-bar {
+    margin: 0 16px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #16213e;
+    border-radius: 12px;
+    padding: 10px 14px;
+    border: 1px solid #1e2a4a;
+  }
+  .search-bar input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ccc;
+    font-size: 13px;
+  }
+  .search-bar input::placeholder { color: #555; }
+  .search-icon { color: #555; font-size: 14px; }
+
+  /* ===== KETERANGAN STOK ===== */
+  .alert-card {
+    margin: 8px 16px;
+    background: #16213e;
+    border-radius: 14px;
+    padding: 12px 14px;
+    border-left: 3px solid;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .alert-card.warn { border-left-color: #ffc107; }
+  .alert-card.critical { border-left-color: #ff4242; }
+  .alert-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .alert-info { flex: 1; }
+  .alert-title { font-size: 13px; font-weight: 600; color: #e0e0e0; }
+  .alert-sub { font-size: 11px; color: #666; margin-top: 2px; }
+  .alert-count {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .alert-count.warn { color: #ffc107; }
+  .alert-count.critical { color: #ff4242; }
+
+  /* ===== LAPORAN SECTION ===== */
+  .date-range-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+  .range-tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #16213e;
+    color: #666;
+    border: 1px solid #2a2a4a;
+  }
+  .range-tab.active {
+    background: rgba(233,69,96,0.2);
+    border-color: #e94560;
+    color: #e94560;
+  }
+  .laporan-summary {
+    margin: 8px 16px;
+    background: linear-gradient(135deg, #e94560, #c23152);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .laporan-summary .label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+  }
+  .laporan-summary .nominal {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+  }
+  .laporan-summary .detail {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .laporan-summary .detail-item {
+    text-align: center;
+  }
+  .laporan-summary .detail-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .laporan-summary .detail-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 2px;
+  }
+  .laporan-chart {
+    margin: 8px 16px;
+    background: #16213e;
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .chart-title {
+    font-size: 12px;
+    color: #888;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    background: rgba(233,69,96,0.3);
+    position: relative;
+  }
+  .bar .bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    border-radius: 4px 4px 0 0;
+    background: #e9456080;
+  }
+  .bar .bar-label {
+    position: absolute;
+    bottom: -16px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 8px;
+    color: #555;
+  }
+  .laporan-table {
+    margin: 8px 16px;
+    background: #16213e;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .table-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid #1e2a4a;
+  }
+  .table-row:last-child { border: none; }
+  .table-header { background: #1e2a4a; font-size: 11px; color: #666; font-weight: 600; }
+  .table-cell { font-size: 12px; color: #ccc; }
+  .col-no { width: 30px; font-size: 11px; color: #555; }
+  .col-name { flex: 1; }
+  .col-qty { width: 50px; text-align: center; }
+  .col-total { width: 90px; text-align: right; font-weight: 600; color: #e94560; }
+
+  /* ===== STRUK HITAM PUTIH ===== */
+  .struk-bw {
+    width: 240px;
+    background: #fff;
+    color: #000;
+    padding: 16px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+  }
+  .struk-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+  .struk-logo { font-size: 24px; margin-bottom: 4px; }
+  .struk-clinic { font-size: 12px; font-weight: bold; }
+  .struk-address { font-size: 9px; }
+  .struk-divider { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+  .struk-items { }
+  .struk-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .struk-item-name { flex: 1; font-size: 10px; }
+  .struk-item-price { font-size: 10px; font-weight: bold; }
+  .struk-total { display: flex; justify-content: space-between; font-weight: bold; margin-top: 6px; }
+  .struk-footer { margin-top: 8px; text-align: center; font-size: 9px; border-top: 1px dashed #000; padding-top: 6px; }
+
+  /* ===== AKUN PAGE ===== */
+  .akun-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    background: #16213e;
+    margin: 16px;
+    border-radius: 16px;
+  }
+  .akun-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e94560, #c23152);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .akun-name { font-size: 16px; font-weight: 700; color: #fff; }
+  .akun-role { font-size: 12px; color: #e94560; margin-top: 2px; font-weight: 600; }
+  .akun-menu {
+    margin: 0 16px;
+    background: #16213e;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .akun-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #1e2a4a;
+    cursor: pointer;
+  }
+  .akun-menu-item:last-child { border: none; }
+  .akun-menu-icon { font-size: 18px; color: #e94560; width: 24px; text-align: center; }
+  .akun-menu-label { flex: 1; font-size: 14px; color: #e0e0e0; }
+  .akun-menu-arrow { color: #555; font-size: 14px; }
+  .logout-btn {
+    margin: 8px 16px 16px;
+    padding: 14px;
+    background: rgba(255,66,66,0.15);
+    border: 1px solid rgba(255,66,66,0.3);
+    border-radius: 12px;
+    text-align: center;
+    color: #ff4242;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ===== SCREEN DIVIDER ===== */
+  .role-label {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #16213e;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e94560;
+    border: 1px solid #e94560;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-bar">
+  <h1>SinShe Jaya Abadi — Mockup v7</h1>
+  <button class="active" onclick="showRole('owner')">Owner</button>
+  <button onclick="showRole('admin')">Admin</button>
+</div>
+
+<div class="screens" id="screens">
+
+
+
+
+<!-- ============================================================
+     SCREEN 2: LOGIN
+     ============================================================ -->
+<div class="screen-wrap owner" id="login-screen-owner">
+  <div class="screen-label">Login (dari screenshot app)</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar">
+      <span>9:41</span><span>●●●●</span><span>100%</span>
+    </div>
+    <div class="screen-content">
+      <div class="login-screen">
+        <div class="login-logo-area">
+          <div class="login-logo">🌿</div>
+          <div class="login-logo-text">
+            <h2>SinShe Jaya Abadi</h2>
+            <span>Sistem Informasi Klinik Herbal</span>
+          </div>
+        </div>
+        <div class="login-form">
+          <input class="login-input" type="text" placeholder="Username / Email" />
+          <input class="login-input" type="password" placeholder="Password" />
+          <button class="login-btn">Masuk</button>
+          <div class="login-link">
+            <a href="#">Lupa password?</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 3: DASHBOARD OWNER
+     ============================================================ -->
+<div class="screen-wrap owner" id="dashboard-owner">
+  <div class="screen-label">Dashboard Owner</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar">
+      <span>9:41</span><span>●●●●</span><span>100%</span>
+    </div>
+    <div class="screen-content">
+      <!-- Header Card -->
+      <div class="owner-header">
+        <div class="owner-header-top">
+          <div>
+            <div class="owner-greeting">Halo,</div>
+            <div class="owner-name">Owner</div>
+            <div class="owner-clinic">Klinik Sin She Jaya Abadi</div>
+          </div>
+          <div class="header-right">
+            <div class="header-clock">09.41</div>
+            <div class="header-date">Kamis, 29 Mei 2026</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="header-icon-btn">🌙</button>
+          <button class="header-icon-btn">🚪</button>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="section-title">Laporan Hari Ini</div>
+
+      <div class="metric-card">
+        <div class="metric-icon" style="background: rgba(233,69,96,0.15); color: #e94560;">
+          💰
+        </div>
+        <div class="metric-info">
+          <div class="metric-value">Rp 850.000</div>
+          <div class="metric-label">Total Penjualan</div>
+        </div>
+        <div class="metric-trend trend-up">+12%</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon" style="background: rgba(46,213,115,0.15); color: #2ed573;">
+          📦
+        </div>
+        <div class="metric-info">
+          <div class="metric-value">12</div>
+          <div class="metric-label">Transaksi</div>
+        </div>
+        <div class="metric-trend trend-neutral">=</div>
+      </div>
+
+      <div class="section-title">Akses Cepat</div>
+
+      <div style="padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background:#16213e; border-radius:14px; padding:14px; border:1px solid #1e2a4a;">
+          <div style="font-size:20px; margin-bottom:6px;">🕌</div>
+          <div style="font-size:13px; font-weight:600; color:#e0e0e0;">7</div>
+          <div style="font-size:11px; color:#666;">Pasien Praktek</div>
+        </div>
+        <div style="background:#16213e; border-radius:14px; padding:14px; border:1px solid #1e2a4a;">
+          <div style="font-size:20px; margin-bottom:6px;">📋</div>
+          <div style="font-size:13px; font-weight:600; color:#e0e0e0;">4</div>
+          <div style="font-size:11px; color:#666;">Jadwal Hari Ini</div>
+        </div>
+        <div style="background:#16213e; border-radius:14px; padding:14px; border:1px solid #1e2a4a;">
+          <div style="font-size:20px; margin-bottom:6px;">🔔</div>
+          <div style="font-size:13px; font-weight:600; color:#e0e0e0;">3</div>
+          <div style="font-size:11px; color:#e94560;">Stok Rendah</div>
+        </div>
+        <div style="background:#16213e; border-radius:14px; padding:14px; border:1px solid #1e2a4a;">
+          <div style="font-size:20px; margin-bottom:6px;">💳</div>
+          <div style="font-size:13px; font-weight:600; color:#e0e0e0;">Rp 280.000</div>
+          <div style="font-size:11px; color:#666;">QRIS</div>
+        </div>
+      </div>
+
+      <div style="height: 16px;"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon-wrap">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">💊</div>
+        <div class="nav-label">Obat</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">🔄</div>
+        <div class="nav-label">Transaksi</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">📊</div>
+        <div class="nav-label">Laporan</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">👤</div>
+        <div class="nav-label">Akun</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 4: DASHBOARD ADMIN
+     ============================================================ -->
+<div class="screen-wrap admin" id="dashboard-admin">
+  <div class="screen-label">Dashboard Admin</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar">
+      <span>9:41</span><span>●●●●</span><span>100%</span>
+    </div>
+    <div class="screen-content">
+      <div class="owner-header">
+        <div class="owner-header-top">
+          <div>
+            <div class="owner-greeting">Halo,</div>
+            <div class="owner-name">Petugas</div>
+            <div class="owner-clinic">Klinik Sin She Jaya Abadi</div>
+          </div>
+          <div class="header-right">
+            <div class="header-clock">09.41</div>
+            <div class="header-date">Kamis, 29 Mei 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Jadwal Hari Ini</div>
+      <div class="list-item">
+        <div class="list-thumb" style="background: rgba(46,213,115,0.15); color: #2ed573;">🟢</div>
+        <div class="list-info">
+          <div class="list-title">Bu Susi — Praktek</div>
+          <div class="list-sub">09.00 WIB</div>
+        </div>
+        <div class="stok-badge stok-ok">Hadir</div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb" style="background: rgba(255,193,7,0.15); color: #ffc107;">🟡</div>
+        <div class="list-info">
+          <div class="list-title">Pak Budi — Konsul</div>
+          <div class="list-sub">10.00 WIB</div>
+        </div>
+        <div class="stok-badge stok-low">Menunggu</div>
+      </div>
+
+      <div class="section-title">Ringkasan</div>
+      <div style="padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background:#16213e; border-radius:14px; padding:14px; border:1px solid #1e2a4a;">
+          <div style="font-size:20px; margin-bottom:6px;">🕌</div>
+          <div style="font-size:13px; font-weight:600; color:#e0e0e0;">7</div>
+          <div style="font-size:11px; color:#666;">Pasien Praktek</div>
+        </div>
+        <div style="background:#16213e; border-radius:14px; padding:14px; border:1px solid #1e2a4a;">
+          <div style="font-size:20px; margin-bottom:6px;">📋</div>
+          <div style="font-size:13px; font-weight:600; color:#e0e0e0;">4</div>
+          <div style="font-size:11px; color:#666;">Jadwal</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon-wrap">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">💊</div>
+        <div class="nav-label">Obat</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">🔄</div>
+        <div class="nav-label">Transaksi</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">💻</div>
+        <div class="nav-label">Akun</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 5: MANAJEMEN STOK (5 TAB)
+     Obat Masuk | Obat Keluar | Keterangan Stok | Sinkronisasi
+     + TAB ETALASE 3 (Owner only)
+     ============================================================ -->
+<div class="screen-wrap owner" id="manajemen-stok">
+  <div class="screen-label">Manajemen Stok — Owner (5 tab, Etalase 3 visible)</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-icon">💊</div>
+        <div class="app-bar-title">Manajemen Stok</div>
+      </div>
+      <div class="tab-strip">
+        <div class="tab-chip">Obat Masuk</div>
+        <div class="tab-chip active">Obat Keluar</div>
+        <div class="tab-chip">⚠️ Keterangan Stok</div>
+        <div class="tab-chip">Sinkronisasi</div>
+        <div class="tab-chip" style="background:rgba(233,69,96,0.2); border-color:#e94560; color:#e94560;">🌿 Etalase 3</div>
+      </div>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input placeholder="Cari obat keluar..." />
+      </div>
+      <div class="list-item">
+        <div class="list-thumb">💊</div>
+        <div class="list-info">
+          <div class="list-title">Die Da Tay Ping Yao Jing</div>
+          <div class="list-sub">Rusak · 22 Mei 2026 · Etalase 1</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb">💊</div>
+        <div class="list-info">
+          <div class="list-title">Sanjin Tablets</div>
+          <div class="list-sub">Kedaluwarsa · 20 Mei 2026 · Etalase 2</div>
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 5b: MANAJEMEN STOK — ADMIN (4 tab, Etalase 3 HIDDEN)
+     ============================================================ -->
+<div class="screen-wrap admin" id="manajemen-stok-admin">
+  <div class="screen-label">Manajemen Stok — Admin (4 tab, Etalase 3 NOT visible)</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-icon">💊</div>
+        <div class="app-bar-title">Manajemen Stok</div>
+      </div>
+      <div class="tab-strip">
+        <div class="tab-chip active">Obat Masuk</div>
+        <div class="tab-chip">Obat Keluar</div>
+        <div class="tab-chip">⚠️ Keterangan Stok</div>
+        <div class="tab-chip">Sinkronisasi</div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb">💊</div>
+        <div class="list-info">
+          <div class="list-title">OB-001 — Pengadaan Baru</div>
+          <div class="list-sub">20 Apr 2026 · +120 box</div>
+        </div>
+      </div>
+      <div class="list-item" style="color:#555; font-size:12px; padding:6px 16px; border:none;">
+        ✅ Petugas TIDAK melihat tab Etalase 3 — murni milik Owner
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 6: KETERANGAN STOK (ALERT)
+     ============================================================ -->
+<div class="screen-wrap owner" id="keterangan-stok">
+  <div class="screen-label">Keterangan Stok Obat (ex-Stok Alert)</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-icon">⚠️</div>
+        <div class="app-bar-title">Keterangan Stok Obat</div>
+        <div class="app-bar-action">🔍</div>
+      </div>
+
+      <div class="tab-strip">
+        <div class="tab-chip">Obat Masuk</div>
+        <div class="tab-chip">Obat Keluar</div>
+        <div class="tab-chip active">⚠️ Keterangan Stok</div>
+        <div class="tab-chip">Sinkronisasi</div>
+      </div>
+
+      <!-- Critical Alert Box -->
+      <div class="alert-card critical" style="margin-top:12px;">
+        <div class="alert-icon">🚨</div>
+        <div class="alert-info">
+          <div class="alert-title">Stok Kritis (0 pcs)</div>
+          <div class="alert-sub">3 obat perlu segera di-restok</div>
+        </div>
+        <div class="alert-count critical">3</div>
+      </div>
+
+      <!-- Warning Alert Box -->
+      <div class="alert-card warn" style="margin-top:8px;">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-info">
+          <div class="alert-title">Stok Rendah (≤10 pcs)</div>
+          <div class="alert-sub">7 obat perlu perhatian</div>
+        </div>
+        <div class="alert-count warn">7</div>
+      </div>
+
+      <!-- Item List -->
+      <div class="list-item">
+        <div class="list-thumb" style="background:rgba(255,66,66,0.15); color:#ff4242;">🚨</div>
+        <div class="list-info">
+          <div class="list-title">Die Da Tay Ping Yao Jing</div>
+          <div class="list-sub">Etalase 1 · 0 pcs tersisa</div>
+        </div>
+        <div><div class="stok-badge stok-critical">Kritis</div></div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb" style="background:rgba(255,193,7,0.15); color:#ffc107;">⚠️</div>
+        <div class="list-info">
+          <div class="list-title">Chuan Xin Lian</div>
+          <div class="list-sub">Etalase 2 · 8 pcs tersisa</div>
+        </div>
+        <div><div class="stok-badge stok-low">Rendah</div></div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb" style="background:rgba(255,193,7,0.15); color:#ffc107;">⚠️</div>
+        <div class="list-info">
+          <div class="list-title">Sanjin Tablets</div>
+          <div class="list-sub">Etalase 1 · 5 pcs tersisa</div>
+        </div>
+        <div><div class="stok-badge stok-low">Rendah</div></div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 7: TRANSAKSI (dengan filter etalase)
+  ============================================================ -->
+<div class="screen-wrap owner" id="transaksi-screen">
+  <div class="screen-label">Transaksi — Filter Etalase + QRIS/Tunai</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-icon">🔄</div>
+        <div class="app-bar-title">Transaksi Baru</div>
+      </div>
+
+      <!-- Transaksi Type -->
+      <div class="transaksi-header">
+        <div class="type-btn active">💊 Obat</div>
+        <div class="type-btn">🩺 Praktek</div>
+      </div>
+
+      <!-- Etalase Filter -->
+      <div class="etalase-select">
+        <div class="etalase-pill active">Etalase 1</div>
+        <div class="etalase-pill">Etalase 2</div>
+        <div class="etalase-pill disabled" title="Etalase 3 — Racikan/Owner">🌿 Etalase 3</div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input placeholder="Cari obat..." />
+      </div>
+
+      <!-- Item List -->
+      <div class="list-item">
+        <div class="list-thumb">💊</div>
+        <div class="list-info">
+          <div class="list-title">Die Da Tay Ping Yao Jing</div>
+          <div class="list-sub">Rp 85.000 · Stok: 45</div>
+        </div>
+        <div class="list-price">+</div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb">💊</div>
+        <div class="list-info">
+          <div class="list-title">Chuan Xin Lian</div>
+          <div class="list-sub">Rp 72.000 · Stok: 8</div>
+        </div>
+        <div class="stok-badge stok-low">8</div>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item">
+        <div class="nav-icon-wrap">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">💊</div>
+        <div class="nav-label">Obat</div>
+      </div>
+      <div class="nav-item active">
+        <div class="nav-icon-wrap">🔄</div>
+        <div class="nav-label">Transaksi</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">📊</div>
+        <div class="nav-label">Laporan</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">👤</div>
+        <div class="nav-label">Akun</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 8: LAPORAN OWNER
+     ============================================================ -->
+<div class="screen-wrap owner" id="laporan-owner">
+  <div class="screen-label">Laporan Owner (Harian/Bulanan/Tahunan)</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-icon">📊</div>
+        <div class="app-bar-title">Laporan</div>
+      </div>
+
+      <div class="date-range-tabs">
+        <div class="range-tab active">Harian</div>
+        <div class="range-tab">Bulanan</div>
+        <div class="range-tab">Tahunan</div>
+      </div>
+
+      <!-- Summary Card -->
+      <div class="laporan-summary">
+        <div class="label">Total Penjualan — 29 Mei 2026</div>
+        <div class="nominal">Rp 850.000</div>
+        <div class="detail">
+          <div class="detail-item">
+            <div class="detail-value">12</div>
+            <div class="detail-label">Transaksi</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">Rp 570.000</div>
+            <div class="detail-label">Tunai 💵</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">Rp 280.000</div>
+            <div class="detail-label">QRIS 📱</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="laporan-chart">
+        <div class="chart-title">Tren Penjualan — 7 Hari Terakhir</div>
+        <div class="bar-chart">
+          <div class="bar" style="height:40%"><div class="bar-fill" style="height:40%"></div><div class="bar-label">Sa</div></div>
+          <div class="bar" style="height:60%"><div class="bar-fill" style="height:60%"></div><div class="bar-label">Mi</div></div>
+          <div class="bar" style="height:35%"><div class="bar-fill" style="height:35%"></div><div class="bar-label">Ju</div></div>
+          <div class="bar" style="height:80%"><div class="bar-fill" style="height:80%"></div><div class="bar-label">Je</div></div>
+          <div class="bar" style="height:55%"><div class="bar-fill" style="height:55%"></div><div class="bar-label">Sa</div></div>
+          <div class="bar" style="height:25%"><div class="bar-fill" style="height:25%"></div><div class="bar-label">Bu</div></div>
+          <div class="bar" style="height:70%; background:#e94560;"><div class="bar-fill" style="height:70%; background:#e94560;"></div><div class="bar-label" style="color:#e94560;">Ka</div></div>
+        </div>
+      </div>
+
+      <!-- Detail Table -->
+      <div class="laporan-table">
+        <div class="table-row table-header">
+          <div class="col-no">#</div>
+          <div class="col-name">Nama Obat</div>
+          <div class="col-qty">Jml</div>
+          <div class="col-total">Total</div>
+        </div>
+        <div class="table-row">
+          <div class="col-no">1</div>
+          <div class="col-name">Die Da Tay Ping Yoo Jing</div>
+          <div class="col-qty">5</div>
+          <div class="col-total">Rp 425.000</div>
+        </div>
+        <div class="table-row">
+          <div class="col-no">2</div>
+          <div class="col-name">Chuan Xin Lian</div>
+          <div class="col-qty">3</div>
+          <div class="col-total">Rp 216.000</div>
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 9: STRUK THERMAL HITAM PUTIH
+     ============================================================ -->
+<div class="screen-wrap owner" id="struk-bw">
+  <div class="screen-label">Struk Thermal — Hitam Putih</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content" style="background:#ddd; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div class="struk-bw">
+        <div class="struk-header">
+          <div class="struk-logo">🌿</div>
+          <div class="struk-clinic">SIN SHE JAYA ABADI</div>
+          <div class="struk-address">Jl. Klinik Herbal No.1<br>Telp: 0812-xxxx-xxxx</div>
+        </div>
+        <hr class="struk-divider">
+        <div style="text-align:center; font-size:10px;">NO: 000012 · 29 Mei 2026 09:41</div>
+        <div style="text-align:center; font-size:10px;">Kasir: Owner</div>
+        <hr class="struk-divider">
+        <div class="struk-items">
+          <div class="struk-item">
+            <div class="struk-item-name">Die Da Tay Ping Yao Jing x2</div>
+            <div class="struk-item-price">Rp 170.000</div>
+          </div>
+          <div class="struk-item">
+            <div class="struk-item-name">Chuan Xin Lian x1</div>
+            <div class="struk-item-price">Rp 72.000</div>
+          </div>
+        </div>
+        <hr class="struk-divider">
+        <div class="struk-total">
+          <span>TOTAL</span>
+          <span>Rp 242.000</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:4px;">
+          <span>Tunai</span><span>Rp 300.000</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:10px;">
+          <span>Kembalian</span><span>Rp 58.000</span>
+        </div>
+        <hr class="struk-divider">
+        <div class="struk-footer">
+          Terima Kasih<br>
+          Sehat Selalu! 🌿
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 10: AKUN PAGE
+     ============================================================ -->
+<div class="screen-wrap owner" id="akun-page-owner">
+  <div class="screen-label">Akun Page — Owner</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-title">Akun</div>
+        <div class="app-bar-action">✏️</div>
+      </div>
+
+      <div class="akun-header">
+        <div class="akun-avatar">👤</div>
+        <div class="akun-name">Owner</div>
+        <div class="akun-role">Owner</div>
+      </div>
+
+      <div class="akun-menu">
+        <div class="akun-menu-item">
+          <div class="akun-menu-icon">👤</div>
+          <div class="akun-menu-label">Profil</div>
+          <div class="akun-menu-arrow">›</div>
+        </div>
+        <div class="akun-menu-item">
+          <div class="akun-menu-icon">🔔</div>
+          <div class="akun-menu-label">Notifikasi</div>
+          <div class="akun-menu-arrow">›</div>
+        </div>
+        <div class="akun-menu-item">
+          <div class="akun-menu-icon">🖨️</div>
+          <div class="akun-menu-label">Pengaturan Printer</div>
+          <div class="akun-menu-arrow">›</div>
+        </div>
+        <div class="akun-menu-item">
+          <div class="akun-menu-icon">⚙️</div>
+          <div class="akun-menu-label">Pengaturan</div>
+          <div class="akun-menu-arrow">›</div>
+        </div>
+        <div class="akun-menu-item">
+          <div class="akun-menu-icon">ℹ️</div>
+          <div class="akun-menu-label">Tentang Aplikasi</div>
+          <div class="akun-menu-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="logout-btn">🚪 Logout</div>
+      <div class="safe-bottom"></div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 11: NAVIGASI UTUH (COMPACT)
+     ============================================================ -->
+<div class="screen-wrap owner" id="nav-compact">
+  <div class="screen-label">Bottom Nav (3 Tab): Home | Obat | Transaksi</div>
+  <div class="phone" style="height:300px;">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div style="flex:1; background:#16213e; display:flex; align-items:center; justify-content:center;">
+      <div style="text-align:center; color:#555;">
+        <div style="font-size:36px; margin-bottom:8px;">🏠</div>
+        <div style="font-size:13px; color:#666;">Home / Obat / Transaksi</div>
+        <div style="font-size:11px; color:#444; margin-top:4px;">(3 tab, tanpa Laporan)</div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon-wrap">🏠</div>
+        <div class="nav-label">Home</div>
+      </>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">💊</div>
+        <div class="nav-label">Obat</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">🔄</div>
+        <div class="nav-label">Transaksi</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 12: NAVIGASI UTUH (LENGKAP)
+     ============================================================ -->
+<div class="screen-wrap owner" id="nav-full">
+  <div class="screen-label">Bottom Nav Owner (5 Tab): Home|Obat|Transaksi|Laporan|Akun</div>
+  <div class="phone" style="height:300px;">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div style="flex:1; background:#16213e; display:flex; align-items:center; justify-content:center;">
+      <div style="text-align:center; color:#555;">
+        <div style="font-size:36px; margin-bottom:8px;">👤</div>
+        <div style="font-size:13px; color:#666;">Akun Page</div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item">
+        <div class="nav-icon-wrap">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">💊</div>
+        <div class="nav-label">Obat</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">🔄</div>
+        <div class="nav-label">Transaksi</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon-wrap">📊</div>
+        <div class="nav-label">Laporan</div>
+      </div>
+      <div class="nav-item active">
+        <div class="nav-icon-wrap">👤</div>
+        <div class="nav-label">Akun</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 13: RIWAYAT TRANSAKSI (2 TAB)
+     ============================================================ -->
+<div class="screen-wrap owner" id="riwayat-transaksi">
+  <div class="screen-label">Riwayat Transaksi (2 Tab: Obat | Praktek)</div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span>●●●●</span><span>100%</span></div>
+    <div class="screen-content">
+      <div class="app-bar" style="background:#0f0f23;">
+        <div class="app-bar-icon">📜</div>
+        <div class="app-bar-title">Riwayat Transaksi</div>
+        <div class="app-bar-action">🔍</div>
+      </div>
+
+      <div class="tab-strip">
+        <div class="tab-chip active">💊 Obat</div>
+        <div class="tab-chip">🩺 Praktek</div>
+      </div>
+
+      <div class="list-item">
+        <div class="list-thumb" style="background:rgba(46,213,115,0.15); color:#2ed573;">🟢</div>
+        <div class="list-info">
+          <div class="list-title">#000012 — Obat</div>
+          <div class="list-sub">29 Mei 2026 · 09.41 · 2 item</div>
+        </div>
+        <div class="list-meta">
+          <div class="list-price">Rp 242.000</div>
+          <div style="font-size:11px; color:#2ed573;">💵 Tunai</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb" style="background:rgba(46,213,115,0.15); color:#2ed573;">🟢</div>
+        <div class="list-info">
+          <div class="list-title">#000011 — Praktek</div>
+          <div class="list-sub">29 Mei 2026 · 08.15 · Bu Susi</div>
+        </div>
+        <div class="list-meta">
+          <div class="list-price">Rp 85.000</div>
+          <div style="font-size:11px; color:#2ed573;">📱 QRIS</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-thumb">🟡</div>
+        <div class="list-info">
+          <div class="list-title">#000010 — Obat</div>
+          <div class="list-sub">28 Mei 2026 · 14.30 · 3 item</div>
+        </div>
+        <div class="list-meta">
+          <div class="list-price">Rp 360.000</div>
+          <div style="font-size:11px; color:#2ed573;">💵 Tunai</div>
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</div>
+
+</div><!-- end .screens -->
+
+<script>
+  // Default: show owner screens
+  document.querySelectorAll('.admin').forEach(el => el.style.display = 'none');
+
+  function showRole(role) {
+    document.querySelectorAll('[id]').forEach(el => {
+      const id = el.id;
+      if (id === 'screens') return;
+    });
+    document.querySelectorAll('.screen-wrap').forEach(el => {
+      el.style.display = el.classList.contains(role) ? 'flex' : 'none';
+    });
+    document.querySelectorAll('.header-bar button').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.toLowerCase() === role);
+    });
+  }
+</script>
+
+</body>
+</html>

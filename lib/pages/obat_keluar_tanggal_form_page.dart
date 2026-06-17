@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../widgets/page_header.dart';
 
@@ -58,7 +58,7 @@ class _ObatKeluarTanggalFormPageState extends State<ObatKeluarTanggalFormPage> {
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Form(
           key: _formKey,
           child: Column(
@@ -67,7 +67,7 @@ class _ObatKeluarTanggalFormPageState extends State<ObatKeluarTanggalFormPage> {
               const PageHeader('Pilih Tanggal'),
               const SizedBox(height: 24),
               const Text(
-                'Tanggal Transaksi',
+                'Tanggal Pengeluaran',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -75,7 +75,7 @@ class _ObatKeluarTanggalFormPageState extends State<ObatKeluarTanggalFormPage> {
                 onTap: _pickDate,
                 child: InputDecorator(
                   decoration: const InputDecoration(
-                    suffixIcon: HugeIcon(icon: AppIcons.calendar03),
+                    suffixIcon: Icon(AppSymbols.calendarToday),
                   ),
                   child: Text(asDate(_selectedDate)),
                 ),

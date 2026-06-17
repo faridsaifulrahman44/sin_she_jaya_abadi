@@ -88,7 +88,7 @@ BEGIN
         so.id_opname AS sequence_id,
         so.stok_fisik AS delta,
         true AS is_reset
-      FROM public.stock_opname so
+      FROM public.sinkronisasi_stok so
       WHERE so.id_obat = p_id_obat
     )
     SELECT

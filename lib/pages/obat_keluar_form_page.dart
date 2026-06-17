@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/auth/admin_session.dart';
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../data/models/obat_keluar_item_model.dart';
 import '../data/models/obat_keluar_model.dart';
@@ -13,6 +13,7 @@ import '../data/repositories/obat_keluar_repository.dart';
 import '../data/repositories/obat_repository.dart';
 import '../features/obat_keluar/obat_keluar_etalase_sync.dart';
 import '../features/obat_keluar/obat_keluar_form_entry.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 import 'obat_keluar/widgets/obat_keluar_item_row.dart';
 
@@ -28,6 +29,7 @@ class ObatKeluarFormPage extends StatefulWidget {
 class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _repo = ObatKeluarRepository();
+  final _stockService = StockService();
   final _obatRepo = ObatRepository();
   final _keteranganCtrl = TextEditingController();
 
@@ -180,7 +182,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
       );
 
       if (_idTerjual == null) {
-        await _repo.insertObatKeluar(
+        await _stockService.stokKeluar(
           tanggalTerjual: _selectedDate,
           noEtalase: headerNoEtalase,
           items: items,
@@ -190,7 +192,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
           idAdmin: await AdminSession.getCurrentId(),
         );
       } else {
-        await _repo.updateObatKeluar(
+        await _stockService.updateStokKeluar(
           idTerjual: _idTerjual!,
           tanggalTerjual: _selectedDate,
           noEtalase: headerNoEtalase,
@@ -221,7 +223,9 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
     return Scaffold(
       backgroundColor: cscaffoldBg(context),
       appBar: AppBar(
-        title: Text(isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'),
+        title: Text(
+          isEdit ? 'Edit Pengeluaran Stok' : 'Tambah Pengeluaran Stok',
+        ),
         backgroundColor: cobatAmber(context),
         foregroundColor: conPrimary(context),
         elevation: 0,
@@ -241,16 +245,29 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
             obatList: obatList,
           );
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PageHeader(isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'),
+                  PageHeader(
+                    isEdit
+                        ? 'Edit Pengeluaran Stok'
+                        : 'Tambah Pengeluaran Stok',
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tanggal: ${asDate(_selectedDate)}',
+                    'Gunakan fitur ini untuk obat rusak, kedaluwarsa, hilang, dipakai internal, atau koreksi stok keluar. Untuk penjualan obat, gunakan Transaksi Obat. Untuk layanan konsultasi/tindakan, gunakan Transaksi Praktek.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: ctextSecondary(context),
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Tanggal Pengeluaran: ${asDate(_selectedDate)}',
                     style: TextStyle(
                       color: ctextSecondary(context),
                       fontWeight: FontWeight.w600,
@@ -269,8 +286,8 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                     ),
                     child: Row(
                       children: [
-                        HugeIcon(
-                            icon: AppIcons.etalase,
+                        Icon(
+                            AppSymbols.etalase,
                             size: 18,
                             color: ctextMuted(context)),
                         const SizedBox(width: 8),
@@ -310,7 +327,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                   TextFormField(
                     controller: _keteranganCtrl,
                     maxLines: 2,
-                    decoration: _inputDecoration('Catatan transaksi...'),
+                    decoration: _inputDecoration('Catatan pengeluaran stok...'),
                   ),
                   const SizedBox(height: 24),
 
@@ -319,7 +336,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Item Obat Keluar',
+                        'Item Pengeluaran Stok',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -328,8 +345,8 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                       ),
                       TextButton.icon(
                         onPressed: _addItem,
-                        icon: HugeIcon(
-                            icon: AppIcons.tambahCircle,
+                        icon: Icon(
+                            AppSymbols.tambahCircle,
                             color: cwarning(context),
                             size: 18),
                         label: Text(
@@ -343,10 +360,10 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
 
                   if (_entries.isEmpty)
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
                         color: ccardBg(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Text(
                         'Tekan "Tambah Item" untuk menambah obat.',
@@ -399,7 +416,7 @@ class _ObatKeluarFormPageState extends State<ObatKeluarFormPage> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: cwarning(context).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       border: Border.all(
                         color: cwarning(context).withValues(alpha: 0.3),
                       ),

@@ -135,4 +135,4 @@ WHERE NOT EXISTS (
 -- Update komentar formula stok di tabel obat (jika masih ada).
 COMMENT ON COLUMN public.obat.stok_saat_ini IS E
   'stok_saat_ini dihitung dari stok_awal + mutasi masuk/keluar '
-  'dan reset stock_opname. Di-maintain oleh aplikasi via recalculateStok().';
+  'dan reset sinkronisasi_stok. Di-maintain oleh aplikasi via recalculateStok().';

@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide RadioGroup;
-import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter/material.dart';
 
+import '../core/design_system/app_tokens.dart';
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/utils/jadwal_praktek_helper.dart';
 import '../data/models/pasien_model.dart';
@@ -222,7 +222,7 @@ class _PasienFormPageState extends State<PasienFormPage> {
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Form(
           key: _formKey,
           child: Column(
@@ -287,31 +287,42 @@ class _PasienFormPageState extends State<PasienFormPage> {
                 child: InputDecorator(
                   decoration: const InputDecoration(
                     hintText: 'Pilih tanggal janjian',
-                    suffixIcon: HugeIcon(icon: AppIcons.calendar03),
+                    suffixIcon: Icon(AppSymbols.calendar03),
                   ),
                   child: Text(tanggalLabel),
                 ),
               ),
               const SizedBox(height: 14),
               const Text('Jenis Kelamin'),
-              RadioGroup<String>(
-                groupValue: _jenisKelamin,
-                onChanged: (value) =>
-                    setState(() => _jenisKelamin = value ?? 'L'),
-                child: Column(
-                  children: [
-                    RadioListTile<String>(
-                      contentPadding: EdgeInsets.zero,
-                      value: 'L',
-                      title: const Text('Laki-laki'),
-                    ),
-                    RadioListTile<String>(
-                      contentPadding: EdgeInsets.zero,
-                      value: 'P',
-                      title: const Text('Perempuan'),
-                    ),
-                  ],
-                ),
+              Column(
+                children: [
+                  RadioListTile<String>(
+                    contentPadding: EdgeInsets.zero,
+                    value: 'L',
+                    // ignore: deprecated_member_use
+                    groupValue: _jenisKelamin,
+                    // ignore: deprecated_member_use
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _jenisKelamin = value);
+                      }
+                    },
+                    title: const Text('Laki-laki'),
+                  ),
+                  RadioListTile<String>(
+                    contentPadding: EdgeInsets.zero,
+                    value: 'P',
+                    // ignore: deprecated_member_use
+                    groupValue: _jenisKelamin,
+                    // ignore: deprecated_member_use
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _jenisKelamin = value);
+                      }
+                    },
+                    title: const Text('Perempuan'),
+                  ),
+                ],
               ),
               const Text('Alamat'),
               const SizedBox(height: 6),

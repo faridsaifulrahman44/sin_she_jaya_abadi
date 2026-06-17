@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
+import '../core/ui/app_symbols.dart';
 import '../core/utils/formatters.dart';
 import '../core/widgets/app_empty_view.dart';
 import '../core/widgets/app_error_view.dart';
 import '../core/widgets/app_loading_view.dart';
 import '../data/models/obat_masuk_model.dart';
 import '../data/repositories/obat_masuk_repository.dart';
+import '../features/stok/services/stock_service.dart';
 import '../widgets/page_header.dart';
 import 'obat_masuk_form_page.dart';
 
@@ -24,6 +24,7 @@ class ObatMasukDetailPage extends StatefulWidget {
 
 class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
   final ObatMasukRepository _repo = ObatMasukRepository();
+  final StockService _stockService = StockService();
   late DateTime _tanggal;
   late Future<List<ObatMasukModel>> _future;
   bool _initialized = false;
@@ -70,7 +71,7 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
     if (confirm != true) return;
 
     try {
-      await _repo.deleteObatMasuk(item.idMasuk);
+      await _stockService.deleteStokMasuk(item.idMasuk);
       if (!mounted) return;
       showModernSnackBar(context, 'Transaksi berhasil dihapus');
       await _reload();
@@ -94,7 +95,7 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
     if (!confirm) return;
 
     try {
-      await _repo.deleteObatMasukByTanggal(_tanggal);
+      await _stockService.deleteStokMasukByTanggal(_tanggal);
       if (!mounted) return;
       showModernSnackBar(context, 'Semua transaksi berhasil dihapus');
       Navigator.pop(context);
@@ -110,8 +111,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
 
   PopupMenuButton<int> _buildRowPopup(ObatMasukModel item) {
     return PopupMenuButton<int>(
-      icon: HugeIcon(
-        icon: AppIcons.more,
+      icon: Icon(
+        AppSymbols.more,
         color: ctextSecondary(context),
         size: 20,
       ),
@@ -121,8 +122,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
           value: 0,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.editOutline,
+              Icon(
+                  AppSymbols.edit,
                   size: 18,
                   color: ctextSecondary(ctx)),
               const SizedBox(width: 10),
@@ -134,8 +135,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
           value: 1,
           child: Row(
             children: [
-              HugeIcon(
-                  icon: AppIcons.deleteOutline, size: 18, color: cdanger(ctx)),
+              Icon(
+                  AppSymbols.hapus, size: 18, color: cdanger(ctx)),
               const SizedBox(width: 10),
               Text('Hapus', style: TextStyle(color: cdanger(ctx))),
             ],
@@ -164,8 +165,9 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
         elevation: 0,
         actions: [
           PopupMenuButton<int>(
-            icon: HugeIcon(
-                icon: AppIcons.deleteOutline, color: conPrimary(context)),
+            icon: Icon(
+                AppSymbols.hapus,
+                color: conPrimary(context)),
             tooltip: 'Hapus semua transaksi',
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -174,8 +176,8 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
                 value: 0,
                 child: Row(
                   children: [
-                    HugeIcon(
-                        icon: AppIcons.hapusSweep,
+                    Icon(
+                        AppSymbols.hapusSweep,
                         size: 18,
                         color: cdanger(ctx)),
                     const SizedBox(width: 10),
@@ -234,7 +236,7 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
                   final items = snapshot.data ?? const <ObatMasukModel>[];
                   if (items.isEmpty) {
                     return AppEmptyView(
-                      icon: AppIcons.input,
+                      icon: AppSymbols.input,
                       title: 'Belum ada transaksi masuk',
                       message: 'Tambahkan transaksi untuk tanggal ini.',
                       color: cteal(context),
@@ -253,17 +255,15 @@ class _ObatMasukDetailPageState extends State<ObatMasukDetailPage> {
                             (item.namaObat ?? '').trim().isNotEmpty
                                 ? item.namaObat!.trim()
                                 : 'Obat #${item.idObat}';
-                        final safeFotoUrl =
-                            (item.fotoUrl ?? '').trim().isNotEmpty
-                                ? item.fotoUrl!.trim()
-                                : null;
                         return ModernListCard(
                           title: safeNamaObat,
                           subtitle: 'Jumlah masuk: ${item.jumlahMasuk} unit',
                           trailingText: '+${item.jumlahMasuk}',
                           leading: ObatImage(
                             namaObat: safeNamaObat,
-                            fotoUrl: safeFotoUrl,
+                            fotoKey: item.fotoKey,
+                            fotoUpdatedAt: item.fotoUpdatedAt,
+                            fotoUrl: item.fotoUrl,
                             width: 44,
                             height: 44,
                             borderRadius: 12,

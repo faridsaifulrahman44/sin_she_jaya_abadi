@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/error/app_error_mapper.dart';
 import '../core/theme/app_theme.dart';
-import '../core/ui/app_icons.dart';
 import '../core/ui/app_legacy_icons.dart';
+import '../core/ui/app_symbols.dart';
 import 'login_page.dart';
 
 class ResetPasswordPage extends StatefulWidget {
@@ -80,7 +79,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         context,
         AppErrorMapper.toMessage(error, stackTrace),
         isError: true,
-        icon: AppIcons.error,
+        icon: AppSymbols.error,
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -165,8 +164,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             color: primaryColor.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: HugeIcon(
-                            icon: AppIcons.lock,
+                          child: Icon(
+                            AppSymbols.lock,
                             color: primaryColor,
                             size: 30,
                           ),
@@ -477,8 +476,8 @@ class _CompletedState extends StatelessWidget {
             color: primaryColor.withValues(alpha: 0.10),
             shape: BoxShape.circle,
           ),
-          child: HugeIcon(
-            icon: AppIcons.success,
+          child: Icon(
+            AppSymbols.success,
             color: primaryColor,
             size: 36,
           ),

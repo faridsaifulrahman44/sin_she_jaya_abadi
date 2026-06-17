@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS public.obat (
   -- ────────────────────────────────────────────────────────────────────────
   keterangan text,
   foto_url text,
+  foto_key text,
+  foto_updated_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -343,6 +345,21 @@ BEGIN
       UNION ALL
 
       SELECT
+        t.tanggal AS mutation_date,
+        2 AS priority,
+        t.created_at AS recorded_at,
+        ti.id_item AS sequence_id,
+        -ti.jumlah AS delta,
+        false AS is_reset
+      FROM public.transaksi_item ti
+      JOIN public.transaksi t
+        ON t.id_transaksi = ti.id_transaksi
+      WHERE ti.id_obat = p_id_obat
+        AND t.jenis_transaksi = 'obat_ready_stock'
+
+      UNION ALL
+
+      SELECT
         so.tanggal_opname AS mutation_date,
         3 AS priority,
         so.created_at AS recorded_at,
@@ -399,6 +416,130 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.fn_transaksi_insert(
+  p_tanggal            date,
+  p_jenis_transaksi    varchar(30),
+  p_total              numeric(12, 2),
+  p_metode_bayar       varchar(20),
+  p_id_pasien          bigint,
+  p_keterangan         text,
+  p_durasi_harian      int,
+  p_id_admin           bigint,
+  p_items              jsonb DEFAULT '[]'::jsonb
+)
+RETURNS SETOF public.transaksi
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_transaksi       public.transaksi%ROWTYPE;
+  v_item            jsonb;
+  v_id_obat         int;
+  v_jumlah          int;
+  v_harga           numeric(12, 2);
+  v_subtotal        numeric(12, 2);
+  v_satuan_terjual  varchar(30);
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  INSERT INTO public.transaksi (
+    tanggal, jenis_transaksi, total, metode_bayar,
+    id_pasien, keterangan, durasi_harian, id_admin
+  )
+  VALUES (
+    p_tanggal, p_jenis_transaksi, p_total, p_metode_bayar,
+    p_id_pasien, p_keterangan, p_durasi_harian, p_id_admin
+  )
+  RETURNING * INTO v_transaksi;
+
+  IF p_jenis_transaksi = 'obat_ready_stock'
+     AND jsonb_typeof(p_items) = 'array'
+     AND jsonb_array_length(p_items) > 0 THEN
+
+    IF EXISTS (
+      SELECT 1
+      FROM jsonb_to_recordset(p_items) AS i(id_obat bigint, jumlah integer)
+      JOIN public.obat o ON o.id_obat = i.id_obat
+      WHERE i.jumlah > o.stok_saat_ini
+    ) THEN
+      RAISE EXCEPTION USING
+        MESSAGE = 'oversell: jumlah melebihi stok tersedia',
+        HINT    = 'CHECK_STOCK_FAILED';
+    END IF;
+
+    FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+    LOOP
+      v_id_obat        := (v_item->>'id_obat')::int;
+      v_jumlah         := (v_item->>'jumlah')::int;
+      v_harga          := (v_item->>'harga_satuan')::numeric(12, 2);
+      v_subtotal       := (v_item->>'subtotal')::numeric(12, 2);
+      v_satuan_terjual := NULLIF(BTRIM(v_item->>'satuan_terjual'), '');
+
+      INSERT INTO public.transaksi_item (
+        id_transaksi,
+        id_obat,
+        jumlah,
+        harga_satuan,
+        subtotal,
+        satuan_terjual,
+        id_admin
+      )
+      VALUES (
+        v_transaksi.id_transaksi,
+        v_id_obat,
+        v_jumlah,
+        v_harga,
+        v_subtotal,
+        v_satuan_terjual,
+        p_id_admin
+      );
+
+      UPDATE public.obat
+      SET stok_saat_ini = GREATEST(0, stok_saat_ini - v_jumlah)
+      WHERE id_obat = v_id_obat;
+    END LOOP;
+  END IF;
+
+  RETURN NEXT v_transaksi;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.fn_obat_kurangi_stok(
+  p_id_obat  int,
+  p_jumlah   int
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_stok_sekarang integer;
+BEGIN
+  PERFORM public.require_clinic_staff();
+
+  SELECT stok_saat_ini INTO v_stok_sekarang
+  FROM public.obat
+  WHERE id_obat = p_id_obat
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Obat dengan ID % tidak ditemukan', p_id_obat;
+  END IF;
+
+  IF p_jumlah > v_stok_sekarang THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'oversell: jumlah melebihi stok tersedia',
+      HINT    = 'CHECK_STOCK_FAILED';
+  END IF;
+
+  UPDATE public.obat
+  SET stok_saat_ini = GREATEST(0, stok_saat_ini - p_jumlah)
+  WHERE id_obat = p_id_obat;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.fn_obat_keluar_insert_atomic(
   p_tanggal_terjual date,
   p_no_etalase text,
@@ -407,12 +548,16 @@ CREATE OR REPLACE FUNCTION public.fn_obat_keluar_insert_atomic(
   p_items jsonb
 ) RETURNS bigint
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_terjual bigint;
   v_item_count integer;
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
   IF p_items IS NULL
      OR jsonb_typeof(p_items) <> 'array'
      OR jsonb_array_length(p_items) = 0 THEN
@@ -517,12 +662,16 @@ CREATE OR REPLACE FUNCTION public.fn_obat_keluar_update_atomic(
   p_items jsonb
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_old_ids bigint[];
   v_new_ids bigint[];
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
   IF p_items IS NULL
      OR jsonb_typeof(p_items) <> 'array'
      OR jsonb_array_length(p_items) = 0 THEN
@@ -639,10 +788,14 @@ CREATE OR REPLACE FUNCTION public.fn_obat_keluar_delete_atomic(
   p_id_terjual bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   PERFORM 1
   FROM public.obat_keluar
   WHERE id_terjual = p_id_terjual
@@ -670,10 +823,14 @@ CREATE OR REPLACE FUNCTION public.fn_obat_keluar_delete_by_tanggal_atomic(
   p_tanggal_terjual date
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   SELECT array_agg(DISTINCT oki.id_obat)
   INTO v_affected_ids
   FROM public.obat_keluar ok
@@ -698,10 +855,14 @@ CREATE OR REPLACE FUNCTION public.fn_obat_masuk_insert_atomic(
   p_id_admin bigint
 ) RETURNS bigint
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_masuk bigint;
 BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
   IF COALESCE(p_id_obat, 0) <= 0 THEN
     RAISE EXCEPTION 'id_obat tidak valid';
   END IF;
@@ -749,11 +910,15 @@ CREATE OR REPLACE FUNCTION public.fn_obat_masuk_update_atomic(
   p_id_admin bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_old_id_obat bigint;
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
   IF COALESCE(p_id_masuk, 0) <= 0 THEN
     RAISE EXCEPTION 'id_masuk tidak valid';
   END IF;
@@ -810,10 +975,14 @@ CREATE OR REPLACE FUNCTION public.fn_obat_masuk_delete_atomic(
   p_id_masuk bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_obat bigint;
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   IF COALESCE(p_id_masuk, 0) <= 0 THEN
     RAISE EXCEPTION 'id_masuk tidak valid';
   END IF;
@@ -839,10 +1008,14 @@ CREATE OR REPLACE FUNCTION public.fn_obat_masuk_delete_by_tanggal_atomic(
   p_tanggal_masuk date
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   IF p_tanggal_masuk IS NULL THEN
     RAISE EXCEPTION 'tanggal_masuk wajib diisi';
   END IF;
@@ -860,6 +1033,9 @@ BEGIN
 END;
 $$;
 
+-- Compatibility note:
+-- Flutter still calls RPC names with "stock_opname".
+-- The final data table is public.sinkronisasi_stok.
 CREATE OR REPLACE FUNCTION public.fn_stock_opname_insert_atomic(
   p_id_obat bigint,
   p_tanggal_opname date,
@@ -869,10 +1045,14 @@ CREATE OR REPLACE FUNCTION public.fn_stock_opname_insert_atomic(
   p_id_admin bigint
 ) RETURNS bigint
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_opname bigint;
 BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
   IF COALESCE(p_id_obat, 0) <= 0 THEN
     RAISE EXCEPTION 'id_obat tidak valid';
   END IF;
@@ -929,11 +1109,15 @@ CREATE OR REPLACE FUNCTION public.fn_stock_opname_update_atomic(
   p_id_admin bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_old_id_obat bigint;
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
   IF COALESCE(p_id_opname, 0) <= 0 THEN
     RAISE EXCEPTION 'id_opname tidak valid';
   END IF;
@@ -996,10 +1180,14 @@ CREATE OR REPLACE FUNCTION public.fn_stock_opname_delete_atomic(
   p_id_opname bigint
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_id_obat bigint;
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   IF COALESCE(p_id_opname, 0) <= 0 THEN
     RAISE EXCEPTION 'id_opname tidak valid';
   END IF;
@@ -1025,10 +1213,14 @@ CREATE OR REPLACE FUNCTION public.fn_stock_opname_delete_by_tanggal_atomic(
   p_tanggal_opname date
 ) RETURNS void
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_affected_ids bigint[];
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   IF p_tanggal_opname IS NULL THEN
     RAISE EXCEPTION 'tanggal_opname wajib diisi';
   END IF;
@@ -1050,12 +1242,16 @@ CREATE OR REPLACE FUNCTION public.fn_obat_delete_if_unused(
   p_id_obat bigint
 ) RETURNS jsonb
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_used_in_obat_masuk boolean;
   v_used_in_obat_keluar_item boolean;
   v_used_in_sinkronisasi_stok boolean;
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   IF COALESCE(p_id_obat, 0) <= 0 THEN
     RAISE EXCEPTION 'id_obat tidak valid';
   END IF;
@@ -1127,6 +1323,8 @@ AS $$
 DECLARE
   v_next_nomor integer;
 BEGIN
+  PERFORM public.require_clinic_staff();
+
   IF COALESCE(p_id_pasien, 0) <= 0 THEN
     RAISE EXCEPTION 'id_pasien tidak valid';
   END IF;
@@ -1180,20 +1378,11 @@ $$;
 --   → Tidak sebagai satu-satunya enforcement point
 --
 -- Model akses data:
---   • admin          → hanya row milik user sendiri (auth_user_id match)
---   • obat           → semua authenticated user (data bersama klinik)
---   • obat_masuk     → semua authenticated user
---   • obat_keluar    → semua authenticated user
---   • obat_keluar_item → semua authenticated user
---   • sinkronisasi_stok   → semua authenticated user
---   • pasien         → semua authenticated user
---   • kehadiran_pasien → semua authenticated user
---   • transaksi      → semua authenticated user (steady-state: RPC/application-level enforcement)
---   • transaksi_item → semua authenticated user
---   • kunjungan_pasien → semua authenticated user
+--   • admin          → semua clinic staff bisa baca profil admin
+--   • operasional    → role petugas dan kepala_klinik
+--   • laporan        → tidak punya table/view khusus; UI owner-only
 --
 -- Future enhancements:
---   → Role-based restrictions (petugas vs kepala_klinik)
 --   → Row-level isolation antar klinik (multi-tenant)
 --   → Audit log per-user
 
@@ -1233,13 +1422,111 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.current_admin_id()
+RETURNS bigint
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT a.id_admin
+  FROM public.admin AS a
+  WHERE a.auth_user_id = auth.uid()
+  LIMIT 1
+$$;
+
+CREATE OR REPLACE FUNCTION public.current_admin_role()
+RETURNS text
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT a.role
+  FROM public.admin AS a
+  WHERE a.auth_user_id = auth.uid()
+    AND a.role IN ('petugas', 'kepala_klinik')
+  LIMIT 1
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_owner()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT public.current_admin_role() = 'kepala_klinik'
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_petugas()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT public.current_admin_role() = 'petugas'
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_clinic_staff()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT public.current_admin_role() IN ('petugas', 'kepala_klinik')
+$$;
+
+CREATE OR REPLACE FUNCTION public.can_view_laporan()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT public.is_owner()
+$$;
+
+CREATE OR REPLACE FUNCTION public.require_clinic_staff(
+  p_expected_admin_id bigint DEFAULT NULL
+) RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_admin_id bigint;
+BEGIN
+  v_admin_id := public.current_admin_id();
+
+  IF v_admin_id IS NULL OR NOT public.is_clinic_staff() THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '42501',
+      MESSAGE = 'akses ditolak: admin login tidak valid';
+  END IF;
+
+  IF p_expected_admin_id IS NOT NULL
+     AND (p_expected_admin_id <= 0 OR p_expected_admin_id <> v_admin_id) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '42501',
+      MESSAGE = 'akses ditolak: id_admin tidak sesuai user login';
+  END IF;
+
+  RETURN v_admin_id;
+END;
+$$;
+
 -- ============================================================
 -- RLS POLICIES
 -- ============================================================
 -- Catatan penting:
 -- - INSERT melalui RPC functions (fn_*_insert_atomic) melewati WITH CHECK.
 --   RLS INSERT/SELECT berlaku hanya untuk akses PostgREST langsung.
--- - Semua policy menggunakan auth.uid() bukan auth.jwt() untuk kejelasan.
+-- - Semua policy operasional memakai helper role berbasis auth.uid()
+--   yang cocok ke public.admin.
 
 ALTER TABLE public.admin ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.obat ENABLE ROW LEVEL SECURITY;
@@ -1250,176 +1537,206 @@ ALTER TABLE public.sinkronisasi_stok ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pasien ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kehadiran_pasien ENABLE ROW LEVEL SECURITY;
 
--- admin: hanya profile milik user sendiri
+-- admin: clinic staff bisa baca profil admin untuk label/audit operasional.
 DROP POLICY IF EXISTS "admin read own row" ON public.admin;
-CREATE POLICY "admin read own row"
+DROP POLICY IF EXISTS "clinic staff can read admin" ON public.admin;
+CREATE POLICY "clinic staff can read admin"
   ON public.admin
   FOR SELECT
   TO authenticated
-  USING (auth.uid() = admin.auth_user_id);
+  USING (public.is_clinic_staff());
 
--- obat: semua authenticated user (data bersama klinik)
+DROP POLICY IF EXISTS "owner can insert admin" ON public.admin;
+CREATE POLICY "owner can insert admin"
+  ON public.admin
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_owner());
+
+DROP POLICY IF EXISTS "owner can update admin" ON public.admin;
+CREATE POLICY "owner can update admin"
+  ON public.admin
+  FOR UPDATE
+  TO authenticated
+  USING (public.is_owner())
+  WITH CHECK (public.is_owner());
+
+DROP POLICY IF EXISTS "owner can delete admin" ON public.admin;
+CREATE POLICY "owner can delete admin"
+  ON public.admin
+  FOR DELETE
+  TO authenticated
+  USING (public.is_owner());
+
+-- obat: clinic staff (data bersama klinik)
 DROP POLICY IF EXISTS "authenticated can read obat" ON public.obat;
 CREATE POLICY "authenticated can read obat"
   ON public.obat
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert obat" ON public.obat;
 CREATE POLICY "authenticated can insert obat"
   ON public.obat
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can update obat" ON public.obat;
 CREATE POLICY "authenticated can update obat"
   ON public.obat
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.is_clinic_staff());
 
--- obat_masuk: semua authenticated user
+-- obat_masuk: clinic staff
 DROP POLICY IF EXISTS "authenticated can read obat_masuk" ON public.obat_masuk;
 CREATE POLICY "authenticated can read obat_masuk"
   ON public.obat_masuk
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert obat_masuk" ON public.obat_masuk;
 CREATE POLICY "authenticated can insert obat_masuk"
   ON public.obat_masuk
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update obat_masuk" ON public.obat_masuk;
 CREATE POLICY "authenticated can update obat_masuk"
   ON public.obat_masuk
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.current_admin_id() = id_admin);
 
--- obat_keluar: semua authenticated user
+-- obat_keluar: clinic staff
 DROP POLICY IF EXISTS "authenticated can read obat_keluar" ON public.obat_keluar;
 CREATE POLICY "authenticated can read obat_keluar"
   ON public.obat_keluar
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert obat_keluar" ON public.obat_keluar;
 CREATE POLICY "authenticated can insert obat_keluar"
   ON public.obat_keluar
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update obat_keluar" ON public.obat_keluar;
 CREATE POLICY "authenticated can update obat_keluar"
   ON public.obat_keluar
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.current_admin_id() = id_admin);
 
--- obat_keluar_item: semua authenticated user
+-- obat_keluar_item: clinic staff
 DROP POLICY IF EXISTS "authenticated can read obat_keluar_item" ON public.obat_keluar_item;
 CREATE POLICY "authenticated can read obat_keluar_item"
   ON public.obat_keluar_item
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert obat_keluar_item" ON public.obat_keluar_item;
 CREATE POLICY "authenticated can insert obat_keluar_item"
   ON public.obat_keluar_item
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can update obat_keluar_item" ON public.obat_keluar_item;
 CREATE POLICY "authenticated can update obat_keluar_item"
   ON public.obat_keluar_item
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.is_clinic_staff());
 
--- sinkronisasi_stok: semua authenticated user
+-- sinkronisasi_stok: clinic staff
 DROP POLICY IF EXISTS "authenticated can read sinkronisasi_stok" ON public.sinkronisasi_stok;
 CREATE POLICY "authenticated can read sinkronisasi_stok"
   ON public.sinkronisasi_stok
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert sinkronisasi_stok" ON public.sinkronisasi_stok;
 CREATE POLICY "authenticated can insert sinkronisasi_stok"
   ON public.sinkronisasi_stok
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update sinkronisasi_stok" ON public.sinkronisasi_stok;
 CREATE POLICY "authenticated can update sinkronisasi_stok"
   ON public.sinkronisasi_stok
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.current_admin_id() = id_admin);
 
--- pasien: semua authenticated user
+-- pasien: clinic staff
 DROP POLICY IF EXISTS "authenticated can read pasien" ON public.pasien;
 CREATE POLICY "authenticated can read pasien"
   ON public.pasien
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert pasien" ON public.pasien;
 CREATE POLICY "authenticated can insert pasien"
   ON public.pasien
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can update pasien" ON public.pasien;
 CREATE POLICY "authenticated can update pasien"
   ON public.pasien
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.is_clinic_staff());
 
--- kehadiran_pasien: semua authenticated user
+-- kehadiran_pasien: clinic staff
 DROP POLICY IF EXISTS "authenticated can read kehadiran_pasien" ON public.kehadiran_pasien;
 CREATE POLICY "authenticated can read kehadiran_pasien"
   ON public.kehadiran_pasien
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert kehadiran_pasien" ON public.kehadiran_pasien;
 CREATE POLICY "authenticated can insert kehadiran_pasien"
   ON public.kehadiran_pasien
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update kehadiran_pasien" ON public.kehadiran_pasien;
 CREATE POLICY "authenticated can update kehadiran_pasien"
   ON public.kehadiran_pasien
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.current_admin_id() = id_admin);
 
--- transaksi: semua authenticated user (INSERT/UPDATE via Supabase client)
+DROP POLICY IF EXISTS "authenticated can delete kehadiran_pasien" ON public.kehadiran_pasien;
+CREATE POLICY "authenticated can delete kehadiran_pasien"
+  ON public.kehadiran_pasien
+  FOR DELETE
+  TO authenticated
+  USING (public.is_clinic_staff());
+
+-- transaksi: owner-only history, staff insert via own id_admin, owner update.
 ALTER TABLE public.transaksi ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "authenticated can read transaksi" ON public.transaksi;
@@ -1427,24 +1744,24 @@ CREATE POLICY "authenticated can read transaksi"
   ON public.transaksi
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_owner());
 
 DROP POLICY IF EXISTS "authenticated can insert transaksi" ON public.transaksi;
 CREATE POLICY "authenticated can insert transaksi"
   ON public.transaksi
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update transaksi" ON public.transaksi;
 CREATE POLICY "authenticated can update transaksi"
   ON public.transaksi
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_owner())
+  WITH CHECK (public.is_owner());
 
--- transaksi_item: semua authenticated user
+-- transaksi_item: owner-only history, staff insert via own id_admin, owner update.
 ALTER TABLE public.transaksi_item ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "authenticated can read transaksi_item" ON public.transaksi_item;
@@ -1452,24 +1769,24 @@ CREATE POLICY "authenticated can read transaksi_item"
   ON public.transaksi_item
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_owner());
 
 DROP POLICY IF EXISTS "authenticated can insert transaksi_item" ON public.transaksi_item;
 CREATE POLICY "authenticated can insert transaksi_item"
   ON public.transaksi_item
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.is_clinic_staff() AND public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update transaksi_item" ON public.transaksi_item;
 CREATE POLICY "authenticated can update transaksi_item"
   ON public.transaksi_item
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_owner())
+  WITH CHECK (public.is_owner());
 
--- kunjungan_pasien: semua authenticated user (owner-only di aplikasi, RLS defense-in-depth)
+-- kunjungan_pasien: clinic staff
 ALTER TABLE public.kunjungan_pasien ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "authenticated can read kunjungan_pasien" ON public.kunjungan_pasien;
@@ -1477,29 +1794,29 @@ CREATE POLICY "authenticated can read kunjungan_pasien"
   ON public.kunjungan_pasien
   FOR SELECT
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated can insert kunjungan_pasien" ON public.kunjungan_pasien;
 CREATE POLICY "authenticated can insert kunjungan_pasien"
   ON public.kunjungan_pasien
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can update kunjungan_pasien" ON public.kunjungan_pasien;
 CREATE POLICY "authenticated can update kunjungan_pasien"
   ON public.kunjungan_pasien
   FOR UPDATE
   TO authenticated
-  USING (auth.uid() IS NOT NULL)
-  WITH CHECK (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff())
+  WITH CHECK (public.current_admin_id() = id_admin);
 
 DROP POLICY IF EXISTS "authenticated can delete kunjungan_pasien" ON public.kunjungan_pasien;
 CREATE POLICY "authenticated can delete kunjungan_pasien"
   ON public.kunjungan_pasien
   FOR DELETE
   TO authenticated
-  USING (auth.uid() IS NOT NULL);
+  USING (public.is_clinic_staff());
 
 -- =========================
 -- GRANTS
@@ -1508,6 +1825,7 @@ CREATE POLICY "authenticated can delete kunjungan_pasien"
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_refresh_totals(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_recalculate_obat_stok_single(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_recalculate_obat_stok_bulk(bigint[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_transaksi_insert(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_insert_atomic(date, text, text, bigint, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_update_atomic(bigint, date, text, text, bigint, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_keluar_delete_atomic(bigint) TO authenticated;
@@ -1523,6 +1841,13 @@ GRANT EXECUTE ON FUNCTION public.fn_stock_opname_delete_by_tanggal_atomic(date) 
 GRANT EXECUTE ON FUNCTION public.fn_obat_delete_if_unused(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_pasien_delete_and_renumber(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_auth_admin_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_admin_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_admin_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_owner() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_petugas() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_clinic_staff() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.can_view_laporan() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.require_clinic_staff(bigint) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_obat_kurangi_stok(int, int) TO authenticated;
 
 -- =========================
@@ -1559,19 +1884,219 @@ CREATE POLICY "authenticated upload obat-images"
   ON storage.objects
   FOR INSERT
   TO authenticated
-  WITH CHECK (bucket_id = 'obat-images');
+  WITH CHECK (bucket_id = 'obat-images' AND public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated update obat-images" ON storage.objects;
 CREATE POLICY "authenticated update obat-images"
   ON storage.objects
   FOR UPDATE
   TO authenticated
-  USING (bucket_id = 'obat-images')
-  WITH CHECK (bucket_id = 'obat-images');
+  USING (bucket_id = 'obat-images' AND public.is_clinic_staff())
+  WITH CHECK (bucket_id = 'obat-images' AND public.is_clinic_staff());
 
 DROP POLICY IF EXISTS "authenticated delete obat-images" ON storage.objects;
 CREATE POLICY "authenticated delete obat-images"
   ON storage.objects
   FOR DELETE
   TO authenticated
-  USING (bucket_id = 'obat-images');
+  USING (bucket_id = 'obat-images' AND public.is_clinic_staff());
+
+-- =========================
+-- STOCK LEDGER (P3, 2026-05-09)
+-- =========================
+
+CREATE TABLE IF NOT EXISTS public.stock_movements (
+  id bigserial PRIMARY KEY,
+  id_obat bigint NOT NULL REFERENCES public.obat(id_obat) ON DELETE RESTRICT,
+  qty integer NOT NULL CHECK (qty > 0),
+  movement_type varchar(20) NOT NULL
+    CHECK (movement_type IN ('IN', 'OUT', 'ADJUSTMENT')),
+  reference_type varchar(40),
+  reference_id bigint,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  created_by bigint NOT NULL REFERENCES public.admin(id_admin) ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_movements_id_obat_created_at
+  ON public.stock_movements(id_obat, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_reference
+  ON public.stock_movements(reference_type, reference_id);
+
+ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "authenticated can read stock_movements" ON public.stock_movements;
+CREATE POLICY "authenticated can read stock_movements"
+  ON public.stock_movements
+  FOR SELECT
+  TO authenticated
+  USING (public.is_clinic_staff());
+
+DROP POLICY IF EXISTS "authenticated can insert stock_movements" ON public.stock_movements;
+CREATE POLICY "authenticated can insert stock_movements"
+  ON public.stock_movements
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (public.current_admin_id() = created_by);
+
+CREATE OR REPLACE FUNCTION public.fn_create_transaction(
+  p_tanggal date,
+  p_jenis_transaksi varchar(30),
+  p_total numeric(12, 2),
+  p_metode_bayar varchar(20),
+  p_id_pasien bigint,
+  p_keterangan text,
+  p_durasi_harian int,
+  p_id_admin bigint,
+  p_items jsonb DEFAULT '[]'::jsonb
+)
+RETURNS SETOF public.transaksi
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_transaksi public.transaksi%ROWTYPE;
+  v_item jsonb;
+  v_id_obat bigint;
+  v_jumlah integer;
+  v_harga numeric(12, 2);
+  v_subtotal numeric(12, 2);
+  v_satuan_terjual varchar(30);
+  v_row record;
+BEGIN
+  PERFORM public.require_clinic_staff(p_id_admin);
+
+  IF p_jenis_transaksi = 'obat_ready_stock' THEN
+    IF p_items IS NULL
+       OR jsonb_typeof(p_items) <> 'array'
+       OR jsonb_array_length(p_items) = 0 THEN
+      RAISE EXCEPTION 'transaksi obat wajib memiliki minimal 1 item';
+    END IF;
+
+    FOR v_row IN
+      WITH grouped AS (
+        SELECT id_obat, SUM(jumlah)::integer AS total_qty
+        FROM jsonb_to_recordset(p_items) AS i(id_obat bigint, jumlah integer)
+        GROUP BY id_obat
+      )
+      SELECT o.id_obat, o.stok_saat_ini, g.total_qty
+      FROM grouped g
+      JOIN public.obat o ON o.id_obat = g.id_obat
+      FOR UPDATE OF o
+    LOOP
+      IF v_row.total_qty > v_row.stok_saat_ini THEN
+        RAISE EXCEPTION USING
+          MESSAGE = 'oversell: jumlah melebihi stok tersedia',
+          HINT = 'CHECK_STOCK_FAILED';
+      END IF;
+    END LOOP;
+  END IF;
+
+  INSERT INTO public.transaksi (
+    tanggal,
+    jenis_transaksi,
+    total,
+    metode_bayar,
+    id_pasien,
+    keterangan,
+    durasi_harian,
+    id_admin
+  ) VALUES (
+    p_tanggal,
+    p_jenis_transaksi,
+    p_total,
+    p_metode_bayar,
+    p_id_pasien,
+    p_keterangan,
+    p_durasi_harian,
+    p_id_admin
+  )
+  RETURNING * INTO v_transaksi;
+
+  IF p_jenis_transaksi = 'obat_ready_stock' THEN
+    FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+    LOOP
+      v_id_obat := (v_item->>'id_obat')::bigint;
+      v_jumlah := (v_item->>'jumlah')::integer;
+      v_harga := (v_item->>'harga_satuan')::numeric(12, 2);
+      v_subtotal := (v_item->>'subtotal')::numeric(12, 2);
+      v_satuan_terjual := NULLIF(BTRIM(v_item->>'satuan_terjual'), '');
+
+      INSERT INTO public.transaksi_item (
+        id_transaksi,
+        id_obat,
+        jumlah,
+        harga_satuan,
+        subtotal,
+        satuan_terjual,
+        id_admin
+      ) VALUES (
+        v_transaksi.id_transaksi,
+        v_id_obat,
+        v_jumlah,
+        v_harga,
+        v_subtotal,
+        v_satuan_terjual,
+        p_id_admin
+      );
+
+      UPDATE public.obat
+      SET stok_saat_ini = GREATEST(0, stok_saat_ini - v_jumlah)
+      WHERE id_obat = v_id_obat;
+
+      INSERT INTO public.stock_movements (
+        id_obat,
+        qty,
+        movement_type,
+        reference_type,
+        reference_id,
+        created_by
+      ) VALUES (
+        v_id_obat,
+        v_jumlah,
+        'OUT',
+        'transaksi',
+        v_transaksi.id_transaksi,
+        p_id_admin
+      );
+    END LOOP;
+  END IF;
+
+  RETURN NEXT v_transaksi;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.fn_transaksi_insert(
+  p_tanggal date,
+  p_jenis_transaksi varchar(30),
+  p_total numeric(12, 2),
+  p_metode_bayar varchar(20),
+  p_id_pasien bigint,
+  p_keterangan text,
+  p_durasi_harian int,
+  p_id_admin bigint,
+  p_items jsonb DEFAULT '[]'::jsonb
+)
+RETURNS SETOF public.transaksi
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT *
+  FROM public.fn_create_transaction(
+    p_tanggal,
+    p_jenis_transaksi,
+    p_total,
+    p_metode_bayar,
+    p_id_pasien,
+    p_keterangan,
+    p_durasi_harian,
+    p_id_admin,
+    p_items
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.fn_create_transaction(date, varchar, numeric, varchar, bigint, text, int, bigint, jsonb) TO authenticated;
